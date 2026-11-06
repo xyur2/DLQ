@@ -1,15 +1,20 @@
 class_name GameAssets
 extends RefCounted
-## 아직 완성되지 않은 에셋의 경로와 불러오기. 파일 목록은 docs/에셋 목록.md 참고.
+## 코드에서 불러오는 에셋(맵, 소품, 효과, 공포 이미지)의 경로. 파일 목록은 docs/에셋 목록.md 참고.
 ## 파일이 없으면 임시 그림으로 대체하므로 에셋이 없어도 게임이 실행된다.
-## 완성된 에셋(휴대폰, 손, 버블, 로딩 바, DM 아이콘)은 각 씬이 직접 불러온다.
+## 휴대폰, 손, 버블, 로딩 바, DM 아이콘, 시계, 주인공은 각 씬이 직접 불러온다.
 
-const PARTY_MAP: String = 'res://assets/party_map.png'
+const PARTY_MAP: String = 'res://assets/party_map.webp'
 const SCARE_IMAGE: String = 'res://assets/scare.png'
 const PROP_ICONS: Dictionary = {
     'speaker': 'res://assets/prop_speaker.png',
-    'light': 'res://assets/prop_light.png',
-    'playlist': 'res://assets/prop_playlist.png',
+    'light': 'res://assets/prop_light.webp',
+    'playlist': 'res://assets/prop_playlist.webp',
+}
+## 캔버스의 빈 공간을 뺀 그림 영역. 없으면 이미지 전체를 쓴다.
+const PROP_ICON_REGIONS: Dictionary = {
+    'light': Rect2(436, 263, 1203, 1374),
+    'playlist': Rect2(111, 520, 1784, 847),
 }
 # TODO(확인필요): 효과를 어떤 형식으로 가져올지 정해지면 맞춘다. 지금은 효과 하나를 씬 파일 하나로 받는다.
 const PROP_EFFECTS: Dictionary = {
@@ -33,7 +38,13 @@ static func load_texture(path: String) -> Texture2D:
 
 static func prop_icon(prop_id: String, fallback_color: Color) -> Texture2D:
     var path: String = String(PROP_ICONS[prop_id])
-    return _texture_or(path, _solid.bind(Vector2i(48, 48), fallback_color))
+    var texture: Texture2D = _texture_or(path, _solid.bind(Vector2i(48, 48), fallback_color))
+    if not PROP_ICON_REGIONS.has(prop_id) or not ResourceLoader.exists(path):
+        return texture
+    var atlas := AtlasTexture.new()
+    atlas.atlas = texture
+    atlas.region = PROP_ICON_REGIONS[prop_id]
+    return atlas
 
 
 ## 소품 효과 씬. 없으면 null.

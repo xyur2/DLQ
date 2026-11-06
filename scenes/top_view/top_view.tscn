@@ -12,7 +12,6 @@ script = ExtResource("1_top")
 script = ExtResource("2_map")
 
 [node name="Background" type="Sprite2D" parent="Map"]
-position = Vector2(-48, -48)
 centered = false
 
 [node name="Props" type="Node2D" parent="."]

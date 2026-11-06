@@ -5,7 +5,8 @@ extends Area2D
 ## 모양은 소품 이미지, 작동 효과는 효과 씬(GameAssets.PROP_EFFECTS). 효과 씬이 없으면 원으로 대신 표시한다.
 
 const LAYER_PROP: int = 8
-const PROP_HALF_SIZE: float = 24.0
+const PROP_HALF_SIZE: float = 24.0        # 상호작용 판정 크기
+const ICON_DISPLAY_SIZE: float = 96.0     # 이미지의 긴 변을 이 크기로 표시
 const ACTIVE_CIRCLE_RADIUS: float = 160.0
 const ACTIVE_CIRCLE_MAX_ALPHA: float = 0.25
 const COOLDOWN_TINT: Color = Color(0.4, 0.4, 0.4)
@@ -34,8 +35,8 @@ func _ready() -> void:
     cooldown_total = float(spec['cooldown'])
     base_color = spec['color']
     _icon.texture = GameAssets.prop_icon(prop_id, base_color)
-    # 이미지 해상도와 상관없이 판정 크기에 맞춰 보여 준다.
-    _icon.scale = Vector2.ONE * PROP_HALF_SIZE * 2.0 / maxf(_icon.texture.get_width(), _icon.texture.get_height())
+    # 이미지 해상도와 상관없이 같은 크기로 보여 준다.
+    _icon.scale = Vector2.ONE * ICON_DISPLAY_SIZE / maxf(_icon.texture.get_width(), _icon.texture.get_height())
 
     collision_layer = LAYER_PROP
     collision_mask = 0
