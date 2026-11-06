@@ -1,20 +1,19 @@
 class_name EndScreen
 extends ColorRect
+## 종료 화면. process_mode = ALWAYS (씬에서 설정)라서 일시정지 중에도 페이드와 R 입력이 동작한다.
+## 모양은 scenes/ui/end_screen.tscn에서 편집한다.
 
-var _message: Label
+const FADE_ALPHA: float = 0.85
+const FADE_SEC: float = 1.0
+
+@onready var _message: Label = $Message
+
 
 func _ready() -> void:
-    process_mode = Node.PROCESS_MODE_ALWAYS
-    set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    color = Color(0.0, 0.0, 0.0, 0.0)
     visible = false
-    _message = Label.new()
-    _message.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    _message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _message.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    _message.add_theme_font_size_override('font_size', 40)
-    add_child(_message)
+    color.a = 0.0
     GameState.game_ended.connect(_on_game_ended)
+
 
 func _on_game_ended(reason: int) -> void:
     var line: String = ''
@@ -27,7 +26,8 @@ func _on_game_ended(reason: int) -> void:
     _message.text = line + '\n\nR 키를 눌러 다시 시작'
     visible = true
     var tween: Tween = create_tween()
-    tween.tween_property(self, 'color:a', 0.85, 1.0)
+    tween.tween_property(self, 'color:a', FADE_ALPHA, FADE_SEC)
+
 
 func _input(event: InputEvent) -> void:
     if visible and event.is_action_pressed('restart'):

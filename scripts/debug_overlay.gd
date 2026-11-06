@@ -6,10 +6,6 @@ var _hint: String = ''
 
 
 func _ready() -> void:
-    position = Vector2(1500.0, 20.0)
-    mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_theme_color_override('font_outline_color', Color.BLACK)
-    add_theme_constant_override('outline_size', 4)
     visible = GameState.debug_enabled
     GameState.debug_changed.connect(_on_debug_changed)
     GameState.interact_hint_changed.connect(_on_hint_changed)

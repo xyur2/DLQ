@@ -1,24 +1,19 @@
 class_name GameHud
 extends Control
+## 탑뷰 HUD: 왼쪽 위 시각, 아래쪽 상호작용 안내, 오른쪽 아래 DM 아이콘(자식 씬 노드).
+## 배치와 글자 크기는 scenes/ui/hud.tscn에서 편집한다.
 
-var _clock: Label
-var _hint: Label
+@onready var _clock: Label = $Clock
+@onready var _hint: Label = $Hint
+
 
 func _ready() -> void:
-    set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _clock = Label.new()
-    _clock.position = Vector2(32.0, 24.0)
-    _clock.add_theme_font_size_override('font_size', 32)
-    add_child(_clock)
-    _hint = Label.new()
-    _hint.position = Vector2(760.0, 960.0)
-    _hint.size = Vector2(400.0, 40.0)
-    _hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _hint.add_theme_font_size_override('font_size', 26)
-    add_child(_hint)
-    add_child(DmIcon.new())
-    GameState.interact_hint_changed.connect(func(text: String) -> void: _hint.text = text)
+    GameState.interact_hint_changed.connect(_on_hint_changed)
+
 
 func _process(_delta: float) -> void:
     _clock.text = GameState.get_clock_text()
+
+
+func _on_hint_changed(text_value: String) -> void:
+    _hint.text = text_value

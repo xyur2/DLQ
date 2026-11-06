@@ -19,8 +19,8 @@ const PLAYER_COLOR: Color = Color(0.85, 0.85, 0.8)
 const INTERACT_RANGE: float = 57.6
 
 const NPC_RADIUS: float = 19.2
-const NPC_SPEED: float = 57.6
-const NPC_AGGRO_SPEED: float = 115.2
+const NPC_SPEED: float = 86.4          # 플레이 피드백: 조금 더 빠르게 (57.6 → 86.4)
+const NPC_AGGRO_SPEED: float = 172.8   # 115.2 → 172.8
 const NPC_IDLE_TIME_RANGE: Vector2 = Vector2(1.0, 3.0)
 const NPC_MAP_MARGIN: float = 72.0
 const NPC_ARRIVE_DISTANCE: float = 9.6
@@ -37,6 +37,13 @@ const SPEAKER_RADIUS: float = 640.0
 const LIGHT_RADIUS: float = 720.0
 const PLAYLIST_RADIUS: float = 99999.0
 
+# 소품 종류별 값. 위치와 어그로 지점은 top_view.tscn에서 배치한다.
+const PROPS: Dictionary = {
+    'speaker': {'name': '스피커', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25)},
+    'light': {'name': '조명', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35)},
+    'playlist': {'name': '플레이리스트', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85)},
+}
+
 const SURVIVE_TIME: float = 180.0
 const MAX_DM_STAGE: int = 10
 const ALERT_RADIUS: float = 260.0
@@ -50,9 +57,8 @@ const LEVELS: Array = [
         'npc_count': 5,
         'dm_interval': 15.0,
         'caught_radius': 80.0,
-        'bubble_count': 4,
-        'reply_time': 10.0,
-        'miss_penalty': 0.5,
+        'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
+        'wrong_lock_time': 1.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
 ]
 
@@ -60,25 +66,26 @@ const LEVELS: Array = [
 const VIEW_SIZE: Vector2 = Vector2(1920.0, 1080.0)
 const DM_BADGE_TEXT: Array = ['', '1', '4', '21', '34', '56', '73', '85', '99+', '99+', '99+']
 const DM_ICON_SHAKE_PX: Array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 5.0, 7.0]
-const TREMOR_MAX_PX: float = 24.0
-const TREMOR_NOISE_SPEED: float = 120.0
+# 손 떨림 = 휴대폰 화면(본체·버튼·손 전체) 흔들림. 가까운 사람과의 거리를 떨림으로 구분하게 한다.
+# 근접도 = 최근접 거리가 TREMOR_FAR_RADIUS일 때 0 → 발각 반경일 때 1 (빠르게 따라감)
+# 떨림 폭(px) = BASE + DM × (DM 단계 / 10) + NEAR × 근접도^CURVE
+# 떨림 속도   = 근접도^CURVE에 따라 NOISE_SPEED_MIN → MAX
+const TREMOR_BASE_PX: float = 3.0             # 휴대폰을 켜면 항상
+const TREMOR_DM_PX: float = 6.0               # DM 10단계일 때 더해지는 양
+const TREMOR_NEAR_PX: float = 50.0            # 사람이 발각 반경까지 왔을 때 더해지는 양
+const TREMOR_FAR_RADIUS: float = 520.0        # 이 거리 안으로 들어오면 흔들리기 시작
+const TREMOR_CURVE: float = 2.0               # 클수록 가까워질수록 급격히 커짐
+const TREMOR_RISE_PER_SEC: float = 4.0        # 근접도가 오를 때 따라가는 속도
+const TREMOR_FALL_PER_SEC: float = 2.0        # 근접도가 내릴 때 따라가는 속도
+const TREMOR_NOISE_SPEED_MIN: float = 60.0
+const TREMOR_NOISE_SPEED_MAX: float = 220.0
+const TREMOR_NOISE_FREQUENCY: float = 0.03
+const TREMOR_NOISE_GAIN: float = 1.6          # 노이즈 값(대략 ±0.6)을 ±1 근처로 키움
 const PHONE_SIZE: Vector2 = Vector2(640.0, 1000.0)
-const PHONE_SCREEN_MARGIN: float = 30.0
-const BUBBLE_SIZE: Vector2 = Vector2(268.0, 110.0)
-const REPLY_MESSAGES: Array = [
-    '지금은 곤란해',
-    '조금만 기다려 줘',
-    '나도 보고 싶어',
-    '나중에 연락할게',
-    '오늘은 어려울 것 같아',
-    '아무한테도 말하지 마',
-    '사람들이 옆에 있어',
-    '금방 답장할게',
-    '걱정하지 마',
-    '내일 꼭 보자',
-    '전화는 안 돼',
-    '이따 다시 얘기해',
-]
+# 답장 단어. 대문자 알파벳만.
+const REPLY_WORDS: Array = ['LOVE', 'MISS', 'SOON', 'WAIT', 'CALL', 'LATER', 'HUSH', 'KISS', 'BABY', 'SORRY']
+const LETTER_GRID: Vector2i = Vector2i(5, 6)  # 알파벳 버튼을 놓는 칸 (열, 행)
+const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어긋나는 정도(px)
 const MUSIC_VOLUME_DB: float = -8.0
 const MUSIC_PHONE_DUCK_DB: float = -8.0
 const NPC_SOUND_MAX_DISTANCE: float = 700.0
