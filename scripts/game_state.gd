@@ -34,7 +34,7 @@ func _ready() -> void:
     InputSetup.ensure_actions()
 
 
-## 모든 값을 초기화한다. Main._ready()에서 UI를 만들기 전에 호출.
+## 모든 값을 초기화한다. Main._enter_tree()에서 호출한다(자식 씬의 _ready보다 먼저).
 ## 인트로를 이미 봤으면(R 재시작) 바로 PLAYING으로 시작한다.
 func start_game() -> void:
     cfg = GameConfig.LEVELS[0]
@@ -94,6 +94,7 @@ func report_reply_success() -> void:
         reply_resolved.emit(true)
 
 
+## 제한 시간이 없어져 현재는 쓰지 않는다. 계약 유지를 위해 남겨 둠.
 func report_reply_failed() -> void:
     if is_playing():
         _set_dm_stage(dm_stage + 1)
@@ -104,8 +105,9 @@ func emit_aggro(point: Vector2, radius: float, duration: float) -> void:
     aggro_emitted.emit(point, radius, duration)
 
 
+## 마우스 떨림 폭(px). 휴대폰이 켜져 있을 때 PhoneView의 MouseTremor가 사용한다.
 func get_tremor_px() -> float:
-    return GameConfig.TREMOR_MAX_PX * tension * tension
+    return lerpf(GameConfig.TREMOR_MIN_PX, GameConfig.TREMOR_MAX_PX, tension)
 
 
 func get_dm_badge_text() -> String:

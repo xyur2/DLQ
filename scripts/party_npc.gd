@@ -15,17 +15,17 @@ var _idle_left: float = 0.0
 var _stuck_time: float = 0.0
 var _aggro_left: float = 0.0
 
+@onready var _shape: CollisionShape2D = $CollisionShape2D
+
 
 func _ready() -> void:
     collision_layer = LAYER_NPC
     collision_mask = MASK_WALL_AND_PLAYER
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('npcs')
-    var shape := CollisionShape2D.new()
     var circle := CircleShape2D.new()
     circle.radius = GameConfig.NPC_RADIUS
-    shape.shape = circle
-    add_child(shape)
+    _shape.shape = circle
     # 처음엔 무작위 시간 동안 대기 → NPC끼리 박자가 겹치지 않음
     _start_idle()
     GameState.aggro_emitted.connect(_on_aggro)

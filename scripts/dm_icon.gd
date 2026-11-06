@@ -1,46 +1,46 @@
 class_name DmIcon
 extends Control
+## DM 아이콘. 클릭하면 휴대폰을 켠다. 8단계부터는 숫자가 같으므로 흔들림 폭으로 위험을 구분한다.
+## 위치는 scenes/ui/hud.tscn에서 정한다.
 
-const ICON_SIZE: Vector2 = Vector2(96.0, 96.0)
-const BASE_POSITION: Vector2 = Vector2(1792.0, 952.0)
-
-var _badge: Label
+var _base_position: Vector2 = Vector2.ZERO
 var _time: float = 0.0
 
+@onready var _badge: Label = $Badge
+
+
 func _ready() -> void:
-    size = ICON_SIZE
-    position = BASE_POSITION
-    pivot_offset = ICON_SIZE * 0.5
-    mouse_filter = Control.MOUSE_FILTER_STOP
-    _badge = Label.new()
-    _badge.position = Vector2(50.0, -14.0)
-    _badge.size = Vector2(56.0, 32.0)
-    _badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    _badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    add_child(_badge)
+    _base_position = position
+    pivot_offset = size * 0.5
     GameState.dm_stage_changed.connect(_on_stage_changed)
     GameState.dm_arrived.connect(_on_dm_arrived)
     _on_stage_changed(GameState.dm_stage)
 
+
 func _process(delta: float) -> void:
     _time += delta
     var amount: float = float(GameConfig.DM_ICON_SHAKE_PX[GameState.dm_stage])
-    position = BASE_POSITION + Vector2(sin(_time * 70.0), cos(_time * 83.0)) * amount
+    position = _base_position + Vector2(sin(_time * 70.0), cos(_time * 83.0)) * amount
+
 
 func _gui_input(event: InputEvent) -> void:
-    if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+    var mb := event as InputEventMouseButton
+    if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
         accept_event()
         GameState.open_phone()
+
 
 func _on_stage_changed(_stage: int) -> void:
     _badge.text = GameState.get_dm_badge_text()
     _badge.visible = GameState.dm_stage > 0
     queue_redraw()
 
+
 func _on_dm_arrived(_stage: int) -> void:
     var tween: Tween = create_tween()
     tween.tween_property(self, 'scale', Vector2(1.15, 1.15), 0.1)
     tween.tween_property(self, 'scale', Vector2.ONE, 0.1)
+
 
 func _draw() -> void:
     var body := Rect2(8.0, 22.0, 80.0, 56.0)

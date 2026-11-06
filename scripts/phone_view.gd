@@ -1,120 +1,45 @@
 class_name PhoneView
 extends Control
+## 휴대폰 화면. 탑뷰를 완전히 가리고, 제시된 단어의 알파벳을 순서대로 눌러 답장한다.
+## - 틀린 알파벳을 누르면 cfg['wrong_lock_time']초 동안 터치가 막힌다.
+## - 제한 시간은 없다. 답장하지 않으면 DM이 15초마다 계속 쌓일 뿐이다.
+## - 끄기는 전원 버튼으로만 가능하다. 끄고 다시 켜면 같은 단어를 이어서 한다.
+## 손 떨림은 자식 노드 MouseTremor가 마우스 커서를 흔드는 방식으로 처리한다.
 
-var _root: Control
-var _screen: Panel
-var _timer_bar: ProgressBar
-var _status: Label
-var _noise: FastNoiseLite
-var _noise_time: float = 0.0
-var _bubbles: Array[MessageBubble] = []
-var _set_active: bool = false
-var _time_left: float = 0.0
-var _next_order: int = 1
+const LETTER_SCENE: PackedScene = preload('res://scenes/phone/letter_button.tscn')
+const ALPHABET: String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const LOCK_TINT: Color = Color(1.0, 0.7, 0.7)
+
+var _letters: Array[LetterButton] = []
+var _puzzle_active: bool = false
+var _word: String = ''
+var _next_index: int = 0
+var _lock_left: float = 0.0
+
+@onready var _screen: Panel = $PhoneRoot/Screen
+@onready var _status: Label = $PhoneRoot/Screen/Status
+@onready var _word_label: Label = $PhoneRoot/Screen/Word
+@onready var _progress: Label = $PhoneRoot/Screen/Progress
+@onready var _lock_notice: Label = $PhoneRoot/Screen/LockNotice
+@onready var _letter_area: Control = $PhoneRoot/Screen/LetterArea
+@onready var _power_button: Button = $PhoneRoot/PowerButton
+
 
 func _ready() -> void:
-    set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     visible = false
-    _noise = FastNoiseLite.new()
-    _noise.seed = randi()
-    _noise.frequency = 0.03
-    _build()
+    _power_button.pressed.connect(_on_power_pressed)
     GameState.phone_toggled.connect(_on_phone_toggled)
     GameState.dm_stage_changed.connect(_on_stage_changed)
+    _refresh_labels()
 
-func _build() -> void:
-    var backdrop := ColorRect.new()
-    backdrop.color = Color(0.04, 0.04, 0.05)
-    backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    backdrop.gui_input.connect(_on_miss_input)
-    add_child(backdrop)
-
-    _root = Control.new()
-    _root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _root.size = GameConfig.PHONE_SIZE
-    _root.position = _base_position()
-    add_child(_root)
-
-    var body := Panel.new()
-    body.size = GameConfig.PHONE_SIZE
-    body.add_theme_stylebox_override('panel', _box(Color(0.1, 0.1, 0.11), 48))
-    body.gui_input.connect(_on_miss_input)
-    _root.add_child(body)
-
-    var margin: float = GameConfig.PHONE_SCREEN_MARGIN
-    _screen = Panel.new()
-    _screen.position = Vector2(margin, margin)
-    _screen.size = GameConfig.PHONE_SIZE - Vector2(margin, margin) * 2.0
-    _screen.add_theme_stylebox_override('panel', _box(Color(0.96, 0.96, 0.97), 28))
-    _screen.gui_input.connect(_on_miss_input)
-    _root.add_child(_screen)
-
-    var header := Label.new()
-    header.text = 'J'
-    header.position = Vector2(20.0, 16.0)
-    header.add_theme_color_override('font_color', Color.BLACK)
-    header.add_theme_font_size_override('font_size', 28)
-    _screen.add_child(header)
-
-    _status = Label.new()
-    _status.position = Vector2(20.0, 54.0)
-    _status.add_theme_color_override('font_color', Color(0.35, 0.35, 0.4))
-    _screen.add_child(_status)
-
-    _timer_bar = ProgressBar.new()
-    _timer_bar.position = Vector2(20.0, 90.0)
-    _timer_bar.size = Vector2(_screen.size.x - 40.0, 12.0)
-    _timer_bar.show_percentage = false
-    _timer_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _timer_bar.max_value = 1.0
-    _timer_bar.step = 0.001
-    _screen.add_child(_timer_bar)
-
-    var power := Button.new()
-    power.position = Vector2(GameConfig.PHONE_SIZE.x, 140.0)
-    power.size = Vector2(28.0, 120.0)
-    power.tooltip_text = '전원'
-    power.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
-    power.focus_mode = Control.FOCUS_NONE
-    power.pressed.connect(GameState.close_phone)
-    _root.add_child(power)
-
-    var hands := PhoneHands.new()
-    hands.size = GameConfig.PHONE_SIZE
-    _root.add_child(hands)
-
-func _box(color: Color, radius: int) -> StyleBoxFlat:
-    var box := StyleBoxFlat.new()
-    box.bg_color = color
-    box.set_corner_radius_all(radius)
-    return box
-
-func _base_position() -> Vector2:
-    return (GameConfig.VIEW_SIZE - GameConfig.PHONE_SIZE) * 0.5
 
 func _process(delta: float) -> void:
-    _update_tremor(delta)
-    _update_set(delta)
+    if _lock_left > 0.0 and GameState.is_playing():
+        _lock_left -= delta
+        if _lock_left <= 0.0:
+            _set_locked(false)
     _update_status()
 
-func _update_tremor(delta: float) -> void:
-    _noise_time += delta * GameConfig.TREMOR_NOISE_SPEED
-    var amount: float = GameState.get_tremor_px()
-    var offset := Vector2(
-        _noise.get_noise_1d(_noise_time),
-        _noise.get_noise_1d(_noise_time + 1000.0)
-    ) * amount * 1.6
-    _root.position = _base_position() + offset
-
-func _update_set(delta: float) -> void:
-    if not _set_active or not GameState.is_playing():
-        return
-    _time_left -= delta
-    _timer_bar.value = maxf(0.0, _time_left) / float(GameState.cfg['reply_time'])
-    if _time_left <= 0.0:
-        _finish_set()
-        GameState.report_reply_failed()
-        _try_start_set()
 
 func _update_status() -> void:
     if GameState.dm_stage > 0:
@@ -122,71 +47,111 @@ func _update_status() -> void:
     else:
         _status.text = '새 메시지 없음'
 
+
+func _on_power_pressed() -> void:
+    GameState.close_phone()
+
+
 func _on_phone_toggled(is_on: bool) -> void:
     visible = is_on
     if is_on:
-        _try_start_set()
+        _try_start_puzzle()
+
 
 func _on_stage_changed(_stage: int) -> void:
-    _try_start_set()
+    _try_start_puzzle()
 
-func _try_start_set() -> void:
-    if _set_active or not GameState.phone_on or GameState.dm_stage <= 0:
+
+func _try_start_puzzle() -> void:
+    if _puzzle_active or not GameState.phone_on or GameState.dm_stage <= 0:
         return
-    _set_active = true
-    _next_order = 1
-    _time_left = float(GameState.cfg['reply_time'])
-    _timer_bar.value = 1.0
-    var slots: Array[Vector2] = _make_slots()
-    slots.shuffle()
-    var messages: Array = GameConfig.REPLY_MESSAGES.duplicate()
-    messages.shuffle()
-    for i: int in int(GameState.cfg['bubble_count']):
-        var bubble := MessageBubble.new()
-        bubble.position = slots[i]
-        bubble.size = GameConfig.BUBBLE_SIZE
-        bubble.setup(i + 1, String(messages[i]))
-        bubble.set_active(i == 0)
-        bubble.clicked.connect(_on_bubble_clicked)
-        _screen.add_child(bubble)
-        _bubbles.append(bubble)
+    _puzzle_active = true
+    _word = String(GameConfig.REPLY_WORDS.pick_random())
+    _next_index = 0
+    _spawn_letters()
+    _refresh_labels()
 
-func _make_slots() -> Array[Vector2]:
-    var result: Array[Vector2] = []
-    for row: int in 5:
-        for column: int in 2:
-            result.append(Vector2(14.0 + 284.0 * column, 120.0 + 130.0 * row))
-    return result
 
-func _on_bubble_clicked(bubble: MessageBubble) -> void:
-    if bubble.order != _next_order:
-        _apply_miss()
+## 단어 글자 + 단어에 없는 알파벳(decoy)을 격자 칸에 무작위로 놓는다.
+func _spawn_letters() -> void:
+    var chars: Array[String] = []
+    for c: String in _word:
+        chars.append(c)
+    var pool: Array[String] = []
+    for c: String in ALPHABET:
+        if not _word.contains(c):
+            pool.append(c)
+    pool.shuffle()
+    for i: int in mini(int(GameState.cfg['decoy_count']), pool.size()):
+        chars.append(pool[i])
+
+    var cells: Array[Vector2i] = []
+    for row: int in GameConfig.LETTER_GRID.y:
+        for col: int in GameConfig.LETTER_GRID.x:
+            cells.append(Vector2i(col, row))
+    cells.shuffle()
+
+    var cell_size := Vector2(
+        _letter_area.size.x / float(GameConfig.LETTER_GRID.x),
+        _letter_area.size.y / float(GameConfig.LETTER_GRID.y)
+    )
+    for i: int in mini(chars.size(), cells.size()):
+        var button: LetterButton = LETTER_SCENE.instantiate()
+        _letter_area.add_child(button)
+        button.setup(chars[i])
+        var jitter := Vector2(
+            randf_range(-GameConfig.LETTER_JITTER, GameConfig.LETTER_JITTER),
+            randf_range(-GameConfig.LETTER_JITTER, GameConfig.LETTER_JITTER)
+        )
+        button.position = (Vector2(cells[i]) + Vector2(0.5, 0.5)) * cell_size - button.size * 0.5 + jitter
+        button.picked.connect(_on_letter_picked)
+        _letters.append(button)
+
+
+func _on_letter_picked(button: LetterButton) -> void:
+    if not _puzzle_active or _lock_left > 0.0 or not GameState.is_playing():
         return
-    _bubbles.erase(bubble)
-    bubble.queue_free()
-    _next_order += 1
-    if _bubbles.is_empty():
-        _finish_set()
-        GameState.report_reply_success()
+    if button.letter == _word[_next_index]:
+        button.mark_used()
+        _next_index += 1
+        _refresh_labels()
+        if _next_index >= _word.length():
+            _finish_puzzle()
+            GameState.report_reply_success()
+    else:
+        _lock_left = float(GameState.cfg['wrong_lock_time'])
+        _set_locked(true)
+
+
+## 틀렸을 때 잠시 터치를 막는다.
+func _set_locked(locked: bool) -> void:
+    if not locked:
+        _lock_left = 0.0
+    for button: LetterButton in _letters:
+        button.set_locked(locked)
+    _lock_notice.visible = locked
+    _screen.modulate = LOCK_TINT if locked else Color.WHITE
+
+
+func _finish_puzzle() -> void:
+    _puzzle_active = false
+    _set_locked(false)
+    for button: LetterButton in _letters:
+        button.queue_free()
+    _letters.clear()
+    _word = ''
+    _next_index = 0
+    _refresh_labels()
+
+
+## 단어와 진행 상황 표시. 예: "L O _ _"
+func _refresh_labels() -> void:
+    if not _puzzle_active:
+        _word_label.text = ''
+        _progress.text = ''
         return
-    for other: MessageBubble in _bubbles:
-        other.set_active(other.order == _next_order)
-
-func _on_miss_input(event: InputEvent) -> void:
-    if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-        _apply_miss()
-
-func _apply_miss() -> void:
-    if not _set_active:
-        return
-    _time_left -= float(GameState.cfg['miss_penalty'])
-    _screen.modulate = Color(1.0, 0.65, 0.65)
-    var tween: Tween = create_tween()
-    tween.tween_property(_screen, 'modulate', Color.WHITE, 0.2)
-
-func _finish_set() -> void:
-    _set_active = false
-    for bubble: MessageBubble in _bubbles:
-        bubble.queue_free()
-    _bubbles.clear()
-    _timer_bar.value = 0.0
+    _word_label.text = _word
+    var parts: PackedStringArray = []
+    for i: int in _word.length():
+        parts.append(_word[i] if i < _next_index else '_')
+    _progress.text = ' '.join(parts)

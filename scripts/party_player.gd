@@ -7,8 +7,13 @@ const MASK_WALL_AND_NPC: int = 1 | 4
 const LAYER_PROP: int = 8
 
 var _facing: Vector2 = Vector2.DOWN
-var _area: Area2D
 var _last_hint: String = ''
+
+@onready var _body_shape: CollisionShape2D = $CollisionShape2D
+@onready var _area: Area2D = $InteractionArea
+@onready var _area_shape: CollisionShape2D = $InteractionArea/CollisionShape2D
+@onready var _camera: Camera2D = $Camera2D
+@onready var _listener: AudioListener2D = $AudioListener2D
 
 
 func _ready() -> void:
@@ -16,32 +21,21 @@ func _ready() -> void:
     collision_mask = MASK_WALL_AND_NPC
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 
-    var body_shape := CollisionShape2D.new()
+    # 크기는 GameConfig 기준으로 맞춘다.
     var circle := CircleShape2D.new()
     circle.radius = GameConfig.PLAYER_RADIUS
-    body_shape.shape = circle
-    add_child(body_shape)
+    _body_shape.shape = circle
 
-    _area = Area2D.new()
-    _area.name = 'InteractionArea'
     _area.collision_layer = 0
     _area.collision_mask = LAYER_PROP
-    var area_shape := CollisionShape2D.new()
     var area_circle := CircleShape2D.new()
     area_circle.radius = GameConfig.INTERACT_RANGE
-    area_shape.shape = area_circle
-    _area.add_child(area_shape)
-    add_child(_area)
+    _area_shape.shape = area_circle
 
     # 중앙 고정 카메라: 스무딩과 리밋 없음
-    var camera := Camera2D.new()
-    camera.position_smoothing_enabled = false
-    add_child(camera)
-    camera.make_current()
-
-    var listener := AudioListener2D.new()
-    add_child(listener)
-    listener.make_current()
+    _camera.position_smoothing_enabled = false
+    _camera.make_current()
+    _listener.make_current()
 
     GameState.debug_changed.connect(_on_debug_changed)
 

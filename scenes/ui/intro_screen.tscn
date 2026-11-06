@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/intro_screen.gd" id="1_intro"]
+
+[node name="IntroScreen" type="ColorRect"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+script = ExtResource("1_intro")
+
+[node name="Message" type="Label" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_font_sizes/font_size = 32
+text = "홈커밍 파티. 여기 있는 사람들은 전부 여자친구를 안다.
+
+그런데 또 메시지가 왔다.
+
+WASD 이동 / E 상호작용 / Q 휴대폰 켜기
+휴대폰에서는 제시된 단어의 알파벳을 순서대로 누른다.
+끌 때는 휴대폰 옆 전원 버튼을 눌러야 한다.
+
+클릭해서 시작"
+horizontal_alignment = 1
+vertical_alignment = 1

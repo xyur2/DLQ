@@ -1,6 +1,22 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/top_view/top_view.tscn" id="2_top"]
+[ext_resource type="Script" path="res://scripts/audio_director.gd" id="3_audio"]
+[ext_resource type="PackedScene" path="res://scenes/phone/phone.tscn" id="4_phone"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ui.tscn" id="5_ui"]
 
 [node name="Main" type="Node2D"]
-script = ExtResource("1")
+script = ExtResource("1_main")
+
+[node name="TopView" parent="." instance=ExtResource("2_top")]
+
+[node name="AudioDirector" type="Node" parent="."]
+script = ExtResource("3_audio")
+
+[node name="PhoneLayer" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="Phone" parent="PhoneLayer" instance=ExtResource("4_phone")]
+
+[node name="UI" parent="." instance=ExtResource("5_ui")]
