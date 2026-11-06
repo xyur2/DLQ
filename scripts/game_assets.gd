@@ -5,8 +5,7 @@ extends RefCounted
 ## 완성된 에셋(휴대폰, 손, 버블, 로딩 바, DM 아이콘)은 각 씬이 직접 불러온다.
 
 const PARTY_MAP: String = 'res://assets/party_map.png'
-const PLAYER_SHEET: String = 'res://assets/player.png'
-const NPC_SHEET: String = 'res://assets/npc.png'
+const SCARE_IMAGE: String = 'res://assets/scare.png'
 const PROP_ICONS: Dictionary = {
     'speaker': 'res://assets/prop_speaker.png',
     'light': 'res://assets/prop_light.png',
@@ -17,14 +16,6 @@ const PROP_EFFECTS: Dictionary = {
     'light': 'res://assets/light_effect.tscn',
     'playlist': 'res://assets/playlist_effect.tscn',
 }
-
-## 캐릭터 시트: 가로는 프레임, 세로는 아래 순서의 애니메이션 (위에서부터)
-const CHARACTER_ANIMATIONS: Array[String] = [
-    'idle_down', 'idle_up', 'idle_left', 'idle_right',
-    'walk_down', 'walk_up', 'walk_left', 'walk_right',
-]
-const CHARACTER_COLUMNS: int = 4
-const CHARACTER_FPS: float = 8.0
 
 const PLACEHOLDER_FRAME: int = 64
 const PLACEHOLDER_DOT_RADIUS: float = 4.0
@@ -53,32 +44,17 @@ static func prop_effect(prop_id: String) -> PackedScene:
     return null
 
 
-## 캐릭터 시트로 SpriteFrames를 만든다. 시트가 없으면 방향 점이 있는 원으로 대체한다.
-static func character_frames(sheet_path: String, fallback_color: Color, fallback_radius: float) -> SpriteFrames:
-    if _frames.has(sheet_path):
-        return _frames[sheet_path]
-    var sheet: Texture2D = load_texture(sheet_path)
-    var columns: int = CHARACTER_COLUMNS
-    if sheet == null:
-        sheet = _placeholder_character(fallback_color, fallback_radius)
-        columns = 1
-    var frame_size := Vector2(
-        float(sheet.get_width()) / float(columns),
-        float(sheet.get_height()) / float(CHARACTER_ANIMATIONS.size())
-    )
+## 캐릭터 에셋이 없을 때 쓰는 임시 SpriteFrames. 아래쪽에 방향 점이 있는 원.
+static func placeholder_frames(color: Color, radius: float) -> SpriteFrames:
+    if _frames.has(color):
+        return _frames[color]
+    var texture: Texture2D = _placeholder_character(color, radius)
     var frames := SpriteFrames.new()
     frames.remove_animation('default')
-    for row: int in CHARACTER_ANIMATIONS.size():
-        var animation: String = CHARACTER_ANIMATIONS[row]
+    for animation: String in ['idle', 'walk']:
         frames.add_animation(animation)
-        frames.set_animation_speed(animation, CHARACTER_FPS)
-        frames.set_animation_loop(animation, true)
-        for column: int in columns:
-            var atlas := AtlasTexture.new()
-            atlas.atlas = sheet
-            atlas.region = Rect2(Vector2(column, row) * frame_size, frame_size)
-            frames.add_frame(animation, atlas)
-    _frames[sheet_path] = frames
+        frames.add_frame(animation, texture)
+    _frames[color] = frames
     return frames
 
 
@@ -103,19 +79,16 @@ static func _solid(size: Vector2i, color: Color) -> Texture2D:
     return _rects(size, [[Rect2i(Vector2i.ZERO, size), color]])
 
 
-## 애니메이션 한 줄에 프레임 하나. 방향은 점 위치로 표시한다.
 static func _placeholder_character(color: Color, radius: float) -> Texture2D:
-    var directions: Array[Vector2] = [Vector2.DOWN, Vector2.UP, Vector2.LEFT, Vector2.RIGHT]
     var frame: int = PLACEHOLDER_FRAME
-    var image := Image.create_empty(frame, frame * CHARACTER_ANIMATIONS.size(), false, Image.FORMAT_RGBA8)
+    var image := Image.create_empty(frame, frame, false, Image.FORMAT_RGBA8)
     var center := Vector2(frame, frame) * 0.5
-    for row: int in CHARACTER_ANIMATIONS.size():
-        var dot: Vector2 = center + directions[row % directions.size()] * radius * 0.7
-        for y: int in frame:
-            for x: int in frame:
-                var point := Vector2(x + 0.5, y + 0.5)
-                if point.distance_to(dot) <= PLACEHOLDER_DOT_RADIUS:
-                    image.set_pixel(x, y + row * frame, Color.BLACK)
-                elif point.distance_to(center) <= radius:
-                    image.set_pixel(x, y + row * frame, color)
+    var dot: Vector2 = center + Vector2.DOWN * radius * 0.7
+    for y: int in frame:
+        for x: int in frame:
+            var point := Vector2(x + 0.5, y + 0.5)
+            if point.distance_to(dot) <= PLACEHOLDER_DOT_RADIUS:
+                image.set_pixel(x, y, Color.BLACK)
+            elif point.distance_to(center) <= radius:
+                image.set_pixel(x, y, color)
     return ImageTexture.create_from_image(image)

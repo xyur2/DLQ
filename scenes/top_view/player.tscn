@@ -2,11 +2,32 @@
 
 [ext_resource type="Script" path="res://scripts/party_player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/character_sprite.gd" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_01.png" id="f01"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_02.png" id="f02"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_03.png" id="f03"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_04.png" id="f04"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_05.png" id="f05"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_06.png" id="f06"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_07.png" id="f07"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_08.png" id="f08"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_09.png" id="f09"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_10.png" id="f10"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_11.png" id="f11"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_12.png" id="f12"]
+[ext_resource type="Texture2D" path="res://assets/player_walk/frame_13.png" id="f13"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_player"]
+animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("f07")}], "loop": true, "name": &"idle", "speed": 1.0}, {"frames": [{"duration": 1.0, "texture": ExtResource("f01")}, {"duration": 1.0, "texture": ExtResource("f02")}, {"duration": 1.0, "texture": ExtResource("f03")}, {"duration": 1.0, "texture": ExtResource("f04")}, {"duration": 1.0, "texture": ExtResource("f05")}, {"duration": 1.0, "texture": ExtResource("f06")}, {"duration": 1.0, "texture": ExtResource("f07")}, {"duration": 1.0, "texture": ExtResource("f08")}, {"duration": 1.0, "texture": ExtResource("f09")}, {"duration": 1.0, "texture": ExtResource("f10")}, {"duration": 1.0, "texture": ExtResource("f11")}, {"duration": 1.0, "texture": ExtResource("f12")}, {"duration": 1.0, "texture": ExtResource("f13")}, {"duration": 1.0, "texture": ExtResource("f12")}, {"duration": 1.0, "texture": ExtResource("f11")}, {"duration": 1.0, "texture": ExtResource("f10")}, {"duration": 1.0, "texture": ExtResource("f09")}, {"duration": 1.0, "texture": ExtResource("f08")}, {"duration": 1.0, "texture": ExtResource("f07")}, {"duration": 1.0, "texture": ExtResource("f06")}, {"duration": 1.0, "texture": ExtResource("f05")}, {"duration": 1.0, "texture": ExtResource("f04")}, {"duration": 1.0, "texture": ExtResource("f03")}, {"duration": 1.0, "texture": ExtResource("f02")}], "loop": true, "name": &"walk", "speed": 12.5}]
 
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_player")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
+texture_filter = 3
+scale = Vector2(0.48, 0.48)
+sprite_frames = SubResource("SpriteFrames_player")
+animation = &"idle"
+offset = Vector2(0, 5)
 script = ExtResource("2_sprite")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

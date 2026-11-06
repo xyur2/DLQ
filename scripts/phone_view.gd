@@ -4,11 +4,13 @@ extends Control
 ## - 틀린 알파벳을 누르면 cfg['wrong_lock_time']초 동안 터치가 막힌다.
 ## - 제한 시간은 없다. 답장하지 않으면 DM이 15초마다 계속 쌓일 뿐이다.
 ## - 끄기는 전원 버튼으로만 가능하다. 끄고 다시 켜면 같은 단어를 이어서 한다.
+## 숨은 입력: 글자 버튼이나 키보드로 GameConfig.LETTER_COMBOS의 글자를 연속으로 입력하면 음향 효과가 나온다.
 ## 손 떨림: 휴대폰은 고정이고, 손 이미지와 실제 마우스 커서가 함께 흔들린다. 커서가 흔들려 누르기 어려운 것이 핵심이다.
 
 const LETTER_SCENE: PackedScene = preload('res://scenes/phone/letter_button.tscn')
 const ALPHABET: String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const LOCK_TINT: Color = Color(1.0, 0.7, 0.7)
+const LETTER_HISTORY_MAX: int = 8
 
 var _letters: Array[LetterButton] = []
 var _puzzle_active: bool = false
@@ -19,6 +21,7 @@ var _noise: FastNoiseLite = FastNoiseLite.new()
 var _noise_time: float = 0.0
 var _hands_base: Vector2 = Vector2.ZERO
 var _mouse_offset: Vector2i = Vector2i.ZERO
+var _typed: String = ''
 
 @onready var _hands: TextureRect = $Hands
 @onready var _screen_background: Panel = $PhoneRoot/ScreenBackground
@@ -97,6 +100,7 @@ func _on_power_pressed() -> void:
 
 func _on_phone_toggled(is_on: bool) -> void:
     visible = is_on
+    _typed = ''
     if is_on:
         _try_start_puzzle()
 
@@ -151,7 +155,27 @@ func _spawn_letters() -> void:
         _letters.append(button)
 
 
+## 키보드 글자는 답장에 쓰지 않고 숨은 입력으로만 받는다. 한글 자판에서도 동작하도록 물리 키를 쓴다.
+func _unhandled_key_input(event: InputEvent) -> void:
+    var key := event as InputEventKey
+    if key == null or not key.pressed or key.echo or not visible:
+        return
+    if key.physical_keycode >= KEY_A and key.physical_keycode <= KEY_Z:
+        _record_letter(String.chr(key.physical_keycode))
+
+
+func _record_letter(letter: String) -> void:
+    _typed += letter
+    for combo: String in GameConfig.LETTER_COMBOS.keys():
+        if _typed.ends_with(combo):
+            _typed = ''
+            GameState.trigger_easter_egg(String(GameConfig.LETTER_COMBOS[combo]))
+            return
+    _typed = _typed.right(LETTER_HISTORY_MAX)
+
+
 func _on_letter_picked(button: LetterButton) -> void:
+    _record_letter(button.letter)
     if not _puzzle_active or _lock_left > 0.0 or not GameState.is_playing():
         return
     if button.letter == _word[_next_index]:

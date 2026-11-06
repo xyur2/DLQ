@@ -23,7 +23,9 @@ func _on_game_ended(reason: int) -> void:
         line = '메시지가 너무 많이 쌓였다. 그녀가 찾아왔다.'
     elif reason == GameState.EndReason.SURVIVED:
         line = '끝까지 들키지 않았다.'
-    _message.text = line + '\n\nR 키를 눌러 다시 시작'
+    elif reason == GameState.EndReason.HIDDEN:
+        line = '모두가 나를 보고 있었다.\n\n히든 엔딩: 둥글게 둥글게'
+    _message.text = '%s\n\n점수 %d\n\nR 키를 눌러 다시 시작' % [line, GameState.score]
     visible = true
     var tween: Tween = create_tween()
     tween.tween_property(self, 'color:a', FADE_ALPHA, FADE_SEC)

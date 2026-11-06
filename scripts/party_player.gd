@@ -1,12 +1,14 @@
 class_name PartyPlayer
 extends CharacterBody2D
-## 플레이어. WASD 이동, 근처 소품에 E. 휴대폰이 켜져 있으면 이동·상호작용 불가.
+## 플레이어. WASD 이동, 근처 소품에 E. 휴대폰이 켜져 있거나 밀려난 상태면 이동·상호작용 불가.
 
 const LAYER_PLAYER: int = 2
 const MASK_WALL_AND_NPC: int = 1 | 4
 const LAYER_PROP: int = 8
 
 var _last_hint: String = ''
+var _knockback_left: float = 0.0
+var _knockback_velocity: Vector2 = Vector2.ZERO
 
 @onready var _sprite: CharacterSprite = $Sprite
 @onready var _body_shape: CollisionShape2D = $CollisionShape2D
@@ -20,7 +22,7 @@ func _ready() -> void:
     collision_layer = LAYER_PLAYER
     collision_mask = MASK_WALL_AND_NPC
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
-    _sprite.setup(GameAssets.PLAYER_SHEET, GameConfig.PLAYER_COLOR, GameConfig.PLAYER_RADIUS)
+    _sprite.setup(GameConfig.PLAYER_COLOR, GameConfig.PLAYER_RADIUS)
 
     # 크기는 GameConfig 기준으로 맞춘다.
     var circle := CircleShape2D.new()
@@ -39,23 +41,27 @@ func _ready() -> void:
     _listener.make_current()
 
     GameState.debug_changed.connect(_on_debug_changed)
+    GameState.player_knocked_back.connect(_on_knocked_back)
 
 
-func _physics_process(_delta: float) -> void:
-    var can_move: bool = GameState.is_playing() and not GameState.phone_on
+func _physics_process(delta: float) -> void:
+    var can_move: bool = GameState.is_playing() and not GameState.phone_on and not GameState.is_stunned()
     var direction: Vector2 = Vector2.ZERO
     if can_move:
         direction = Input.get_vector('move_left', 'move_right', 'move_up', 'move_down')
     velocity = direction * GameConfig.PLAYER_SPEED
+    if _knockback_left > 0.0:
+        _knockback_left -= delta
+        velocity = _knockback_velocity
     move_and_slide()
-    _sprite.set_motion(velocity)
+    _sprite.set_motion(Vector2.ZERO if _knockback_left > 0.0 else velocity)
     _update_hint(can_move)
 
 
 func _unhandled_input(event: InputEvent) -> void:
     if not event.is_action_pressed('interact'):
         return
-    if not GameState.is_playing() or GameState.phone_on:
+    if not GameState.is_playing() or GameState.phone_on or GameState.is_stunned():
         return
     var prop: PartyProp = _nearest_prop()
     if prop != null:
@@ -87,6 +93,11 @@ func _update_hint(can_move: bool) -> void:
     if hint != _last_hint:
         _last_hint = hint
         GameState.interact_hint_changed.emit(hint)
+
+
+func _on_knocked_back(from_point: Vector2) -> void:
+    _knockback_left = GameConfig.KNOCKBACK_DURATION
+    _knockback_velocity = from_point.direction_to(global_position) * GameConfig.KNOCKBACK_SPEED
 
 
 func _on_debug_changed(_enabled: bool) -> void:

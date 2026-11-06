@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/intro_screen.tscn" id="2_intro"]
 [ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="3_end"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="4_debug"]
+[ext_resource type="PackedScene" path="res://scenes/ui/scare_overlay.tscn" id="5_scare"]
 
 [node name="UI" type="Node"]
 
@@ -16,6 +17,8 @@ layer = 10
 layer = 30
 
 [node name="IntroScreen" parent="ScreenLayer" instance=ExtResource("2_intro")]
+
+[node name="ScareOverlay" parent="ScreenLayer" instance=ExtResource("5_scare")]
 
 [node name="EndScreen" parent="ScreenLayer" instance=ExtResource("3_end")]
 

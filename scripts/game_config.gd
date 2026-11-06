@@ -16,6 +16,7 @@ const WALL_COLOR: Color = Color(0.07, 0.07, 0.08)
 const PLAYER_RADIUS: float = 19.2
 const PLAYER_SPEED: float = 144.0
 const PLAYER_COLOR: Color = Color(0.85, 0.85, 0.8)
+const CHARACTER_TURN_SPEED: float = 14.0      # 캐릭터가 이동 방향으로 도는 속도(라디안/초)
 const INTERACT_RANGE: float = 57.6
 
 const NPC_RADIUS: float = 19.2
@@ -37,6 +38,45 @@ const SPEAKER_RADIUS: float = 640.0
 const LIGHT_RADIUS: float = 720.0
 const PLAYLIST_RADIUS: float = 99999.0
 
+# 따라오는 사람
+const FOLLOW_SPEED: float = 108.0             # 플레이어(144)보다 느려서 따돌릴 수 있음
+const FOLLOW_STOP_DISTANCE: float = 70.0      # 발각 반경(80) 안까지 붙는다
+const FOLLOW_DURATION: float = 8.0            # follower_option이 켜진 사람이 한 번 따라오는 시간
+const FOLLOW_COOLDOWN: float = 25.0           # 다시 따라오기까지의 시간
+
+# 사람에게 보내는 반응 (왼쪽 클릭 긍정, 오른쪽 클릭 부정)
+const REACTION_RANGE: float = 300.0           # 플레이어에서 이 거리 안의 사람에게만
+const REACTION_CLICK_RADIUS: float = 36.0     # 사람 중심에서 이 거리 안을 클릭하면 인정
+const REACTION_COOLDOWN: float = 0.5          # 같은 사람에게 다시 보낼 수 있는 시간
+const REACTION_GOAL_RANGE: Vector2i = Vector2i(3, 7)  # 따라오기까지 필요한 반응 수. 사람마다 무작위
+const REACTION_FOLLOW_DURATION: float = 8.0
+
+# 길막
+const BLOCK_CONTACT_DISTANCE: float = 44.0    # 몸이 닿았다고 보는 거리 (반지름 합 38.4 + 여유)
+const BLOCK_MARK_TIME: float = 0.6            # 이만큼 막으면 길막으로 기록 (히든 엔딩·점수)
+const BLOCK_KNOCKBACK_TIME: float = 3.0       # 이만큼 막으면 밀려남
+const KNOCKBACK_SPEED: float = 600.0
+const KNOCKBACK_DURATION: float = 0.25        # 약 150px 밀려남
+const STUN_DURATION: float = 3.0              # 이동·상호작용·휴대폰 불가 시간
+
+# 둥글게 둥글게 (히든 엔딩)
+const CIRCLE_RADIUS: float = 96.0
+const CIRCLE_STARE_SEC: float = 3.0           # 둘러싸고 째려보는 시간
+const CIRCLE_SCARE_SEC: float = 1.5           # 이후 공포 효과 시간, 끝나면 게임 종료
+
+# 슬로우 댄스 타임
+const SLOW_DANCE_START_RANGE: Vector2 = Vector2(60.0, 100.0)  # 시작 시각(초). 판마다 무작위
+const SLOW_DANCE_DURATION: float = 25.0
+const SLOW_DANCE_SPEED: float = 28.8
+const SLOW_DANCE_WANDER: float = 48.0         # 제자리에서 움직이는 범위(px)
+
+# 점수
+const SCORE_REPLY_BASE: int = 100             # 1단계에서 답장할 때
+const SCORE_REPLY_STAGE_PENALTY: int = 15     # 밀린 단계마다 깎임
+const SCORE_REPLY_MIN: int = 10
+const SCORE_REACTION: int = 5
+const SCORE_BLOCK: int = 10
+
 # 소품 종류별 값. 위치와 어그로 지점은 top_view.tscn에서 배치한다.
 const PROPS: Dictionary = {
     'speaker': {'name': '스피커', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25)},
@@ -55,6 +95,7 @@ const TENSION_FALL_PER_SEC: float = 0.5
 const LEVELS: Array = [
     {
         'npc_count': 5,
+        'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수
         'dm_interval': 15.0,
         'caught_radius': 80.0,
         'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
@@ -85,6 +126,8 @@ const TREMOR_NOISE_GAIN: float = 1.6          # 노이즈 값(대략 ±0.6)을 �
 const REPLY_WORDS: Array = ['LOVE', 'MISS', 'SOON', 'WAIT', 'CALL', 'LATER', 'HUSH', 'KISS', 'BABY', 'SORRY']
 const LETTER_GRID: Vector2i = Vector2i(4, 6)  # 알파벳 버튼을 놓는 칸 (열, 행)
 const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어긋나는 정도(px)
+# 휴대폰에서 연속으로 입력하면 음향 효과가 나오는 글자
+const LETTER_COMBOS: Dictionary = {'LLL': 'take_l', 'BAJI': 'baji'}
 const MUSIC_VOLUME_DB: float = -8.0
 const MUSIC_PHONE_DUCK_DB: float = -8.0
 const NPC_SOUND_MAX_DISTANCE: float = 700.0

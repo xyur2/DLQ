@@ -3,8 +3,8 @@ extends Node
 ## 게임 규칙의 유일한 판정자이자 A와 B의 계약.
 ## 시그널과 공개 메서드의 이름·시그니처를 바꾸려면 상대 파트와 먼저 상의한다.
 
-enum State { INTRO, PLAYING, GAME_OVER, WON }
-enum EndReason { NONE, CAUGHT, TOO_MANY_DMS, SURVIVED }
+enum State { INTRO, PLAYING, ENDING, GAME_OVER, WON }
+enum EndReason { NONE, CAUGHT, TOO_MANY_DMS, SURVIVED, HIDDEN }
 
 signal game_started()
 signal phone_toggled(is_on: bool)
@@ -16,6 +16,13 @@ signal aggro_emitted(point: Vector2, radius: float, duration: float)
 signal interact_hint_changed(text: String)
 signal debug_changed(enabled: bool)
 signal game_ended(reason: int)
+signal score_changed(value: int)
+signal reaction_sent(positive: bool)
+signal easter_egg(id: String)
+signal player_knocked_back(from_point: Vector2)
+signal slow_dance_changed(active: bool)
+signal circle_ending_started()
+signal circle_scare_started()
 
 var state: State = State.INTRO
 var end_reason: EndReason = EndReason.NONE
@@ -28,7 +35,15 @@ var tension: float = 0.0
 var tremor_closeness: float = 0.0   # 손 떨림용 근접도 0~1 (TREMOR_FAR_RADIUS → 발각 반경)
 var debug_enabled: bool = false
 var intro_seen: bool = false
+var score: int = 0
+var stun_left: float = 0.0
+var slow_dance_active: bool = false
 var _dm_timer: float = 0.0
+var _slow_dance_start: float = 0.0
+var _blocked_npcs: Dictionary = {}
+var _circle_armed: bool = false
+var _ending_left: float = 0.0
+var _scare_started: bool = false
 
 
 func _ready() -> void:
@@ -47,6 +62,14 @@ func start_game() -> void:
     tension = 0.0
     tremor_closeness = 0.0
     _dm_timer = float(cfg['dm_interval'])
+    score = 0
+    stun_left = 0.0
+    slow_dance_active = false
+    _slow_dance_start = randf_range(GameConfig.SLOW_DANCE_START_RANGE.x, GameConfig.SLOW_DANCE_START_RANGE.y)
+    _blocked_npcs.clear()
+    _circle_armed = false
+    _ending_left = 0.0
+    _scare_started = false
     state = State.PLAYING if intro_seen else State.INTRO
 
 
@@ -63,9 +86,14 @@ func is_playing() -> bool:
 
 ## Main이 매 프레임 호출. 순서: 시간 → DM 도착 → 긴장도 → 종료 판정
 func tick(delta: float, nearest_px: float) -> void:
+    if state == State.ENDING:
+        _update_ending(delta)
+        return
     if not is_playing():
         return
     elapsed_time += delta
+    stun_left = maxf(0.0, stun_left - delta)
+    _update_slow_dance()
     nearest_npc_px = nearest_px
     _dm_timer -= delta
     if _dm_timer <= 0.0:
@@ -79,8 +107,9 @@ func tick(delta: float, nearest_px: float) -> void:
 
 ## Q 또는 아이콘 클릭. 켜기 전용.
 func open_phone() -> void:
-    if is_playing() and not phone_on:
+    if is_playing() and not phone_on and not is_stunned():
         phone_on = true
+        _circle_armed = _is_everyone_blocked()
         phone_toggled.emit(true)
 
 
@@ -89,10 +118,15 @@ func close_phone() -> void:
     if is_playing() and phone_on:
         phone_on = false
         phone_toggled.emit(false)
+        if _circle_armed:
+            _start_circle_ending()
 
 
 func report_reply_success() -> void:
     if is_playing():
+        # 밀린 단계가 적을수록 점수가 높다.
+        _add_score(maxi(GameConfig.SCORE_REPLY_MIN,
+            GameConfig.SCORE_REPLY_BASE - (dm_stage - 1) * GameConfig.SCORE_REPLY_STAGE_PENALTY))
         _set_dm_stage(0)
         reply_resolved.emit(true)
 
@@ -102,6 +136,37 @@ func report_reply_failed() -> void:
     if is_playing():
         _set_dm_stage(dm_stage + 1)
         reply_resolved.emit(false)
+
+
+## 사람에게 반응을 보냈을 때 TopView가 호출.
+func report_reaction(positive: bool) -> void:
+    if is_playing():
+        _add_score(GameConfig.SCORE_REACTION)
+        reaction_sent.emit(positive)
+
+
+## 사람이 길막으로 멈췄을 때 호출. 모든 사람을 막으면 히든 엔딩 조건이 된다.
+func report_npc_blocked(npc_id: int) -> void:
+    if is_playing():
+        _blocked_npcs[npc_id] = true
+        _add_score(GameConfig.SCORE_BLOCK)
+
+
+## 길막이 길어졌을 때 호출. 플레이어는 밀려나고 잠시 아무것도 할 수 없다.
+func report_long_block(from_point: Vector2) -> void:
+    if is_playing() and not is_stunned():
+        stun_left = GameConfig.STUN_DURATION
+        player_knocked_back.emit(from_point)
+
+
+func is_stunned() -> bool:
+    return stun_left > 0.0
+
+
+## 휴대폰에서 정해진 글자를 연속으로 입력했을 때 호출.
+func trigger_easter_egg(id: String) -> void:
+    if is_playing():
+        easter_egg.emit(id)
 
 
 func emit_aggro(point: Vector2, radius: float, duration: float) -> void:
@@ -144,6 +209,38 @@ func debug_add_stage() -> void:
 
 func debug_clear_stage() -> void:
     _set_dm_stage(0)
+
+
+func _add_score(points: int) -> void:
+    score += points
+    score_changed.emit(score)
+
+
+func _update_slow_dance() -> void:
+    var active: bool = elapsed_time >= _slow_dance_start \
+        and elapsed_time < _slow_dance_start + GameConfig.SLOW_DANCE_DURATION
+    if active != slow_dance_active:
+        slow_dance_active = active
+        slow_dance_changed.emit(active)
+
+
+func _is_everyone_blocked() -> bool:
+    return _blocked_npcs.size() >= int(cfg['npc_count'])
+
+
+func _start_circle_ending() -> void:
+    state = State.ENDING
+    _ending_left = GameConfig.CIRCLE_STARE_SEC + GameConfig.CIRCLE_SCARE_SEC
+    circle_ending_started.emit()
+
+
+func _update_ending(delta: float) -> void:
+    _ending_left -= delta
+    if not _scare_started and _ending_left <= GameConfig.CIRCLE_SCARE_SEC:
+        _scare_started = true
+        circle_scare_started.emit()
+    if _ending_left <= 0.0:
+        _end_game(EndReason.HIDDEN)
 
 
 func _set_dm_stage(value: int) -> void:
@@ -195,7 +292,7 @@ func _check_end() -> void:
 
 
 func _end_game(reason: EndReason) -> void:
-    if not is_playing():
+    if not is_playing() and state != State.ENDING:
         return
     end_reason = reason
     state = State.WON if reason == EndReason.SURVIVED else State.GAME_OVER
