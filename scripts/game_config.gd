@@ -66,10 +66,11 @@ const LEVELS: Array = [
 const VIEW_SIZE: Vector2 = Vector2(1920.0, 1080.0)
 const DM_BADGE_TEXT: Array = ['', '1', '4', '21', '34', '56', '73', '85', '99+', '99+', '99+']
 const DM_ICON_SHAKE_PX: Array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 5.0, 7.0]
-# 손 떨림 = 마우스 커서 떨림. 휴대폰이 켜져 있을 때만.
+# 손 떨림 = 휴대폰 화면(본체·버튼·손 전체) 흔들림.
 # 떨림 폭 = TREMOR_MIN_PX + (TREMOR_MAX_PX - TREMOR_MIN_PX) * 긴장도
-const TREMOR_MIN_PX: float = 3.0
-const TREMOR_MAX_PX: float = 28.0
+# 플레이 피드백으로 원래(24 × 긴장도²)보다 세게, 낮은 긴장도에서도 흔들리게 함.
+const TREMOR_MIN_PX: float = 4.0
+const TREMOR_MAX_PX: float = 32.0
 const TREMOR_NOISE_SPEED: float = 120.0
 const TREMOR_NOISE_FREQUENCY: float = 0.03
 const TREMOR_NOISE_GAIN: float = 1.6          # 노이즈 값(대략 ±0.6)을 ±1 근처로 키움

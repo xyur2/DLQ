@@ -4,7 +4,7 @@ extends Control
 ## - 틀린 알파벳을 누르면 cfg['wrong_lock_time']초 동안 터치가 막힌다.
 ## - 제한 시간은 없다. 답장하지 않으면 DM이 15초마다 계속 쌓일 뿐이다.
 ## - 끄기는 전원 버튼으로만 가능하다. 끄고 다시 켜면 같은 단어를 이어서 한다.
-## 손 떨림은 자식 노드 MouseTremor가 마우스 커서를 흔드는 방식으로 처리한다.
+## 손 떨림: 휴대폰(PhoneRoot) 전체를 노이즈로 흔든다. 버튼도 함께 움직이므로 떨림이 곧 클릭 난이도가 된다.
 
 const LETTER_SCENE: PackedScene = preload('res://scenes/phone/letter_button.tscn')
 const ALPHABET: String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -15,7 +15,10 @@ var _puzzle_active: bool = false
 var _word: String = ''
 var _next_index: int = 0
 var _lock_left: float = 0.0
+var _noise: FastNoiseLite = FastNoiseLite.new()
+var _noise_time: float = 0.0
 
+@onready var _phone_root: Control = $PhoneRoot
 @onready var _screen: Panel = $PhoneRoot/Screen
 @onready var _status: Label = $PhoneRoot/Screen/Status
 @onready var _word_label: Label = $PhoneRoot/Screen/Word
@@ -27,6 +30,8 @@ var _lock_left: float = 0.0
 
 func _ready() -> void:
     visible = false
+    _noise.seed = randi()
+    _noise.frequency = GameConfig.TREMOR_NOISE_FREQUENCY
     _power_button.pressed.connect(_on_power_pressed)
     GameState.phone_toggled.connect(_on_phone_toggled)
     GameState.dm_stage_changed.connect(_on_stage_changed)
@@ -34,11 +39,27 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+    _update_tremor(delta)
     if _lock_left > 0.0 and GameState.is_playing():
         _lock_left -= delta
         if _lock_left <= 0.0:
             _set_locked(false)
     _update_status()
+
+
+## 화면 가운데를 기준으로 휴대폰 전체를 흔든다.
+func _update_tremor(delta: float) -> void:
+    var center: Vector2 = (size - _phone_root.size) * 0.5
+    if not visible:
+        _phone_root.position = center
+        return
+    _noise_time += delta * GameConfig.TREMOR_NOISE_SPEED
+    var amount: float = GameState.get_tremor_px() * GameConfig.TREMOR_NOISE_GAIN
+    var offset := Vector2(
+        _noise.get_noise_1d(_noise_time),
+        _noise.get_noise_1d(_noise_time + 1000.0)
+    ) * amount
+    _phone_root.position = center + offset
 
 
 func _update_status() -> void:

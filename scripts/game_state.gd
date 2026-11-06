@@ -105,7 +105,7 @@ func emit_aggro(point: Vector2, radius: float, duration: float) -> void:
     aggro_emitted.emit(point, radius, duration)
 
 
-## 마우스 떨림 폭(px). 휴대폰이 켜져 있을 때 PhoneView의 MouseTremor가 사용한다.
+## 휴대폰 떨림 폭(px). PhoneView가 매 프레임 읽어 휴대폰을 흔든다.
 func get_tremor_px() -> float:
     return lerpf(GameConfig.TREMOR_MIN_PX, GameConfig.TREMOR_MAX_PX, tension)
 

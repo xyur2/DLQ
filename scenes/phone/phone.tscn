@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/phone_view.gd" id="1_phone"]
 [ext_resource type="Script" path="res://scripts/phone_hands.gd" id="2_hands"]
-[ext_resource type="Script" path="res://scripts/mouse_tremor.gd" id="3_tremor"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_body"]
 bg_color = Color(0.1, 0.1, 0.11, 1)
@@ -162,6 +161,3 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 script = ExtResource("2_hands")
-
-[node name="MouseTremor" type="Node" parent="."]
-script = ExtResource("3_tremor")
