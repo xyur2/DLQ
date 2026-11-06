@@ -10,30 +10,30 @@ extends Node2D
 
 ## 자식 씬의 _ready보다 먼저 호출되므로, UI가 초기화된 상태를 읽는다.
 func _enter_tree() -> void:
-    GameState.start_game()
+	GameState.start_game()
 
 
 func _ready() -> void:
-    RenderingServer.set_default_clear_color(GameConfig.BACKGROUND_COLOR)
-    GameState.game_ended.connect(_on_game_ended)
-    for npc: PartyNpc in _top_view.spawn_npcs(int(GameState.cfg['npc_count'])):
-        _audio.attach_npc(npc)
+	RenderingServer.set_default_clear_color(GameConfig.BACKGROUND_COLOR)
+	GameState.game_ended.connect(_on_game_ended)
+	for npc: PartyNpc in _top_view.spawn_npcs(int(GameState.cfg['npc_count'])):
+		_audio.attach_npc(npc)
 
 
 func _process(delta: float) -> void:
-    GameState.tick(delta, _top_view.nearest_npc_distance())
+	GameState.tick(delta, _top_view.nearest_npc_distance())
 
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event.is_action_pressed('open_phone'):
-        GameState.open_phone()
-    elif event.is_action_pressed('debug_toggle'):
-        GameState.set_debug(not GameState.debug_enabled)
-    elif GameState.debug_enabled and event.is_action_pressed('debug_add_stage'):
-        GameState.debug_add_stage()
-    elif GameState.debug_enabled and event.is_action_pressed('debug_clear_stage'):
-        GameState.debug_clear_stage()
+	if event.is_action_pressed('open_phone'):
+		GameState.open_phone()
+	elif event.is_action_pressed('debug_toggle'):
+		GameState.set_debug(not GameState.debug_enabled)
+	elif GameState.debug_enabled and event.is_action_pressed('debug_add_stage'):
+		GameState.debug_add_stage()
+	elif GameState.debug_enabled and event.is_action_pressed('debug_clear_stage'):
+		GameState.debug_clear_stage()
 
 
 func _on_game_ended(_reason: int) -> void:
-    get_tree().paused = true
+	get_tree().paused = true

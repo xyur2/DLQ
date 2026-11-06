@@ -53,7 +53,9 @@ func _update_tremor(delta: float) -> void:
     if not visible:
         _phone_root.position = center
         return
-    _noise_time += delta * GameConfig.TREMOR_NOISE_SPEED
+    # 가까울수록 더 빠르게 떨린다.
+    var speed: float = lerpf(GameConfig.TREMOR_NOISE_SPEED_MIN, GameConfig.TREMOR_NOISE_SPEED_MAX, GameState.get_tremor_ratio())
+    _noise_time += delta * speed
     var amount: float = GameState.get_tremor_px() * GameConfig.TREMOR_NOISE_GAIN
     var offset := Vector2(
         _noise.get_noise_1d(_noise_time),

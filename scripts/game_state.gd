@@ -25,6 +25,7 @@ var dm_stage: int = 0
 var elapsed_time: float = 0.0
 var nearest_npc_px: float = INF
 var tension: float = 0.0
+var tremor_closeness: float = 0.0   # 손 떨림용 근접도 0~1 (TREMOR_FAR_RADIUS → 발각 반경)
 var debug_enabled: bool = false
 var intro_seen: bool = false
 var _dm_timer: float = 0.0
@@ -44,6 +45,7 @@ func start_game() -> void:
     elapsed_time = 0.0
     nearest_npc_px = INF
     tension = 0.0
+    tremor_closeness = 0.0
     _dm_timer = float(cfg['dm_interval'])
     state = State.PLAYING if intro_seen else State.INTRO
 
@@ -71,6 +73,7 @@ func tick(delta: float, nearest_px: float) -> void:
         _set_dm_stage(dm_stage + 1)
         dm_arrived.emit(dm_stage)
     _update_tension(delta)
+    _update_tremor(delta)
     _check_end()
 
 
@@ -106,8 +109,15 @@ func emit_aggro(point: Vector2, radius: float, duration: float) -> void:
 
 
 ## 휴대폰 떨림 폭(px). PhoneView가 매 프레임 읽어 휴대폰을 흔든다.
+## = BASE + DM × (단계/10) + NEAR × 근접도^CURVE
 func get_tremor_px() -> float:
-    return lerpf(GameConfig.TREMOR_MIN_PX, GameConfig.TREMOR_MAX_PX, tension)
+    var dm_ratio: float = float(dm_stage) / float(GameConfig.MAX_DM_STAGE)
+    return GameConfig.TREMOR_BASE_PX + GameConfig.TREMOR_DM_PX * dm_ratio         + GameConfig.TREMOR_NEAR_PX * get_tremor_ratio()
+
+
+## 근접도에 따른 떨림 비율 0~1. 떨림 속도(노이즈 속도)에 쓴다.
+func get_tremor_ratio() -> float:
+    return pow(tremor_closeness, GameConfig.TREMOR_CURVE)
 
 
 func get_dm_badge_text() -> String:
@@ -160,6 +170,18 @@ func _update_tension(delta: float) -> void:
     if not is_equal_approx(next, tension):
         tension = next
         tension_changed.emit(tension)
+
+
+## 손 떨림용 근접도. 긴장도보다 빨리 따라가서 사람이 멀어지면 바로 줄어든다.
+func _update_tremor(delta: float) -> void:
+    var closeness: float = 0.0
+    if not is_inf(nearest_npc_px):
+        closeness = clampf(
+            inverse_lerp(GameConfig.TREMOR_FAR_RADIUS, float(cfg['caught_radius']), nearest_npc_px),
+            0.0, 1.0
+        )
+    var rate: float = GameConfig.TREMOR_RISE_PER_SEC if closeness > tremor_closeness else GameConfig.TREMOR_FALL_PER_SEC
+    tremor_closeness = move_toward(tremor_closeness, closeness, rate * delta)
 
 
 ## 같은 프레임에 겹치면 발각 → DM 10단계 → 승리 순.
