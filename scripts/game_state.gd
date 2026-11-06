@@ -138,6 +138,12 @@ func report_reply_failed() -> void:
         reply_resolved.emit(false)
 
 
+## 틀린 글자를 눌렀을 때 PhoneView가 호출.
+func report_wrong_letter() -> void:
+    if is_playing():
+        _add_score(-GameConfig.SCORE_WRONG_LETTER)
+
+
 ## 사람에게 반응을 보냈을 때 TopView가 호출.
 func report_reaction(positive: bool) -> void:
     if is_playing():
@@ -212,8 +218,10 @@ func debug_clear_stage() -> void:
 
 
 func _add_score(points: int) -> void:
-    score += points
-    score_changed.emit(score)
+    var next: int = maxi(0, score + points)
+    if next != score:
+        score = next
+        score_changed.emit(score)
 
 
 func _update_slow_dance() -> void:

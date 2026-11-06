@@ -76,6 +76,7 @@ const SCORE_REPLY_STAGE_PENALTY: int = 15     # 밀린 단계마다 깎임
 const SCORE_REPLY_MIN: int = 10
 const SCORE_REACTION: int = 5
 const SCORE_BLOCK: int = 10
+const SCORE_WRONG_LETTER: int = 10          # 틀린 글자를 누르면 깎임. 0 아래로는 내려가지 않음
 
 # 소품 종류별 값. 위치와 어그로 지점은 top_view.tscn에서 배치한다.
 const PROPS: Dictionary = {
@@ -96,10 +97,10 @@ const LEVELS: Array = [
     {
         'npc_count': 5,
         'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수
-        'dm_interval': 15.0,
+        'dm_interval': 12.0,
         'caught_radius': 80.0,
         'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
-        'wrong_lock_time': 1.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
+        'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
 ]
 
@@ -122,6 +123,9 @@ const TREMOR_NOISE_SPEED_MIN: float = 60.0
 const TREMOR_NOISE_SPEED_MAX: float = 220.0
 const TREMOR_NOISE_FREQUENCY: float = 0.03
 const TREMOR_NOISE_GAIN: float = 1.6          # 노이즈 값(대략 ±0.6)을 ±1 근처로 키움
+const TREMOR_PHONE_RATIO: float = 0.5         # 휴대폰은 손·커서의 이 비율만큼, 다른 패턴으로 흔들림
+const PHONE_SLIDE_SEC: float = 0.45           # 휴대폰이 올라오고 내려가는 시간, 배경이 어두워지고 밝아지는 시간
+const PHONE_SLIDE_DISTANCE: float = 1100.0    # 내려가 있을 때의 거리(px). 화면 밖으로 완전히 나가는 값
 # 답장 단어. 대문자 알파벳만.
 const REPLY_WORDS: Array = ['LOVE', 'MISS', 'SOON', 'WAIT', 'CALL', 'LATER', 'HUSH', 'KISS', 'BABY', 'SORRY']
 const LETTER_GRID: Vector2i = Vector2i(4, 6)  # 알파벳 버튼을 놓는 칸 (열, 행)
