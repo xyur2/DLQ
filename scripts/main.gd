@@ -33,6 +33,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameState.debug_add_stage()
 	elif GameState.debug_enabled and event.is_action_pressed('debug_clear_stage'):
 		GameState.debug_clear_stage()
+	elif GameState.debug_enabled and event.is_action_pressed('debug_next_level'):
+		# 디버그: 다음 레벨로 바로 이동 (마지막 레벨 다음은 0)
+		GameState.set_level((GameState.level_index + 1) % GameConfig.LEVELS.size())
+		get_tree().reload_current_scene()
 
 
 func _on_game_ended(_reason: int) -> void:

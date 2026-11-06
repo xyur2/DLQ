@@ -11,9 +11,11 @@ static func ensure_actions() -> void:
         'interact': KEY_E,
         'open_phone': KEY_Q,
         'restart': KEY_R,
+        'next_level': KEY_N,
         'debug_toggle': KEY_F1,
         'debug_add_stage': KEY_F2,
         'debug_clear_stage': KEY_F3,
+        'debug_next_level': KEY_F4,
     }
     for action: String in table.keys():
         if InputMap.has_action(action):

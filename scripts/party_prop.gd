@@ -62,6 +62,11 @@ func _process(delta: float) -> void:
     queue_redraw()
 
 
+## 재사용 대기 중이 아니면 true (상호작용형 사람이 쓸 소품을 고를 때)
+func is_ready() -> bool:
+    return _cooldown_left <= 0.0
+
+
 func get_hint() -> String:
     if _cooldown_left > 0.0:
         return '%s 대기 중 %d초' % [display_name, ceili(_cooldown_left)]

@@ -1,36 +1,11 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/top_view.gd" id="1_top"]
-[ext_resource type="Script" path="res://scripts/party_map.gd" id="2_map"]
-[ext_resource type="PackedScene" path="res://scenes/top_view/prop.tscn" id="3_prop"]
 [ext_resource type="PackedScene" path="res://scenes/top_view/player.tscn" id="4_player"]
 
 [node name="TopView" type="Node2D"]
 script = ExtResource("1_top")
 
-[node name="Map" type="Node2D" parent="."]
-script = ExtResource("2_map")
-
-[node name="Background" type="Sprite2D" parent="Map"]
-centered = false
-
-[node name="Props" type="Node2D" parent="."]
-
-[node name="Speaker" parent="Props" instance=ExtResource("3_prop")]
-position = Vector2(320, 320)
-prop_id = "speaker"
-
-[node name="Light" parent="Props" instance=ExtResource("3_prop")]
-position = Vector2(1600, 320)
-prop_id = "light"
-aggro_offset = Vector2(0, 800)
-
-[node name="Playlist" parent="Props" instance=ExtResource("3_prop")]
-position = Vector2(960, 1320)
-prop_id = "playlist"
-aggro_offset = Vector2(0, -1160)
-
 [node name="NPCs" type="Node2D" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
-position = Vector2(960, 720)
