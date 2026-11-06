@@ -1,7 +1,5 @@
 extends Node2D
 ## 메인 씬. 월드와 UI 노드를 모두 코드로 만들고, 매 프레임 GameState.tick을 호출한다.
-## B 파트 클래스(AudioDirector, GameHud, PhoneView, IntroScreen, EndScreen)를 쓰는 줄은
-## B의 파일이 들어올 때까지 주석 처리해 둔다. 검색어: "B 연결"
 
 const HUD_LAYER: int = 10
 const PHONE_LAYER: int = 20
@@ -11,7 +9,7 @@ const SPAWN_MAX_ATTEMPTS: int = 50
 
 var _world: Node2D
 var _player: PartyPlayer
-# var _audio: AudioDirector  # B 연결
+var _audio: AudioDirector
 
 
 func _ready() -> void:
@@ -21,9 +19,6 @@ func _ready() -> void:
     _build_world()
     _build_ui()
     _spawn_npcs()
-    # TODO(확인필요): B의 IntroScreen이 들어오면 이 두 줄을 지운다. 그 전까지는 인트로 없이 바로 시작.
-    if not GameState.intro_seen:
-        GameState.begin_play()
 
 
 func _process(delta: float) -> void:
@@ -67,24 +62,20 @@ func _add_prop(prop_name: String, at: Vector2, point: Vector2, radius: float, co
 
 
 func _build_ui() -> void:
-    # B 연결
-    # _audio = AudioDirector.new()
-    # _audio.name = 'AudioDirector'
-    # add_child(_audio)
+    _audio = AudioDirector.new()
+    _audio.name = 'AudioDirector'
+    add_child(_audio)
 
-    # B 연결
-    # var hud_layer := _add_layer('HudLayer', HUD_LAYER)
-    # hud_layer.add_child(GameHud.new())
+    var hud_layer := _add_layer('HudLayer', HUD_LAYER)
+    hud_layer.add_child(GameHud.new())
 
-    # B 연결
-    # var phone_layer := _add_layer('PhoneLayer', PHONE_LAYER)
-    # phone_layer.add_child(PhoneView.new())
+    var phone_layer := _add_layer('PhoneLayer', PHONE_LAYER)
+    phone_layer.add_child(PhoneView.new())
 
-    # B 연결
-    # var screen_layer := _add_layer('ScreenLayer', SCREEN_LAYER)
-    # if not GameState.intro_seen:
-    #     screen_layer.add_child(IntroScreen.new())
-    # screen_layer.add_child(EndScreen.new())
+    var screen_layer := _add_layer('ScreenLayer', SCREEN_LAYER)
+    if not GameState.intro_seen:
+        screen_layer.add_child(IntroScreen.new())
+    screen_layer.add_child(EndScreen.new())
 
     var debug_layer := _add_layer('DebugLayer', DEBUG_LAYER)
     debug_layer.add_child(DebugOverlay.new())
@@ -108,7 +99,7 @@ func _spawn_npcs() -> void:
             point = GameConfig.random_map_point()
         npc.position = point
         _world.add_child(npc)
-        # _audio.attach_npc(npc)  # B 연결
+        _audio.attach_npc(npc)
 
 
 func _nearest_npc_distance() -> float:
