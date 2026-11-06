@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/game_hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/dm_icon.gd" id="2_icon"]
 [ext_resource type="Texture2D" path="res://assets/dm_icon.png" id="3_icon_image"]
+[ext_resource type="Script" path="res://scripts/digital_clock.gd" id="4_clock"]
+[ext_resource type="Texture2D" path="res://assets/digital_clock.png" id="5_clock_sheet"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
 atlas = ExtResource("3_icon_image")
@@ -25,13 +27,55 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
 
-[node name="Clock" type="Label" parent="."]
-offset_left = 32.0
-offset_top = 24.0
-offset_right = 232.0
-offset_bottom = 72.0
-theme_override_font_sizes/font_size = 32
-text = "11h 00"
+[node name="Clock" type="Control" parent="."]
+process_mode = 3
+offset_left = 28.0
+offset_top = 14.0
+offset_right = 208.0
+offset_bottom = 70.0
+mouse_filter = 2
+script = ExtResource("4_clock")
+sheet = ExtResource("5_clock_sheet")
+
+[node name="Hour1" type="TextureRect" parent="Clock"]
+offset_left = 0.0
+offset_right = 36.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture_filter = 3
+expand_mode = 1
+
+[node name="Hour2" type="TextureRect" parent="Clock"]
+offset_left = 36.0
+offset_right = 72.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture_filter = 3
+expand_mode = 1
+
+[node name="Colon" type="TextureRect" parent="Clock"]
+offset_left = 72.0
+offset_right = 108.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture_filter = 3
+expand_mode = 1
+
+[node name="Minute1" type="TextureRect" parent="Clock"]
+offset_left = 108.0
+offset_right = 144.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture_filter = 3
+expand_mode = 1
+
+[node name="Minute2" type="TextureRect" parent="Clock"]
+offset_left = 144.0
+offset_right = 180.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture_filter = 3
+expand_mode = 1
 
 [node name="Score" type="Label" parent="."]
 offset_left = 32.0
