@@ -15,6 +15,7 @@ var _idle_left: float = 0.0
 var _stuck_time: float = 0.0
 var _aggro_left: float = 0.0
 
+@onready var _sprite: CharacterSprite = $Sprite
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 
 
@@ -23,6 +24,7 @@ func _ready() -> void:
     collision_mask = MASK_WALL_AND_PLAYER
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('npcs')
+    _sprite.setup(GameAssets.NPC_SHEET, GameConfig.NPC_COLOR, GameConfig.NPC_RADIUS)
     var circle := CircleShape2D.new()
     circle.radius = GameConfig.NPC_RADIUS
     _shape.shape = circle
@@ -40,6 +42,7 @@ func is_walking() -> bool:
 func _physics_process(delta: float) -> void:
     if not GameState.is_playing():
         velocity = Vector2.ZERO
+        _sprite.set_motion(velocity)
         return
     match _mode:
         Mode.IDLE:
@@ -61,6 +64,7 @@ func _physics_process(delta: float) -> void:
                 _move_to_target(GameConfig.NPC_AGGRO_SPEED, delta)
             else:
                 velocity = Vector2.ZERO
+    _sprite.set_motion(velocity)
     if GameState.debug_enabled:
         queue_redraw()
 
@@ -105,6 +109,5 @@ func _on_debug_changed(_enabled: bool) -> void:
 
 
 func _draw() -> void:
-    draw_circle(Vector2.ZERO, GameConfig.NPC_RADIUS, GameConfig.NPC_COLOR)
     if GameState.debug_enabled and _mode != Mode.IDLE:
         draw_line(Vector2.ZERO, to_local(_target), Color(0, 1, 1, 0.5), 2.0)

@@ -1,38 +1,19 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/phone_view.gd" id="1_phone"]
-[ext_resource type="Script" path="res://scripts/phone_hands.gd" id="2_hands"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_body"]
-bg_color = Color(0.1, 0.1, 0.11, 1)
-corner_radius_top_left = 48
-corner_radius_top_right = 48
-corner_radius_bottom_right = 48
-corner_radius_bottom_left = 48
+[ext_resource type="Texture2D" path="res://assets/phone.png" id="2_phone_image"]
+[ext_resource type="Texture2D" path="res://assets/phone_hands.png" id="3_hands"]
+[ext_resource type="Texture2D" path="res://assets/loading_bar_back.png" id="4_bar_back"]
+[ext_resource type="Texture2D" path="res://assets/loading_bar_fill.png" id="5_bar_fill"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_screen"]
-bg_color = Color(0.96, 0.96, 0.97, 1)
-corner_radius_top_left = 28
-corner_radius_top_right = 28
-corner_radius_bottom_right = 28
-corner_radius_bottom_left = 28
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 44
+corner_radius_top_right = 44
+corner_radius_bottom_right = 44
+corner_radius_bottom_left = 44
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_power_normal"]
-bg_color = Color(0.78, 0.3, 0.3, 1)
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_power_hover"]
-bg_color = Color(0.95, 0.42, 0.42, 1)
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_power_pressed"]
-bg_color = Color(0.55, 0.18, 0.18, 1)
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hitbox"]
 
 [node name="Phone" type="Control"]
 layout_mode = 3
@@ -49,6 +30,15 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.04, 0.04, 0.05, 1)
 
+[node name="Hands" type="TextureRect" parent="."]
+offset_left = 141.0
+offset_top = 200.0
+offset_right = 1779.0
+offset_bottom = 1424.0
+mouse_filter = 2
+texture = ExtResource("3_hands")
+expand_mode = 1
+
 [node name="PhoneRoot" type="Control" parent="."]
 anchors_preset = 8
 anchor_left = 0.5
@@ -61,54 +51,75 @@ offset_right = 320.0
 offset_bottom = 500.0
 mouse_filter = 2
 
-[node name="Body" type="Panel" parent="PhoneRoot"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_body")
-
-[node name="Screen" type="Panel" parent="PhoneRoot"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 30.0
-offset_top = 30.0
-offset_right = -30.0
-offset_bottom = -30.0
+[node name="ScreenBackground" type="Panel" parent="PhoneRoot"]
+offset_left = 98.0
+offset_top = 19.0
+offset_right = 542.0
+offset_bottom = 985.0
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_screen")
 
+[node name="PhoneImage" type="TextureRect" parent="PhoneRoot"]
+offset_left = -292.0
+offset_top = -76.0
+offset_right = 932.0
+offset_bottom = 1148.0
+mouse_filter = 2
+texture = ExtResource("2_phone_image")
+expand_mode = 1
+
+[node name="Screen" type="Control" parent="PhoneRoot"]
+offset_left = 102.0
+offset_top = 23.0
+offset_right = 538.0
+offset_bottom = 981.0
+mouse_filter = 2
+
 [node name="Header" type="Label" parent="PhoneRoot/Screen"]
-offset_left = 20.0
+offset_left = 24.0
 offset_top = 16.0
-offset_right = 300.0
+offset_right = 124.0
 offset_bottom = 56.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 28
 text = "J"
 
 [node name="Status" type="Label" parent="PhoneRoot/Screen"]
-offset_left = 20.0
+offset_left = 24.0
 offset_top = 56.0
-offset_right = 400.0
+offset_right = 412.0
 offset_bottom = 86.0
 theme_override_colors/font_color = Color(0.35, 0.35, 0.4, 1)
 text = "새 메시지 없음"
 
+[node name="TimerBar" type="TextureProgressBar" parent="PhoneRoot/Screen"]
+visible = false
+offset_left = 18.0
+offset_top = 90.0
+offset_right = 418.0
+offset_bottom = 128.0
+mouse_filter = 2
+max_value = 1.0
+step = 0.001
+nine_patch_stretch = true
+texture_under = ExtResource("4_bar_back")
+texture_progress = ExtResource("5_bar_fill")
+
 [node name="Word" type="Label" parent="PhoneRoot/Screen"]
-offset_left = 20.0
-offset_top = 110.0
-offset_right = 560.0
-offset_bottom = 190.0
+offset_left = 18.0
+offset_top = 128.0
+offset_right = 418.0
+offset_bottom = 208.0
 theme_override_colors/font_color = Color(0.1, 0.1, 0.12, 1)
 theme_override_font_sizes/font_size = 56
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Progress" type="Label" parent="PhoneRoot/Screen"]
-offset_left = 20.0
-offset_top = 190.0
-offset_right = 560.0
-offset_bottom = 240.0
+offset_left = 18.0
+offset_top = 208.0
+offset_right = 418.0
+offset_bottom = 258.0
 theme_override_colors/font_color = Color(0.3, 0.3, 0.35, 1)
 theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
@@ -116,48 +127,43 @@ vertical_alignment = 1
 
 [node name="LockNotice" type="Label" parent="PhoneRoot/Screen"]
 visible = false
-offset_left = 20.0
-offset_top = 240.0
-offset_right = 560.0
-offset_bottom = 274.0
+offset_left = 18.0
+offset_top = 258.0
+offset_right = 418.0
+offset_bottom = 292.0
 theme_override_colors/font_color = Color(0.8, 0.15, 0.15, 1)
 theme_override_font_sizes/font_size = 22
 text = "손이 미끄러졌다... 잠시 터치 불가"
 horizontal_alignment = 1
 
 [node name="LetterArea" type="Control" parent="PhoneRoot/Screen"]
-offset_left = 20.0
-offset_top = 280.0
-offset_right = 560.0
-offset_bottom = 920.0
+offset_left = 16.0
+offset_top = 300.0
+offset_right = 420.0
+offset_bottom = 940.0
 mouse_filter = 2
 
-[node name="PowerButton" type="Button" parent="PhoneRoot"]
-offset_left = 634.0
-offset_top = 170.0
-offset_right = 662.0
-offset_bottom = 300.0
+[node name="PowerHitbox" type="Button" parent="PhoneRoot"]
+offset_left = 548.0
+offset_top = 376.0
+offset_right = 592.0
+offset_bottom = 447.0
 tooltip_text = "전원"
 focus_mode = 0
 mouse_default_cursor_shape = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_power_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_power_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_power_pressed")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_hitbox")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_hitbox")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_hitbox")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_hitbox")
 action_mode = 0
 
 [node name="PowerLabel" type="Label" parent="PhoneRoot"]
-offset_left = 672.0
-offset_top = 215.0
-offset_right = 772.0
-offset_bottom = 251.0
-theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+offset_left = 596.0
+offset_top = 393.0
+offset_right = 696.0
+offset_bottom = 429.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 24
 text = "전원"
-
-[node name="Hands" type="Control" parent="PhoneRoot"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-script = ExtResource("2_hands")

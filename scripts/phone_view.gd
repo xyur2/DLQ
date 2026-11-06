@@ -4,7 +4,7 @@ extends Control
 ## - 틀린 알파벳을 누르면 cfg['wrong_lock_time']초 동안 터치가 막힌다.
 ## - 제한 시간은 없다. 답장하지 않으면 DM이 15초마다 계속 쌓일 뿐이다.
 ## - 끄기는 전원 버튼으로만 가능하다. 끄고 다시 켜면 같은 단어를 이어서 한다.
-## 손 떨림: 휴대폰(PhoneRoot) 전체를 노이즈로 흔든다. 버튼도 함께 움직이므로 떨림이 곧 클릭 난이도가 된다.
+## 손 떨림: 휴대폰은 고정이고, 손 이미지와 실제 마우스 커서가 함께 흔들린다. 커서가 흔들려 누르기 어려운 것이 핵심이다.
 
 const LETTER_SCENE: PackedScene = preload('res://scenes/phone/letter_button.tscn')
 const ALPHABET: String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -17,22 +17,27 @@ var _next_index: int = 0
 var _lock_left: float = 0.0
 var _noise: FastNoiseLite = FastNoiseLite.new()
 var _noise_time: float = 0.0
+var _hands_base: Vector2 = Vector2.ZERO
+var _mouse_offset: Vector2i = Vector2i.ZERO
 
-@onready var _phone_root: Control = $PhoneRoot
-@onready var _screen: Panel = $PhoneRoot/Screen
+@onready var _hands: TextureRect = $Hands
+@onready var _screen_background: Panel = $PhoneRoot/ScreenBackground
+@onready var _screen: Control = $PhoneRoot/Screen
+@onready var _timer_bar: TextureProgressBar = $PhoneRoot/Screen/TimerBar
 @onready var _status: Label = $PhoneRoot/Screen/Status
 @onready var _word_label: Label = $PhoneRoot/Screen/Word
 @onready var _progress: Label = $PhoneRoot/Screen/Progress
 @onready var _lock_notice: Label = $PhoneRoot/Screen/LockNotice
 @onready var _letter_area: Control = $PhoneRoot/Screen/LetterArea
-@onready var _power_button: Button = $PhoneRoot/PowerButton
+@onready var _power_hitbox: Button = $PhoneRoot/PowerHitbox
 
 
 func _ready() -> void:
     visible = false
     _noise.seed = randi()
     _noise.frequency = GameConfig.TREMOR_NOISE_FREQUENCY
-    _power_button.pressed.connect(_on_power_pressed)
+    _hands_base = _hands.position
+    _power_hitbox.pressed.connect(_on_power_pressed)
     GameState.phone_toggled.connect(_on_phone_toggled)
     GameState.dm_stage_changed.connect(_on_stage_changed)
     _refresh_labels()
@@ -42,16 +47,17 @@ func _process(delta: float) -> void:
     _update_tremor(delta)
     if _lock_left > 0.0 and GameState.is_playing():
         _lock_left -= delta
+        _timer_bar.value = maxf(0.0, _lock_left) / float(GameState.cfg['wrong_lock_time'])
         if _lock_left <= 0.0:
             _set_locked(false)
     _update_status()
 
 
-## 화면 가운데를 기준으로 휴대폰 전체를 흔든다.
+## 손 이미지와 마우스 커서를 같은 양만큼 흔든다.
 func _update_tremor(delta: float) -> void:
-    var center: Vector2 = (size - _phone_root.size) * 0.5
     if not visible:
-        _phone_root.position = center
+        _hands.position = _hands_base
+        _shake_mouse(Vector2.ZERO)
         return
     # 가까울수록 더 빠르게 떨린다.
     var speed: float = lerpf(GameConfig.TREMOR_NOISE_SPEED_MIN, GameConfig.TREMOR_NOISE_SPEED_MAX, GameState.get_tremor_ratio())
@@ -61,7 +67,21 @@ func _update_tremor(delta: float) -> void:
         _noise.get_noise_1d(_noise_time),
         _noise.get_noise_1d(_noise_time + 1000.0)
     ) * amount
-    _phone_root.position = center + offset
+    _hands.position = _hands_base + offset
+    _shake_mouse(offset)
+
+
+## 지난 프레임의 흔들림을 뺀 차이만큼만 커서를 옮겨, 플레이어의 마우스 조작은 그대로 살린다.
+## 커서는 정수 픽셀로만 움직이므로 픽셀 단위로 추적해야 오차가 쌓여 밀려나지 않는다.
+func _shake_mouse(offset: Vector2) -> void:
+    if not DisplayServer.window_is_focused():
+        return
+    var pixels := Vector2i((offset * get_viewport().get_screen_transform().get_scale()).round())
+    if pixels == _mouse_offset:
+        return
+    var cursor: Vector2i = DisplayServer.mouse_get_position() - get_window().position
+    Input.warp_mouse(Vector2(cursor + pixels - _mouse_offset))
+    _mouse_offset = pixels
 
 
 func _update_status() -> void:
@@ -153,7 +173,12 @@ func _set_locked(locked: bool) -> void:
     for button: LetterButton in _letters:
         button.set_locked(locked)
     _lock_notice.visible = locked
-    _screen.modulate = LOCK_TINT if locked else Color.WHITE
+    # TODO(확인필요): v2에 제한 시간이 없어, 타이머 바는 오답 터치 잠금의 남은 시간을 보여 준다.
+    _timer_bar.visible = locked
+    _timer_bar.value = 1.0 if locked else 0.0
+    var tint: Color = LOCK_TINT if locked else Color.WHITE
+    _screen_background.modulate = tint
+    _screen.modulate = tint
 
 
 func _finish_puzzle() -> void:

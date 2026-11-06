@@ -4,8 +4,11 @@ extends Node2D
 
 const WALL_LAYER: int = 1
 
+@onready var _background: Sprite2D = $Background
+
 
 func _ready() -> void:
+    _background.texture = GameAssets.load_texture(GameAssets.PARTY_MAP)
     var w: float = GameConfig.MAP_SIZE.x
     var h: float = GameConfig.MAP_SIZE.y
     var t: float = GameConfig.WALL_THICKNESS
@@ -28,7 +31,10 @@ func _add_wall(rect: Rect2) -> void:
     add_child(body)
 
 
+## 배경 이미지가 없을 때만 그리는 임시 바닥과 벽.
 func _draw() -> void:
+    if _background.texture != null:
+        return
     var size: Vector2 = GameConfig.MAP_SIZE
     var t: float = GameConfig.WALL_THICKNESS
     draw_rect(Rect2(Vector2(-t, -t), size + Vector2(t, t) * 2.0), GameConfig.WALL_COLOR)

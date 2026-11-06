@@ -6,9 +6,9 @@ const LAYER_PLAYER: int = 2
 const MASK_WALL_AND_NPC: int = 1 | 4
 const LAYER_PROP: int = 8
 
-var _facing: Vector2 = Vector2.DOWN
 var _last_hint: String = ''
 
+@onready var _sprite: CharacterSprite = $Sprite
 @onready var _body_shape: CollisionShape2D = $CollisionShape2D
 @onready var _area: Area2D = $InteractionArea
 @onready var _area_shape: CollisionShape2D = $InteractionArea/CollisionShape2D
@@ -20,6 +20,7 @@ func _ready() -> void:
     collision_layer = LAYER_PLAYER
     collision_mask = MASK_WALL_AND_NPC
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+    _sprite.setup(GameAssets.PLAYER_SHEET, GameConfig.PLAYER_COLOR, GameConfig.PLAYER_RADIUS)
 
     # 크기는 GameConfig 기준으로 맞춘다.
     var circle := CircleShape2D.new()
@@ -47,9 +48,7 @@ func _physics_process(_delta: float) -> void:
         direction = Input.get_vector('move_left', 'move_right', 'move_up', 'move_down')
     velocity = direction * GameConfig.PLAYER_SPEED
     move_and_slide()
-    if direction != Vector2.ZERO:
-        _facing = direction.normalized()
-        queue_redraw()
+    _sprite.set_motion(velocity)
     _update_hint(can_move)
 
 
@@ -95,8 +94,6 @@ func _on_debug_changed(_enabled: bool) -> void:
 
 
 func _draw() -> void:
-    draw_circle(Vector2.ZERO, GameConfig.PLAYER_RADIUS, GameConfig.PLAYER_COLOR)
-    draw_circle(_facing * GameConfig.PLAYER_RADIUS * 0.7, 4.0, Color.BLACK)
     if GameState.debug_enabled:
         draw_arc(Vector2.ZERO, GameConfig.ALERT_RADIUS, 0.0, TAU, 64, Color(1, 1, 0, 0.35), 2.0)
         draw_arc(Vector2.ZERO, float(GameState.cfg['caught_radius']), 0.0, TAU, 64, Color(1, 0, 0, 0.5), 2.0)
