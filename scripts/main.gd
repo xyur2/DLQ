@@ -16,7 +16,9 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(GameConfig.BACKGROUND_COLOR)
 	GameState.game_ended.connect(_on_game_ended)
-	for npc: PartyNpc in _top_view.spawn_npcs(int(GameState.cfg['npc_count'])):
+	var npcs: Array[PartyNpc] = _top_view.spawn_npcs(_top_view.npc_count())
+	GameState.npc_total = npcs.size()
+	for npc: PartyNpc in npcs:
 		_audio.attach_npc(npc)
 
 

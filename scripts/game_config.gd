@@ -29,6 +29,13 @@ const NPC_SPAWN_SPACING: float = 64.0        # 처음 놓을 때 사람끼리 �
 # 사람끼리는 몸이 부딪혀 겹치지 않는다. 걷는 사람은 가까운 사람을 미리 피해 옆으로 비켜 간다.
 const NPC_AVOID_RADIUS: float = 64.0         # 이 거리 안의 사람을 피한다 (중심 거리)
 const NPC_AVOID_STRENGTH: float = 1.2        # 피하는 힘. 클수록 일찍, 크게 비켜 간다
+# 방마다 사람 수. 방의 기본 인원 = 넓이 / AREA_PER_NPC (반올림, 최소 1). 큰 방 960×720 = 6명, 작은 방 480×528 = 2명.
+# 판의 사람 수 = 방 기본 인원의 합 + 레벨의 npc_bonus. 추가 인원은 기본 인원 비율로 방마다 나눠 목표 인원(할당량)이 된다.
+const AREA_PER_NPC: float = 115200.0
+const CROWD_MARGIN: int = 2                  # 방 인원이 목표 인원보다 이만큼 이상 많으면 다른 방으로 보낸다
+const BALANCE_INTERVAL: float = 1.0          # 방 인원을 세고 나누는 간격(초)
+const CROWD_PICK_BASE: float = 0.5           # 걸을 목적지를 고를 때 꽉 찬 방에도 주는 최소 가중치 (가중치 = 빈자리 + 이 값)
+const CROWD_HOP_FALLOFF: float = 0.12        # 문을 하나 더 지날 때마다 목적지 가중치에 곱함. 평소에는 가까운 방 위주로 다니고, 먼 방은 CrowdBalancer가 보낸다
 const NPC_AGGRO_SPREAD: float = 70.0         # 140 → 70
 const NPC_COLOR: Color = Color(0.55, 0.5, 0.5)
 
@@ -109,7 +116,8 @@ const SLOW_DANCE_WANDER: float = 48.0         # 제자리에서 움직이는 범
 const SCORE_REPLY_BASE: int = 100             # 1단계에서 답장할 때
 const SCORE_REPLY_STAGE_PENALTY: int = 15     # 밀린 단계마다 깎임
 const SCORE_REPLY_MIN: int = 10
-const SCORE_REACTION: int = 5
+const SCORE_REACTION_FIRST: int = 10         # 같은 사람에게 처음 반응할 때
+const SCORE_REACTION_DECAY: float = 0.5       # 같은 사람에게 다시 반응할 때마다 곱함 (내림): 10, 5, 2, 1, 0...
 const SCORE_BLOCK: int = 10
 const SCORE_WRONG_LETTER: int = 10          # 틀린 글자를 누르면 깎임. 0 아래로는 내려가지 않음
 
@@ -132,7 +140,7 @@ const TENSION_FALL_PER_SEC: float = 0.5
 const TEST_LEVEL: Dictionary = {
     'title': '레벨 0: 테스트 맵',
     'scene': 'res://scenes/top_view/levels/level_0.tscn',
-    'npc_count': 5,
+    'npc_bonus': 0,
     'npc_kinds': {},
     'follower_count': 1,
     'dm_interval': 3.0,
@@ -143,35 +151,49 @@ const TEST_LEVEL: Dictionary = {
     'wrong_lock_time': 2.0,
 }
 
-# 플레이할 수 있는 레벨. 위로 갈수록 DM이 자주 오고, 답장 후 쉬는 시간이 짧고, 휴대폰 글자 사이 간격이 좁다.
-# 화면에는 Level 1, 2로 나온다(level_index 0, 1). 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
+# 플레이할 수 있는 레벨 9개. 화면에는 Level 1~9로 나온다(level_index 0~8).
+# 맵은 3레벨마다 바뀐다: 1~3 level_1(큰 방 + 작은 방), 4~6 level_4(큰 방 + 작은 방 4개), 7~9 level_7(큰 방 - 긴 복도 - 큰 방, 복도 옆 작은 방 3개).
+# 레벨이 오를수록 DM이 자주 오고(3.0 → 1.8초), 답장 후 쉬는 시간이 짧고(5 → 3초), 휴대폰 글자 간격이 좁고, 사람이 많다.
+# 사람 수 = 맵의 방 기본 인원 합(8, 14, 20) + npc_bonus(맵 안에서 1번째 레벨 2, 2번째 4, 3번째 6).
+# 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
     {
         'title': '레벨 1: 옆방',
         'scene': 'res://scenes/top_view/levels/level_1.tscn',
-        'npc_count': 10,           # 플레이 피드백: 북적이는 파티처럼 2배 (5 → 10)
+        'npc_bonus': 2,            # 방 기본 인원 합에 더하는 사람 수
         'npc_kinds': {},           # 종류별 인원. 예: {'active': 1, 'tracker': 1, 'attention': 1, 'interactive': 1}. 나머지는 일반
         'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수 (일반 사람 중에서)
-        'dm_interval': 2.6,        # DM 도착 주기(초)
-        'reply_cooldown': 4.0,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
-        'letter_gap': 20.0,        # 휴대폰 글자 버튼 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
+        'dm_interval': 3.0,        # DM 도착 주기(초)
+        'reply_cooldown': 5.0,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
+        'letter_gap': 40.0,        # 휴대폰 글자 버튼 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
         'caught_radius': 80.0,
         'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
-    {
-        'title': '레벨 2: 북적이는 파티',
-        'scene': 'res://scenes/top_view/levels/level_2.tscn',
-        'npc_count': 12,           # 6 → 12
-        'npc_kinds': {},
-        'follower_count': 2,
-        'dm_interval': 2.2,
-        'reply_cooldown': 3.0,
-        'letter_gap': 8.0,
-        'caught_radius': 80.0,
-        'decoy_count': 8,
-        'wrong_lock_time': 2.0,
-    },
+    {'title': '레벨 2: 손님이 늘었다', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 4, 'npc_kinds': {},
+        'follower_count': 1, 'dm_interval': 2.85, 'reply_cooldown': 4.75, 'letter_gap': 34.0,
+        'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
+    {'title': '레벨 3: 북적이는 옆방', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 6, 'npc_kinds': {},
+        'follower_count': 1, 'dm_interval': 2.7, 'reply_cooldown': 4.5, 'letter_gap': 28.0,
+        'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
+    {'title': '레벨 4: 작은 방들', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 2, 'npc_kinds': {},
+        'follower_count': 2, 'dm_interval': 2.55, 'reply_cooldown': 4.25, 'letter_gap': 23.0,
+        'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
+    {'title': '레벨 5: 방마다 손님', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 4, 'npc_kinds': {},
+        'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'letter_gap': 18.0,
+        'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
+    {'title': '레벨 6: 빈방이 없다', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 6, 'npc_kinds': {},
+        'follower_count': 2, 'dm_interval': 2.25, 'reply_cooldown': 3.75, 'letter_gap': 14.0,
+        'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
+    {'title': '레벨 7: 긴 복도', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 2, 'npc_kinds': {},
+        'follower_count': 3, 'dm_interval': 2.1, 'reply_cooldown': 3.5, 'letter_gap': 10.0,
+        'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
+    {'title': '레벨 8: 복도의 손님들', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 4, 'npc_kinds': {},
+        'follower_count': 3, 'dm_interval': 1.95, 'reply_cooldown': 3.25, 'letter_gap': 8.0,
+        'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
+    {'title': '레벨 9: 파티의 끝', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 6, 'npc_kinds': {},
+        'follower_count': 3, 'dm_interval': 1.8, 'reply_cooldown': 3.0, 'letter_gap': 6.0,
+        'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
 ]
 
 # ===== B 구역 =====
@@ -218,6 +240,7 @@ const MENU_PHONE_ZOOM_SEC: float = 0.6        # 휴대폰이 가운데로 와서
 const MENU_MESSAGE_SIZE: Vector2 = Vector2(360.0, 120.0)  # 레벨 선택 화면의 메시지 크기
 const MENU_MESSAGE_FIRST_DELAY: float = 1.2   # 레벨 선택 화면에서 첫 메시지가 오기 전 비어 있는 시간
 const MENU_MESSAGES: Array = ['어디야?', '왜 답이 없어', '지금 보러 갈까?']
+const MENU_MESSAGE_MAX: int = 4               # 레벨 선택 화면 메시지 최대 개수 (휴대폰 화면에 4개까지 들어감). 레벨 5부터는 4개
 const MENU_MESSAGE_INTERVAL: float = 0.9      # 레벨 선택 화면에 메시지가 하나씩 도착하는 간격
 const MENU_MESSAGE_HOLD: float = 2.2          # 다 도착한 뒤 비우고 다시 시작하기까지
 const MENU_ICON_DELAY: float = 0.25           # 홈으로 돌아와 휴대폰이 멈춘 뒤 아이콘이 나타나기 시작할 때까지

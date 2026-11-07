@@ -28,6 +28,7 @@ var end_reason: EndReason = EndReason.NONE
 var level_index: int = 0           # 현재 레벨(GameConfig.LEVELS 번호). R 재시작해도 유지되고, 승리 후 N으로 다음 레벨
 var test_level: bool = false       # 테스트 맵(레벨 0, GameConfig.TEST_LEVEL)인지. 디버그로만 연다
 var cfg: Dictionary = GameConfig.LEVELS[0]
+var npc_total: int = 0             # 이 판의 사람 수. Main이 사람을 만든 뒤 넣는다 (히든 엔딩 판정)
 var phone_on: bool = false
 var dm_stage: int = 0
 var elapsed_time: float = 0.0
@@ -172,10 +173,16 @@ func report_wrong_letter() -> void:
 
 
 ## 사람에게 반응을 보냈을 때 TopView가 호출.
-func report_reaction(positive: bool) -> void:
+## times_before: 이 사람이 전에 반응을 받은 횟수. 같은 사람을 여러 번 누를수록 점수가 줄어든다.
+func report_reaction(positive: bool, times_before: int = 0) -> void:
     if is_playing():
-        _add_score(GameConfig.SCORE_REACTION)
+        _add_score(reaction_score(times_before))
         reaction_sent.emit(positive)
+
+
+## 같은 사람에게 times_before번 반응한 뒤 다시 반응할 때 얻는 점수. 처음 10점, 그다음부터 절반씩(내림), 0점까지.
+static func reaction_score(times_before: int) -> int:
+    return floori(GameConfig.SCORE_REACTION_FIRST * pow(GameConfig.SCORE_REACTION_DECAY, maxi(times_before, 0)))
 
 
 ## 사람이 길막으로 멈췄을 때 호출. 모든 사람을 막으면 히든 엔딩 조건이 된다.
@@ -260,7 +267,7 @@ func _update_slow_dance() -> void:
 
 
 func _is_everyone_blocked() -> bool:
-    return _blocked_npcs.size() >= int(cfg['npc_count'])
+    return npc_total > 0 and _blocked_npcs.size() >= npc_total
 
 
 func _start_circle_ending() -> void:

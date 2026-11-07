@@ -6,6 +6,7 @@ const NPC_SCENE: PackedScene = preload('res://scenes/top_view/npc.tscn')
 const SPAWN_MAX_ATTEMPTS: int = 50
 
 var level: PartyLevel = null
+var balancer: CrowdBalancer = null
 
 @onready var player: PartyPlayer = $Player
 @onready var _npcs: Node2D = $NPCs
@@ -20,12 +21,28 @@ func _ready() -> void:
     move_child(level, 0)
     player.position = level.get_player_start()
     ($Lighting as PartyLighting).setup(level.rooms, player)
+    balancer = CrowdBalancer.new()
+    balancer.name = 'CrowdBalancer'
+    add_child(balancer)
+    balancer.setup(level, _npcs)
     GameState.circle_ending_started.connect(_on_circle_ending_started)
 
 
-## 플레이어에게서 NPC_SPAWN_MIN_DIST 이상, 다른 NPC에게서 NPC_SPAWN_SPACING 이상 떨어진 곳에 NPC를 만든다.
+## 이 판의 사람 수: 방 넓이로 정한 기본 인원의 합 + 레벨 추가 인원(npc_bonus)
+func npc_count() -> int:
+    return level.total_quota() + int(GameState.cfg['npc_bonus'])
+
+
+## 사람을 방마다 목표 인원만큼 만든다. 플레이어에게서 NPC_SPAWN_MIN_DIST 이상,
+## 다른 사람에게서 NPC_SPAWN_SPACING 이상 떨어진 곳에 놓는다.
 ## 종류는 레벨의 npc_kinds를 따르고 나머지는 일반. follower_option은 일반 사람 앞에서부터 켠다.
 func spawn_npcs(count: int) -> Array[PartyNpc]:
+    level.set_allocation(count)
+    var spawn_rooms: Array[int] = []
+    for room: int in level.rooms.size():
+        for _n: int in level.room_alloc[room]:
+            spawn_rooms.append(room)
+    spawn_rooms.shuffle()
     var kinds: Array[String] = []
     var special: Dictionary = GameState.cfg['npc_kinds']
     for kind_name: String in special.keys():
@@ -41,11 +58,12 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
     var result: Array[PartyNpc] = []
     for i: int in count:
         var npc: PartyNpc = NPC_SCENE.instantiate()
-        var point: Vector2 = level.random_point()
+        var room: int = spawn_rooms[i] if i < spawn_rooms.size() else 0
+        var point: Vector2 = level.random_free_point_in_room(room)
         for _attempt: int in SPAWN_MAX_ATTEMPTS:
             if _is_free_spawn_point(point, result):
                 break
-            point = level.random_point()
+            point = level.random_free_point_in_room(room)
         npc.position = point
         npc.level = level
         npc.follow_target = player
@@ -81,7 +99,7 @@ func _unhandled_input(event: InputEvent) -> void:
     get_viewport().set_input_as_handled()
     var positive: bool = mb.button_index == MOUSE_BUTTON_LEFT
     if npc.receive_reaction(positive):
-        GameState.report_reaction(positive)
+        GameState.report_reaction(positive, npc.times_reacted - 1)
 
 
 func _npc_at(point: Vector2) -> PartyNpc:
