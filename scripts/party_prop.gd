@@ -6,8 +6,11 @@ extends Area2D
 ## 재사용 대기 중에는 소품이 어두워지고, 위에 흰색 원형 타이머(CooldownTimer)가 남은 시간만큼 줄어든다.
 
 const LAYER_PROP: int = 8
-const PROP_HALF_SIZE: float = 24.0        # 상호작용 판정 크기
-const ICON_DISPLAY_SIZE: float = 96.0     # 이미지의 긴 변을 이 크기로 표시
+const BODY_RATIO: float = 0.85            # 충돌 크기 = 그림 크기 × 이 비율
+const BAR_SIZE: Vector2 = Vector2(72.0, 7.0)
+const BAR_GAP: float = 6.0
+const BAR_BACK_COLOR: Color = Color(0.05, 0.03, 0.14, 0.85)
+const BAR_FILL_COLOR: Color = Color(0.4, 0.9, 1.0)
 const ACTIVE_CIRCLE_RADIUS: float = 160.0
 const ACTIVE_CIRCLE_MAX_ALPHA: float = 0.25
 const COOLDOWN_TINT: Color = Color(0.25, 0.25, 0.3)   # 재사용 대기 중 소품 색
@@ -22,6 +25,8 @@ const TIMER_BACK_COLOR: Color = Color(0.0, 0.0, 0.0, 0.55)    # 밝은 바닥에
 @export_enum('speaker', 'light', 'playlist') var prop_id: String = 'speaker'
 ## 사람을 모을 지점. 소품 위치 기준 상대 좌표.
 @export var aggro_offset: Vector2 = Vector2.ZERO
+## 이 소품만 효과 반경을 바꿀 때 쓴다. 0이면 GameConfig.PROPS의 값.
+@export var radius_override: float = 0.0
 
 var display_name: String = ''
 var aggro_radius: float = 0.0
@@ -30,22 +35,24 @@ var base_color: Color = Color.WHITE
 var _cooldown_left: float = 0.0
 var _active_left: float = 0.0
 var _effect: Node = null
+var _icon_size: Vector2 = Vector2.ZERO
 
 @onready var _icon: Sprite2D = $Icon
 @onready var _shape: CollisionShape2D = $CollisionShape2D
-## 원형 타이머. 씬에서 unshaded 머티리얼(파티 조명에 어두워지지 않게)과 z_index 10(모인 사람에게 가려지지 않게)을 준다.
-@onready var _timer: Node2D = $CooldownTimer
+@onready var _body_shape: CollisionShape2D = $Body/CollisionShape2D
+@onready var _bar: Node2D = $CooldownBar
+@onready var _cooldown_label: Label = $CooldownLabel
 
 
 func _ready() -> void:
     var spec: Dictionary = GameConfig.PROPS[prop_id]
     display_name = String(spec['name'])
-    aggro_radius = float(spec['radius'])
+    aggro_radius = radius_override if radius_override > 0.0 else float(spec['radius'])
     cooldown_total = float(spec['cooldown'])
     base_color = spec['color']
     _icon.texture = GameAssets.prop_icon(prop_id, base_color)
     # 이미지 해상도와 상관없이 같은 크기로 보여 준다.
-    _icon.scale = Vector2.ONE * ICON_DISPLAY_SIZE / maxf(_icon.texture.get_width(), _icon.texture.get_height())
+    _icon.scale = Vector2.ONE * float(spec['icon_size']) / maxf(_icon.texture.get_width(), _icon.texture.get_height())
 
     _timer.visible = false
     _timer.draw.connect(_draw_timer)
@@ -53,9 +60,29 @@ func _ready() -> void:
     collision_layer = LAYER_PROP
     collision_mask = 0
     add_to_group('interactable')
-    var circle := CircleShape2D.new()
-    circle.radius = PROP_HALF_SIZE
-    _shape.shape = circle
+    # 그림 크기에 맞춘 판정: 상호작용 범위와 몸체 충돌
+    _icon_size = Vector2(_icon.texture.get_size()) * _icon.scale
+    var area_box := RectangleShape2D.new()
+    area_box.size = _icon_size
+    _shape.shape = area_box
+    var body_box := RectangleShape2D.new()
+    body_box.size = _icon_size * BODY_RATIO
+    _body_shape.shape = body_box
+    # 재사용 대기 표시는 그림 바로 아래
+    _bar.position = Vector2(0.0, _icon_size.y * 0.5 + BAR_GAP)
+    _bar.draw.connect(_draw_bar)
+    _cooldown_label.position = Vector2(-_cooldown_label.size.x * 0.5, _bar.position.y + BAR_SIZE.y + 1.0)
+
+
+## 몸체 충돌 영역 (월드 좌표)
+func get_body_rect() -> Rect2:
+    var size_value: Vector2 = _icon_size * BODY_RATIO
+    return Rect2(global_position - size_value * 0.5, size_value)
+
+
+## 중심에서 몸체 가장자리까지의 가장 먼 거리
+func get_body_radius() -> float:
+    return maxf(_icon_size.x, _icon_size.y) * BODY_RATIO * 0.5
 
 
 ## 어그로 지점 (월드 좌표)
@@ -97,6 +124,23 @@ func interact(_player: Node) -> void:
     _timer.queue_redraw()
     _spawn_effect()
     GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION)
+
+
+func _update_cooldown_display() -> void:
+    var waiting: bool = _cooldown_left > 0.0
+    _bar.visible = waiting
+    _cooldown_label.visible = waiting
+    if waiting:
+        _cooldown_label.text = '%d초' % ceili(_cooldown_left)
+        _bar.queue_redraw()
+
+
+func _draw_bar() -> void:
+    var box := Rect2(-BAR_SIZE.x * 0.5, 0.0, BAR_SIZE.x, BAR_SIZE.y)
+    _bar.draw_rect(box, BAR_BACK_COLOR)
+    var filled: Rect2 = box
+    filled.size.x *= _cooldown_left / cooldown_total
+    _bar.draw_rect(filled, BAR_FILL_COLOR)
 
 
 ## 효과 씬은 어그로 지점에 놓이고, 재생은 씬이 스스로 한다(자동 재생 또는 emitting 켜기).

@@ -63,7 +63,7 @@ var _errand_left: float = 0.0
 
 func _ready() -> void:
     collision_layer = LAYER_NPC
-    collision_mask = MASK_SOLID
+    collision_mask = MASK_WALLS_PLAYER_NPCS
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('npcs')
     _sprite.sprite_frames = GameAssets.npc_frames(look)
@@ -277,7 +277,8 @@ func _update_errand(delta: float) -> void:
         _start_walk()
         return
     _move_to_target(_walk_speed(), delta)
-    var near_prop: bool = global_position.distance_to(_errand_prop.global_position) <= GameConfig.INTERACTIVE_REACH
+    var reach: float = GameConfig.INTERACTIVE_REACH + _errand_prop.get_body_radius()
+    var near_prop: bool = global_position.distance_to(_errand_prop.global_position) <= reach
     if near_prop or global_position.distance_to(_target) <= GameConfig.NPC_ARRIVE_DISTANCE:
         var prop: PartyProp = _errand_prop
         _errand_prop = null

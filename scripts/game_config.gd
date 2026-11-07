@@ -18,6 +18,7 @@ const PLAYER_RADIUS: float = 19.2
 const PLAYER_SPEED: float = 144.0
 const PLAYER_COLOR: Color = Color(0.85, 0.85, 0.8)
 const CHARACTER_TURN_SPEED: float = 14.0      # 캐릭터가 이동 방향으로 도는 속도(라디안/초)
+const CHARACTER_ANIM_BASE_SPEED: float = 60.0 # 걷기 애니메이션을 기본 속도(초당 12.5프레임)로 재생할 이동 속도. 빠를수록 비례해 빨라짐
 const INTERACT_RANGE: float = 57.6
 
 const NPC_RADIUS: float = 19.2
@@ -27,6 +28,7 @@ const NPC_IDLE_TIME_RANGE: Vector2 = Vector2(1.0, 3.0)
 const NPC_MAP_MARGIN: float = 72.0
 const NPC_ARRIVE_DISTANCE: float = 9.6
 const NPC_STUCK_TIMEOUT: float = 1.5
+const NPC_SPAWN_GAP: float = 48.0             # 사람끼리 처음에 떨어져 있는 최소 거리
 const NPC_SPAWN_MIN_DIST: float = 240.0      # 맵 절반에 맞춰 480 → 240
 const NPC_SPAWN_SPACING: float = 64.0        # 처음 놓을 때 사람끼리 떨어뜨리는 거리 (지름 38.4 + 여유)
 # 사람끼리는 몸이 부딪혀 겹치지 않는다. 걷는 사람은 가까운 사람을 미리 피해 옆으로 비켜 간다.
@@ -118,9 +120,9 @@ const SCORE_WRONG_LETTER: int = 10          # 틀린 글자를 누르면 깎임.
 
 # 소품 종류별 값. 위치와 어그로 지점은 top_view.tscn에서 배치한다.
 const PROPS: Dictionary = {
-    'speaker': {'name': '스피커', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25)},
-    'light': {'name': '조명', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35)},
-    'playlist': {'name': '플레이리스트', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85)},
+    'speaker': {'name': '스피커', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25), 'icon_size': 110.0},
+    'light': {'name': '조명', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35), 'icon_size': 96.0},
+    'playlist': {'name': '플레이리스트', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0},
 }
 
 const SURVIVE_TIME: float = 180.0
@@ -204,6 +206,14 @@ const REPLY_WORDS: Array = ['LOVE', 'MISS', 'SOON', 'WAIT', 'CALL', 'LATER', 'HU
 const LETTER_GRID: Vector2i = Vector2i(4, 6)  # 알파벳 버튼을 놓는 칸 (열, 행). 칸 간격은 레벨의 letter_gap
 const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어긋나는 최대 정도(px). 간격이 좁으면 자동으로 줄어듦
 const LETTER_MIN_GAP: float = 6.0             # 어긋나도 버튼 사이에 남기는 최소 간격(px). 서로 붙지 않게
+# 휴대폰을 켠 동안 위에 뜨는 여자친구 메시지. 누르면 사라진다.
+const GIRLFRIEND_MESSAGES: Array = [
+    '자기야 어디야?', '왜 이렇게 안 보여', '누구랑 연락해?', '나 지금 찾으러 갈게',
+    '휴대폰 그만 보고 나와', '내 친구가 너 봤대', '왜 답장 안 해?', '지금 어디 있어?',
+]
+const GIRLFRIEND_FIRST_DELAY: float = 1.5     # 휴대폰을 켠 뒤 첫 메시지까지
+const GIRLFRIEND_INTERVAL_RANGE: Vector2 = Vector2(5.0, 10.0)
+const GIRLFRIEND_SHOW_SEC: float = 3.0
 # 휴대폰에서 연속으로 입력하면 음향 효과가 나오는 글자
 const LETTER_COMBOS: Dictionary = {'LLL': 'take_l', 'BAJI': 'baji'}
 # 메뉴와 종료 화면
@@ -211,6 +221,12 @@ const MENU_NOTIFY_INTERVAL: float = 1.5       # 메인 메뉴를 가만히 두�
 const MENU_CREDITS_SEC: float = 4.0           # 전원 버튼을 누른 뒤 개발진 정보를 보여 주는 시간
 const MENU_PHONE_ZOOM_SEC: float = 0.6        # 휴대폰이 가운데로 와서 커지는 시간
 const MENU_MESSAGE_SIZE: Vector2 = Vector2(360.0, 120.0)  # 레벨 선택 화면의 메시지 크기
+const MENU_MESSAGE_FIRST_DELAY: float = 1.2   # 레벨 선택 화면에서 첫 메시지가 오기 전 비어 있는 시간
+const MENU_MESSAGES: Array = ['어디야?', '왜 답이 없어', '지금 보러 갈까?']
+const MENU_MESSAGE_INTERVAL: float = 0.9      # 레벨 선택 화면에 메시지가 하나씩 도착하는 간격
+const MENU_MESSAGE_HOLD: float = 2.2          # 다 도착한 뒤 비우고 다시 시작하기까지
+const MENU_ICON_DELAY: float = 0.25           # 홈으로 돌아와 휴대폰이 멈춘 뒤 아이콘이 나타나기 시작할 때까지
+const MENU_ICON_FADE_SEC: float = 0.7         # 아이콘이 나타나는 시간
 const MENU_MUSIC_PATH: String = 'res://audio/menu_music.ogg'
 const STAMP_SOUND_PATH: String = 'res://audio/stamp.ogg'
 const END_PANEL_SEC: float = 0.7              # 스토리 컷이 하나씩 나오는 간격

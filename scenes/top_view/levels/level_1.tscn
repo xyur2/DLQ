@@ -23,6 +23,15 @@ vertical_wall = true
 
 [node name="Props" type="Node2D" parent="."]
 
+[node name="Speaker" parent="Props" instance=ExtResource("2_prop")]
+position = Vector2(160, 160)
+prop_id = "speaker"
+
+[node name="Light" parent="Props" instance=ExtResource("2_prop")]
+position = Vector2(800, 16)
+prop_id = "light"
+aggro_offset = Vector2(0, 544)
+
 [node name="Playlist" parent="Props" instance=ExtResource("2_prop")]
 position = Vector2(480, 660)
 prop_id = "playlist"

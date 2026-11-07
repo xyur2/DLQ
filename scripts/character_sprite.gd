@@ -24,6 +24,8 @@ func set_motion(motion: Vector2) -> void:
     if moving:
         var turn: float = GameConfig.CHARACTER_TURN_SPEED * get_physics_process_delta_time()
         rotation = rotate_toward(rotation, motion.angle() - ART_FACING_ANGLE, turn)
+        # 걷는 속도에 맞춰 다리를 움직인다.
+        speed_scale = motion.length() / GameConfig.CHARACTER_ANIM_BASE_SPEED
     var next: StringName = &'walk' if moving else &'idle'
     if animation != next:
         play(next)

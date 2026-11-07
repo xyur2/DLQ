@@ -13,10 +13,10 @@ const GOBO_GOLD: Color = Color(1.0, 0.76, 0.35)
 const BEAM_COLORS: Array[Color] = [
     Color(1.0, 0.25, 0.65), Color(0.3, 0.8, 1.0), Color(0.65, 0.4, 1.0), Color(1.0, 0.8, 0.45),
 ]
-const COLUMN_COUNT: int = 11
-const WALL_DOT_COUNT: int = 90
-const GOBO_COUNT: int = 34
-const BEAM_COUNT: int = 6
+const COLUMN_COUNT: int = 7
+const WALL_DOT_COUNT: int = 36
+const GOBO_COUNT: int = 16
+const BEAM_COUNT: int = 3
 const PLANK_COUNT: int = 22
 const BALL_GLOW_RADIUS: float = 300.0
 
@@ -62,7 +62,6 @@ func _draw() -> void:
     _draw_planks()
     _draw_gobos()
     _draw_string_lights(250.0, 90.0, 0.0)
-    _draw_string_lights(360.0, 60.0, 1.7)
     _draw_beams()
     _draw_ball_glow()
 
@@ -88,7 +87,7 @@ func _draw_columns() -> void:
         var x: float = gap * (float(i) + 0.5)
         var glow: float = 0.55 + 0.25 * sin(_time * 0.9 + float(i))
         var height: float = 170.0 + 40.0 * sin(float(i) * 1.7)
-        for layer: Array in [[26.0, 0.07], [14.0, 0.14], [5.0, 0.8]]:
+        for layer: Array in [[26.0, 0.025], [14.0, 0.05], [5.0, 0.32]]:
             var color: Color = NEON_CYAN
             color.a = float(layer[1]) * glow
             var half: float = float(layer[0]) * 0.5
@@ -116,7 +115,7 @@ func _draw_gobos() -> void:
             continue
         var radius: float = lerpf(6.0, 40.0, depth)
         var color: Color = gobo['color']
-        color.a = lerpf(0.25, 0.6, depth) * (0.65 + 0.35 * sin(phase * 3.0))
+        color.a = lerpf(0.1, 0.3, depth) * (0.65 + 0.35 * sin(phase * 3.0))
         if bool(gobo['star']):
             _draw_star(point, radius * 1.3, color)
         else:
@@ -149,8 +148,7 @@ func _draw_string_lights(y: float, sag: float, phase: float) -> void:
             draw_line(previous, point, Color(0.5, 0.42, 0.65, 0.3), 1.0)
         previous = point
         var twinkle: float = 0.5 + 0.5 * sin(_time * 2.0 + float(i) * 1.3 + phase)
-        draw_circle(point, 5.0, Color(1.0, 0.85, 0.55, 0.1 + 0.14 * twinkle))
-        draw_circle(point, 2.0, Color(1.0, 0.9, 0.7, 0.5 + 0.5 * twinkle))
+        draw_circle(point, 2.0, Color(1.0, 0.9, 0.7, 0.25 + 0.35 * twinkle))
 
 
 ## 디스코볼에서 뻗는 빛줄기. 끝으로 갈수록 투명하다.
@@ -162,7 +160,7 @@ func _draw_beams() -> void:
         var side: Vector2 = direction.orthogonal() * 70.0
         var color: Color = BEAM_COLORS[i % BEAM_COLORS.size()]
         var near_color: Color = color
-        near_color.a = 0.26
+        near_color.a = 0.09
         color.a = 0.0
         draw_polygon(
             PackedVector2Array([ball_center, far_point + side, far_point - side]),
@@ -173,7 +171,7 @@ func _draw_beams() -> void:
 func _draw_ball_glow() -> void:
     var pulse: float = 0.8 + 0.2 * sin(_time * 3.0)
     var box := Rect2(ball_center - Vector2.ONE * BALL_GLOW_RADIUS, Vector2.ONE * BALL_GLOW_RADIUS * 2.0)
-    draw_texture_rect(_soft_circle, box, false, Color(0.55, 0.7, 1.0, 0.5 * pulse))
+    draw_texture_rect(_soft_circle, box, false, Color(0.55, 0.7, 1.0, 0.2 * pulse))
 
 
 func _make_soft_circle() -> GradientTexture2D:

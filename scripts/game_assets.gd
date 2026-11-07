@@ -7,12 +7,13 @@ extends RefCounted
 const PARTY_MAP: String = 'res://assets/party_map.webp'
 const SCARE_IMAGE: String = 'res://assets/scare.png'
 const PROP_ICONS: Dictionary = {
-    'speaker': 'res://assets/prop_speaker.png',
+    'speaker': 'res://assets/prop_speaker.webp',
     'light': 'res://assets/prop_light_panel.png',
     'playlist': 'res://assets/prop_playlist.webp',
 }
 ## 캔버스의 빈 공간을 뺀 그림 영역. 없으면 이미지 전체를 쓴다.
 const PROP_ICON_REGIONS: Dictionary = {
+    'speaker': Rect2(127, 338, 989, 604),
     'light': Rect2(234, 587, 787, 206),
     'playlist': Rect2(111, 520, 1784, 847),
 }

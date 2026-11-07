@@ -43,7 +43,7 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
         var npc: PartyNpc = NPC_SCENE.instantiate()
         var point: Vector2 = level.random_point()
         for _attempt: int in SPAWN_MAX_ATTEMPTS:
-            if _is_free_spawn_point(point, result):
+            if point.distance_to(player.position) >= GameConfig.NPC_SPAWN_MIN_DIST and _is_clear_of_npcs(point, result):
                 break
             point = level.random_point()
         npc.position = point
@@ -62,6 +62,9 @@ func _is_free_spawn_point(point: Vector2, placed: Array[PartyNpc]) -> bool:
         return false
     for other: PartyNpc in placed:
         if point.distance_to(other.position) < GameConfig.NPC_SPAWN_SPACING:
+func _is_clear_of_npcs(point: Vector2, others: Array[PartyNpc]) -> bool:
+    for other: PartyNpc in others:
+        if other.position.distance_to(point) < GameConfig.NPC_SPAWN_GAP:
             return false
     return true
 
