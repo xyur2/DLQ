@@ -11,7 +11,8 @@ signal dm_arrived(stage: int)
 signal dm_stage_changed(stage: int)
 signal reply_resolved(success: bool)
 signal tension_changed(value: float)
-signal aggro_emitted(point: Vector2, radius: float, duration: float)
+## area가 비어 있지 않으면 그 안(월드 좌표)에 있는 사람만 모인다 (방 전체를 모으는 소품).
+signal aggro_emitted(point: Vector2, radius: float, duration: float, area: Rect2)
 signal interact_hint_changed(text: String)
 signal debug_changed(enabled: bool)
 signal game_ended(reason: int)
@@ -22,12 +23,15 @@ signal player_knocked_back(from_point: Vector2)
 signal slow_dance_changed(active: bool)
 signal circle_ending_started()
 signal circle_scare_started()
+signal endless_level_changed(level: int)
+signal dance_started(duration: float)
 
 var state: State = State.INTRO
 var end_reason: EndReason = EndReason.NONE
 var level_index: int = 0           # 현재 레벨(GameConfig.LEVELS 번호). R 재시작해도 유지되고, 승리 후 N으로 다음 레벨
 var test_level: bool = false       # 테스트 맵(레벨 0, GameConfig.TEST_LEVEL)인지. 디버그로만 연다
 var cfg: Dictionary = GameConfig.LEVELS[0]
+var npc_total: int = 0             # 이 판의 사람 수. Main이 사람을 만든 뒤 넣는다 (히든 엔딩 판정)
 var phone_on: bool = false
 var dm_stage: int = 0
 var elapsed_time: float = 0.0
@@ -36,8 +40,11 @@ var tension: float = 0.0
 var tremor_closeness: float = 0.0   # 손 떨림용 근접도 0~1 (TREMOR_FAR_RADIUS → 발각 반경)
 var debug_enabled: bool = false
 var endless_mode: bool = false     # 무한 모드: 시간이 다 돼도 승리하지 않고 끝날 때까지 점수를 쌓는다
+var endless_level: int = 1         # 무한 모드 레벨. 게임 시간 1시간마다 오른다
+var level_title_left: float = 0.0  # 위쪽 알림에 레벨 이름을 보여 줄 남은 시간 (시작할 때, 무한 레벨이 오를 때)
 var score: int = 0
 var stun_left: float = 0.0
+var dance_left: float = 0.0        # 춤추는 남은 시간. 이 동안 행동 불가
 var slow_dance_active: bool = false
 var _dm_timer: float = 0.0
 var _slow_dance_start: float = 0.0
@@ -55,7 +62,12 @@ func _ready() -> void:
 ## 모든 값을 초기화한다. Main._enter_tree()에서 호출한다(자식 씬의 _ready보다 먼저).
 func start_game() -> void:
     level_index = clampi(level_index, 0, GameConfig.LEVELS.size() - 1)
-    cfg = GameConfig.TEST_LEVEL if test_level else GameConfig.LEVELS[level_index]
+    endless_level = 1
+    if endless_mode:
+        cfg = endless_config(1)
+    else:
+        cfg = GameConfig.TEST_LEVEL if test_level else GameConfig.LEVELS[level_index]
+    level_title_left = GameConfig.LEVEL_TITLE_SEC
     end_reason = EndReason.NONE
     phone_on = false
     dm_stage = 0
@@ -66,6 +78,7 @@ func start_game() -> void:
     _dm_timer = float(cfg['dm_interval'])
     score = 0
     stun_left = 0.0
+    dance_left = 0.0
     slow_dance_active = false
     _slow_dance_start = randf_range(GameConfig.SLOW_DANCE_START_RANGE.x, GameConfig.SLOW_DANCE_START_RANGE.y)
     _blocked_npcs.clear()
@@ -95,14 +108,38 @@ func set_endless(enabled: bool) -> void:
 
 
 func get_level_title() -> String:
-    return 'Endless Mode' if endless_mode else String(cfg['title'])
+    return String(cfg['title'])
 
 
 ## 화면에 보이는 레벨 번호는 1부터 시작한다.
 func get_level_label() -> String:
     if endless_mode:
-        return 'Endless Mode'
+        return 'Endless Mode %d' % endless_level
     return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
+
+
+## 무한 모드 레벨 level의 설정. 레벨이 오를수록 사람이 많아지고(상한 ENDLESS_NPC_MAX), DM 주기·쉬는 시간,
+## 답장 문구, 글자 풍선은 일반 레벨 level(9 이상이면 레벨 9)과 같다. DM 주기는 레벨 5에서 상한.
+static func endless_config(level: int) -> Dictionary:
+    var step: int = maxi(level - 1, 0)
+    var every_three: int = floori(step / 3.0)
+    var text: Dictionary = GameConfig.LEVELS[mini(step, GameConfig.LEVELS.size() - 1)]
+    return {
+        'title': 'Endless Mode Level %d' % level,
+        'scene': GameConfig.ENDLESS_SCENE,
+        'npc_target': mini(GameConfig.ENDLESS_NPC_START + GameConfig.ENDLESS_NPC_STEP * step, GameConfig.ENDLESS_NPC_MAX),
+        'npc_bonus': 0,
+        'npc_kinds': {},
+        'follower_count': mini(1 + every_three, GameConfig.ENDLESS_FOLLOWER_MAX),
+        'dm_interval': text['dm_interval'],
+        'reply_cooldown': text['reply_cooldown'],
+        'reply_pool': text['reply_pool'],
+        'letter_gap': text['letter_gap'],
+        'letter_spread': text['letter_spread'],
+        'caught_radius': 80.0,
+        'decoy_count': text['decoy_count'],
+        'wrong_lock_time': 2.0,
+    }
 
 
 func is_playing() -> bool:
@@ -117,7 +154,11 @@ func tick(delta: float, nearest_px: float) -> void:
     if not is_playing():
         return
     elapsed_time += delta
+    level_title_left = maxf(0.0, level_title_left - delta)
+    if endless_mode:
+        _update_endless_level()
     stun_left = maxf(0.0, stun_left - delta)
+    dance_left = maxf(0.0, dance_left - delta)
     _update_slow_dance()
     nearest_npc_px = nearest_px
     _dm_timer -= delta
@@ -128,6 +169,17 @@ func tick(delta: float, nearest_px: float) -> void:
     _update_tension(delta)
     _update_tremor(delta)
     _check_end()
+
+
+## 무한 모드: 게임 시간 1시간마다 레벨을 올리고 설정(cfg)을 바꾼다. 다음 DM, 다음 단어부터 적용된다.
+func _update_endless_level() -> void:
+    var level: int = 1 + floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC)
+    if level <= endless_level:
+        return
+    endless_level = level
+    cfg = endless_config(level)
+    level_title_left = GameConfig.LEVEL_TITLE_SEC
+    endless_level_changed.emit(level)
 
 
 ## Q 또는 아이콘 클릭. 켜기 전용.
@@ -172,10 +224,16 @@ func report_wrong_letter() -> void:
 
 
 ## 사람에게 반응을 보냈을 때 TopView가 호출.
-func report_reaction(positive: bool) -> void:
+## times_before: 이 사람이 전에 반응을 받은 횟수. 같은 사람을 여러 번 누를수록 점수가 줄어든다.
+func report_reaction(positive: bool, times_before: int = 0) -> void:
     if is_playing():
-        _add_score(GameConfig.SCORE_REACTION)
+        _add_score(reaction_score(times_before))
         reaction_sent.emit(positive)
+
+
+## 같은 사람에게 times_before번 반응한 뒤 다시 반응할 때 얻는 점수. 처음 10점, 그다음부터 절반씩(내림), 0점까지.
+static func reaction_score(times_before: int) -> int:
+    return floori(GameConfig.SCORE_REACTION_FIRST * pow(GameConfig.SCORE_REACTION_DECAY, maxi(times_before, 0)))
 
 
 ## 사람이 길막으로 멈췄을 때 호출. 모든 사람을 막으면 히든 엔딩 조건이 된다.
@@ -192,8 +250,23 @@ func report_long_block(from_point: Vector2) -> void:
         player_knocked_back.emit(from_point)
 
 
+## 밀려났거나 춤추는 중이면 이동, E, 반응, 휴대폰 켜기를 할 수 없다.
 func is_stunned() -> bool:
-    return stun_left > 0.0
+    return stun_left > 0.0 or dance_left > 0.0
+
+
+func is_dancing() -> bool:
+    return dance_left > 0.0
+
+
+## 조명 아래에서 사람과 춤춘다(DanceSpot). DANCE_SEC초 동안 행동 불가, DANCE_SCORE점. 시작했으면 true.
+func start_dance() -> bool:
+    if not is_playing() or phone_on or is_stunned():
+        return false
+    dance_left = GameConfig.DANCE_SEC
+    _add_score(GameConfig.DANCE_SCORE)
+    dance_started.emit(GameConfig.DANCE_SEC)
+    return true
 
 
 ## 휴대폰에서 정해진 글자를 연속으로 입력했을 때 호출.
@@ -202,8 +275,8 @@ func trigger_easter_egg(id: String) -> void:
         easter_egg.emit(id)
 
 
-func emit_aggro(point: Vector2, radius: float, duration: float) -> void:
-    aggro_emitted.emit(point, radius, duration)
+func emit_aggro(point: Vector2, radius: float, duration: float, area: Rect2 = Rect2()) -> void:
+    aggro_emitted.emit(point, radius, duration, area)
 
 
 ## 휴대폰 떨림 폭(px). PhoneView가 매 프레임 읽어 휴대폰을 흔든다.
@@ -224,6 +297,10 @@ func get_dm_badge_text() -> String:
 
 ## 왼쪽 위 시각. 180초 동안 11h 00 → 12h 00.
 func get_clock_text() -> String:
+    if endless_mode:
+        # 무한 모드는 12시에서 멈추지 않고 계속 흐른다 (1시간 = ENDLESS_LEVEL_SEC).
+        var total_minutes: int = floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC * 60.0)
+        return '%02dh %02d' % [(11 + floori(total_minutes / 60.0)) % 24, total_minutes % 60]
     var ratio: float = clampf(elapsed_time / GameConfig.SURVIVE_TIME, 0.0, 1.0)
     var minutes: int = int(ratio * 60.0)
     if minutes >= 60:
@@ -260,7 +337,7 @@ func _update_slow_dance() -> void:
 
 
 func _is_everyone_blocked() -> bool:
-    return _blocked_npcs.size() >= int(cfg['npc_count'])
+    return npc_total > 0 and _blocked_npcs.size() >= npc_total
 
 
 func _start_circle_ending() -> void:

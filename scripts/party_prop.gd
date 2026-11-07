@@ -1,9 +1,12 @@
 class_name PartyProp
 extends Area2D
 ## 상호작용 소품(스피커·조명·플레이리스트). E를 누르면 어그로 지점으로 사람을 모은다.
-## 종류별 이름·반경·재사용 대기·색은 GameConfig.PROPS, 위치와 어그로 지점은 top_view.tscn에서 정한다.
+## 종류별 이름·반경·재사용 대기·색은 GameConfig.PROPS, 위치와 어그로 지점은 레벨 씬에서 정한다.
+## whole_room 소품(플레이리스트)은 반경 대신 소품이 있는 방 전체의 사람을 모은다(PartyLevel.gather_area).
+## 조명(light)은 어그로 지점에 춤추는 자리(DanceSpot)를 만든다.
 ## 모양은 소품 이미지, 작동 효과는 효과 씬(GameAssets.PROP_EFFECTS). 효과 씬이 없으면 원으로 대신 표시한다.
-## 재사용 대기 중에는 소품이 어두워지고, 위에 흰색 원형 타이머(CooldownTimer), 아래에 막대와 남은 초가 나온다.
+## 재사용 대기 중에는 소품이 어두워지고, 그림 아래에 줄어드는 막대와 남은 초가 나온다.
+## 막대와 남은 초는 prop.tscn에서 z_index 10이라 소품으로 모인 사람에게 가려지지 않는다.
 
 const LAYER_PROP: int = 8
 const BODY_RATIO: float = 0.85            # 충돌 크기 = 그림 크기 × 이 비율
@@ -14,12 +17,6 @@ const BAR_FILL_COLOR: Color = Color(0.4, 0.9, 1.0)
 const ACTIVE_CIRCLE_RADIUS: float = 160.0
 const ACTIVE_CIRCLE_MAX_ALPHA: float = 0.25
 const COOLDOWN_TINT: Color = Color(0.25, 0.25, 0.3)   # 재사용 대기 중 소품 색
-const TIMER_RADIUS: float = 18.0          # 원형 타이머 반지름(px, 월드 기준)
-const TIMER_WIDTH: float = 5.0
-const TIMER_POINTS: int = 48
-const TIMER_COLOR: Color = Color.WHITE
-const TIMER_TRACK_COLOR: Color = Color(1.0, 1.0, 1.0, 0.22)   # 지나간 시간 쪽 흐린 고리
-const TIMER_BACK_COLOR: Color = Color(0.0, 0.0, 0.0, 0.55)    # 밝은 바닥에서도 보이게 까는 어두운 원
 
 ## 소품 종류 (GameConfig.PROPS의 키)
 @export_enum('speaker', 'light', 'playlist') var prop_id: String = 'speaker'
@@ -27,8 +24,14 @@ const TIMER_BACK_COLOR: Color = Color(0.0, 0.0, 0.0, 0.55)    # 밝은 바닥에
 @export var aggro_offset: Vector2 = Vector2.ZERO
 ## 이 소품만 효과 반경을 바꿀 때 쓴다. 0이면 GameConfig.PROPS의 값.
 @export var radius_override: float = 0.0
+## 무한 모드: 한 번 쓰면 재사용 대기 대신 사라진다. 어그로 효과가 끝나면 노드도 지운다.
+@export var single_use: bool = false
+
+## 한 번 쓰고 사라졌는지 (single_use일 때)
+var used_up: bool = false
 
 var display_name: String = ''
+var whole_room: bool = false
 var aggro_radius: float = 0.0
 var cooldown_total: float = 0.0
 var base_color: Color = Color.WHITE
@@ -42,21 +45,23 @@ var _icon_size: Vector2 = Vector2.ZERO
 @onready var _body_shape: CollisionShape2D = $Body/CollisionShape2D
 @onready var _bar: Node2D = $CooldownBar
 @onready var _cooldown_label: Label = $CooldownLabel
-@onready var _timer: Node2D = $CooldownTimer
 
 
 func _ready() -> void:
     var spec: Dictionary = GameConfig.PROPS[prop_id]
     display_name = String(spec['name'])
     aggro_radius = radius_override if radius_override > 0.0 else float(spec['radius'])
+    whole_room = bool(spec.get('whole_room', false))
+    if prop_id == 'light':
+        var spot := DanceSpot.new()
+        spot.name = 'DanceSpot'
+        spot.position = aggro_offset
+        add_child(spot)
     cooldown_total = float(spec['cooldown'])
     base_color = spec['color']
     _icon.texture = GameAssets.prop_icon(prop_id, base_color)
     # 이미지 해상도와 상관없이 같은 크기로 보여 준다.
     _icon.scale = Vector2.ONE * float(spec['icon_size']) / maxf(_icon.texture.get_width(), _icon.texture.get_height())
-
-    _timer.visible = false
-    _timer.draw.connect(_draw_timer)
 
     collision_layer = LAYER_PROP
     collision_mask = 0
@@ -92,6 +97,13 @@ func get_aggro_point() -> Vector2:
 
 
 func _process(delta: float) -> void:
+    if used_up:
+        _active_left = maxf(0.0, _active_left - delta)
+        queue_redraw()
+        if _active_left <= 0.0:
+            _remove_effect()
+            queue_free()
+        return
     if _cooldown_left <= 0.0 and _active_left <= 0.0:
         return
     _cooldown_left = maxf(0.0, _cooldown_left - delta)
@@ -105,7 +117,7 @@ func _process(delta: float) -> void:
 
 ## 재사용 대기 중이 아니면 true (상호작용형 사람이 쓸 소품을 고를 때)
 func is_ready() -> bool:
-    return _cooldown_left <= 0.0
+    return _cooldown_left <= 0.0 and not used_up
 
 
 func get_hint() -> String:
@@ -115,25 +127,45 @@ func get_hint() -> String:
 
 
 func interact(_player: Node) -> void:
-    if _cooldown_left > 0.0:
+    if _cooldown_left > 0.0 or used_up:
         return
-    _cooldown_left = cooldown_total
     _active_left = GameConfig.AGGRO_DURATION
-    _icon.modulate = COOLDOWN_TINT
-    _update_cooldown_display()
+    if single_use:
+        _use_up()
+    else:
+        _cooldown_left = cooldown_total
+        _icon.modulate = COOLDOWN_TINT
+        _update_cooldown_display()
     _spawn_effect()
-    GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION)
+    GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION, _gather_area())
+
+
+## whole_room이면 소품이 있는 방(무한 모드는 소품 둘레 큰 방 크기), 아니면 빈 영역(반경만 씀)
+func _gather_area() -> Rect2:
+    if not whole_room:
+        return Rect2()
+    var node: Node = get_parent()
+    while node != null and not node is PartyLevel:
+        node = node.get_parent()
+    return (node as PartyLevel).gather_area(global_position) if node != null else Rect2()
+
+
+## 한 번 쓴 소품: 그림과 판정을 없애고, 어그로 효과만 끝날 때까지 남긴다.
+func _use_up() -> void:
+    used_up = true
+    remove_from_group('interactable')
+    _icon.visible = false
+    _shape.set_deferred('disabled', true)
+    _body_shape.set_deferred('disabled', true)
 
 
 func _update_cooldown_display() -> void:
     var waiting: bool = _cooldown_left > 0.0
     _bar.visible = waiting
     _cooldown_label.visible = waiting
-    _timer.visible = waiting
     if waiting:
         _cooldown_label.text = '%ds' % ceili(_cooldown_left)
         _bar.queue_redraw()
-        _timer.queue_redraw()
 
 
 func _draw_bar() -> void:
@@ -165,14 +197,3 @@ func _draw() -> void:
     if _active_left > 0.0 and _effect == null:
         var alpha: float = ACTIVE_CIRCLE_MAX_ALPHA * _active_left / GameConfig.AGGRO_DURATION
         draw_circle(aggro_offset, ACTIVE_CIRCLE_RADIUS, Color(base_color, alpha))
-
-
-## 원형 타이머: 12시 방향에서 시계 방향으로, 남은 시간만큼 흰 호가 남는다.
-func _draw_timer() -> void:
-    var ratio: float = clampf(_cooldown_left / maxf(cooldown_total, 0.001), 0.0, 1.0)
-    _timer.draw_circle(Vector2.ZERO, TIMER_RADIUS + TIMER_WIDTH, TIMER_BACK_COLOR)
-    _timer.draw_arc(Vector2.ZERO, TIMER_RADIUS, 0.0, TAU, TIMER_POINTS, TIMER_TRACK_COLOR, TIMER_WIDTH, true)
-    if ratio > 0.0:
-        var start: float = -PI * 0.5
-        var points: int = maxi(4, ceili(TIMER_POINTS * ratio))
-        _timer.draw_arc(Vector2.ZERO, TIMER_RADIUS, start, start + TAU * ratio, points, TIMER_COLOR, TIMER_WIDTH, true)

@@ -22,6 +22,7 @@ var _time: float = 0.0
 var _speed: float = 1.0
 var _slow: float = 0.0   # 0: 평소 조명, 1: 슬로우 댄스 조명
 var _soft_circle: GradientTexture2D = null
+var _wrap: Vector2 = Vector2.ZERO   # 무한 모드: 이 크기마다 조명 무늬를 반복한다
 
 @onready var _ambient: CanvasModulate = $Ambient
 
@@ -46,6 +47,22 @@ func setup(rooms: Array[Rect2], player: Node2D) -> void:
                 'speed': randf_range(0.1, 0.22),
                 'color': WASH_COLORS.pick_random(),
             })
+
+
+## 무한 모드: window 크기의 조명 무늬를 만들어 플레이어 둘레에 끝없이 이어 붙인다.
+func setup_wrapped(window: Vector2, player: Node2D) -> void:
+    var area: Array[Rect2] = [Rect2(-window * 0.5, window)]
+    setup(area, player)
+    _wrap = window
+
+
+## 무늬 안의 위치를 플레이어에게 가장 가까운 반복 위치로 옮긴다. 무한 모드가 아니면 그대로.
+func _wrapped(point: Vector2) -> Vector2:
+    if _wrap == Vector2.ZERO or _player == null:
+        return point
+    var center: Vector2 = to_local(_player.global_position)
+    var rel: Vector2 = point - center
+    return center + Vector2(wrapf(rel.x, -_wrap.x * 0.5, _wrap.x * 0.5), wrapf(rel.y, -_wrap.y * 0.5, _wrap.y * 0.5))
 
 
 func _ready() -> void:
@@ -84,7 +101,7 @@ func _draw_wash(wash: Dictionary) -> void:
     var point: Vector2 = inner.get_center() + Vector2(sin(phase) * inner.size.x, cos(phase * 1.3) * inner.size.y) * 0.5
     var color: Color = (wash['color'] as Color).lerp(SLOW_COLOR, _slow)
     color.a = WASH_ALPHA
-    _draw_soft(point, radius * 1.4, color)
+    _draw_soft(_wrapped(point), radius * 1.4, color)
 
 
 func _draw_soft(center: Vector2, radius: float, color: Color) -> void:
@@ -109,6 +126,7 @@ func _draw_spot(spot: Dictionary) -> void:
     var point: Vector2 = (spot['position'] as Vector2) + Vector2(sin(phase), cos(phase * 0.8)) * 40.0
     if not room.grow(-radius * 1.2).has_point(point):
         return
+    point = _wrapped(point)
     var color: Color = GOBO_COLOR.lerp(SLOW_COLOR, _slow)
     color.a = 0.42 + 0.14 * sin(phase * 3.0)
     if bool(spot['star']):

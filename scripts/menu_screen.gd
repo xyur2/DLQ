@@ -278,13 +278,18 @@ func _update_messages(delta: float) -> void:
     _message_wait -= delta
     if _message_wait > 0.0:
         return
-    if _messages.get_child_count() > _level:
+    if _messages.get_child_count() >= _message_goal():
         _clear_messages()
         _message_wait = GameConfig.MENU_MESSAGE_FIRST_DELAY
         return
     _add_message()
-    var full: bool = _messages.get_child_count() > _level
+    var full: bool = _messages.get_child_count() >= _message_goal()
     _message_wait = GameConfig.MENU_MESSAGE_HOLD if full else GameConfig.MENU_MESSAGE_INTERVAL
+
+
+## 레벨 수만큼, 휴대폰 화면에 들어가는 만큼까지
+func _message_goal() -> int:
+    return mini(_level + 1, GameConfig.MENU_MESSAGE_MAX)
 
 
 func _add_message() -> void:

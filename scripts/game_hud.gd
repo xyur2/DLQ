@@ -15,11 +15,13 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
     _score.text = '%s - Score %d' % [GameState.get_level_label(), GameState.score]
-    if GameState.is_stunned():
+    if GameState.is_dancing():
+        _notice.text = 'Dancing together! +%d' % GameConfig.DANCE_SCORE
+    elif GameState.is_stunned():
         _notice.text = 'Pushed away... %ds' % ceili(GameState.stun_left)
     elif GameState.slow_dance_active:
         _notice.text = 'Slow Dance Time'
-    elif GameState.is_playing() and GameState.elapsed_time < GameConfig.LEVEL_TITLE_SEC:
+    elif GameState.is_playing() and GameState.level_title_left > 0.0:
         _notice.text = GameState.get_level_title()
     else:
         _notice.text = ''

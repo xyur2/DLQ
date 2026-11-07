@@ -16,8 +16,10 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(GameConfig.BACKGROUND_COLOR)
 	GameState.game_ended.connect(_on_game_ended)
-	for npc: PartyNpc in _top_view.spawn_npcs(int(GameState.cfg['npc_count'])):
-		_audio.attach_npc(npc)
+	_top_view.npc_added.connect(_audio.attach_npc)
+	var npcs: Array[PartyNpc] = _top_view.spawn_npcs(_top_view.npc_count())
+	# 무한 모드는 사람이 생기고 사라지므로 히든 엔딩(모두 길막)을 판정하지 않는다.
+	GameState.npc_total = 0 if GameState.endless_mode else npcs.size()
 
 
 func _process(delta: float) -> void:

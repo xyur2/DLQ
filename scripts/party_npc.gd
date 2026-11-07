@@ -5,6 +5,7 @@ extends CharacterBody2D
 ## - 따라오는 사람: follower_option이 켜져 있거나 반응을 충분히 받으면 일정 시간 플레이어를 따라온다.
 ##   FOLLOW_STOP_DISTANCE 안으로 들어오면 그 자리에 멈춰 서고 따라오기를 끝낸다.
 ## - 사람끼리는 몸이 부딪혀 겹치지 않고, 걷는 사람은 가까운 사람을 미리 피해 옆으로 비켜 간다.
+## - 방이 붐비면 CrowdBalancer가 relocate()로 다른 방에 보낸다. 쉬거나 그냥 걷는 사람만 보낸다.
 ## - 길막: 걷다가 플레이어에게 막히면 멈춰 서고, 오래 막히면 플레이어를 밀쳐 낸다.
 ## - 슬로우 댄스: 제자리 근처만 조금씩 움직인다.
 ## 다른 방으로 갈 때는 PartyLevel.next_step을 따라 열린 문을 지난다. 문이 닫혀 있으면 그 방으로 가지 않는다.
@@ -56,6 +57,12 @@ var _special_left: float = 0.0          # 다음 특수 행동까지 남은 시�
 var _turn_left: float = 0.0             # 활발형: 다음 방향 전환까지
 var _errand_prop: PartyProp = null      # 상호작용형: 작동시키러 가는 소품
 var _errand_left: float = 0.0
+var _relocating: bool = false           # 붐비는 방에서 다른 방으로 옮기는 중
+var _dance_left: float = 0.0            # 플레이어와 춤추는 남은 시간
+## 이어서 받은 반응(클릭) 횟수. 같은 사람을 여러 번 누를수록 점수가 줄어든다.
+## 마지막 반응 뒤 SCORE_REACTION_RESET_SEC가 지나면 0으로 돌아가 다시 처음 점수를 준다.
+var times_reacted: int = 0
+var _last_reaction_time: float = -INF   # 마지막으로 반응을 받은 게임 시간 (GameState.elapsed_time)
 
 @onready var _sprite: CharacterSprite = $Sprite
 @onready var _shape: CollisionShape2D = $CollisionShape2D
@@ -95,6 +102,7 @@ func start_follow(duration: float) -> void:
     if follow_target == null:
         return
     _cancel_errand()
+    _relocating = false
     _mode = Mode.FOLLOW
     _follow_left = duration
     _stuck_time = 0.0
@@ -105,6 +113,10 @@ func receive_reaction(positive: bool) -> bool:
     if _reaction_cooldown > 0.0:
         return false
     _reaction_cooldown = GameConfig.REACTION_COOLDOWN
+    if GameState.elapsed_time - _last_reaction_time >= GameConfig.SCORE_REACTION_RESET_SEC:
+        times_reacted = 0
+    times_reacted += 1
+    _last_reaction_time = GameState.elapsed_time
     _show_emote(positive)
     _reaction_count += 1
     if _reaction_count >= _reaction_goal:
@@ -113,9 +125,30 @@ func receive_reaction(positive: bool) -> bool:
     return true
 
 
+## 조명 아래에서 플레이어와 춤춘다: duration초 동안 제자리에서 플레이어를 보고 돈다.
+## 춤추는 동안은 스스로 움직이지 않고(DanceSpot이 자리를 옮김), 소품 어그로나 방 나누기에도 끌려가지 않는다.
+func start_dance(duration: float) -> void:
+    _cancel_errand()
+    _relocating = false
+    _mode = Mode.IDLE
+    _idle_left = duration
+    _dance_left = duration
+    velocity = Vector2.ZERO
+    _show_text('DANCE!', Color(1.0, 0.5, 0.75))
+
+
+func is_dancing() -> bool:
+    return _dance_left > 0.0
+
+
+func face_toward(point: Vector2) -> void:
+    _sprite.face(point - global_position)
+
+
 ## 히든 엔딩: 지정된 자리로 옮겨 플레이어를 바라본다.
 func surround(point: Vector2, look_at_point: Vector2) -> void:
     _errand_prop = null
+    _relocating = false
     _mode = Mode.IDLE
     velocity = Vector2.ZERO
     global_position = point
@@ -124,6 +157,11 @@ func surround(point: Vector2, look_at_point: Vector2) -> void:
 
 func _physics_process(delta: float) -> void:
     if not GameState.is_playing():
+        velocity = Vector2.ZERO
+        _sprite.set_motion(velocity)
+        return
+    if _dance_left > 0.0:
+        _dance_left -= delta
         velocity = Vector2.ZERO
         _sprite.set_motion(velocity)
         return
@@ -182,7 +220,7 @@ func _physics_process(delta: float) -> void:
 func _update_walk(delta: float) -> void:
     if not level.can_reach(global_position, _target):
         _start_walk()   # 가는 중에 문이 닫힘
-    if kind == 'active' and not GameState.slow_dance_active:
+    if kind == 'active' and not GameState.slow_dance_active and not _relocating:
         _turn_left -= delta
         if _turn_left <= 0.0:
             _start_walk()   # 활발형: 도착하기 전에 방향을 바꾼다
@@ -191,6 +229,30 @@ func _update_walk(delta: float) -> void:
         _start_idle()
     elif _stuck_time >= GameConfig.NPC_STUCK_TIMEOUT:
         _start_walk()
+
+
+# ── 붐비는 방 나누기 (CrowdBalancer) ──
+
+## 인원을 셀 때 이 사람이 속한 방: 걷거나 모이는 중이면 가는 곳의 방, 아니면 지금 있는 방
+func get_room_claim() -> int:
+    var moving: bool = _mode == Mode.WALK or _mode == Mode.AGGRO
+    return level.room_or_nearest(_target if moving else global_position)
+
+
+## 다른 방으로 보내도 되는지: 쉬는 중이거나 그냥 걷는 중(소품 심부름, 이미 옮기는 중이 아님)
+func can_relocate() -> bool:
+    if GameState.slow_dance_active or _dance_left > 0.0:
+        return false
+    return _mode == Mode.IDLE or (_mode == Mode.WALK and _errand_prop == null and not _relocating)
+
+
+## point(다른 방의 지점)로 걸어간다. 도착하면 평소처럼 쉰다.
+func relocate(point: Vector2) -> void:
+    _mode = Mode.WALK
+    _errand_prop = null
+    _target = point
+    _stuck_time = 0.0
+    _relocating = true
 
 
 # ── 종류별 특수 행동 ──
@@ -250,6 +312,7 @@ func _start_errand() -> void:
         _special_left = GameConfig.INTERACTIVE_RETRY_SEC
         return
     _errand_prop = choices.pick_random()
+    _relocating = false
     _errand_left = GameConfig.INTERACTIVE_GIVE_UP_SEC
     _mode = Mode.WALK
     _stuck_time = 0.0
@@ -374,6 +437,7 @@ func _avoidance(direction: Vector2) -> Vector2:
 
 func _start_idle() -> void:
     _mode = Mode.IDLE
+    _relocating = false
     velocity = Vector2.ZERO
     var range_sec: Vector2 = GameConfig.ACTIVE_IDLE_TIME_RANGE if kind == 'active' else GameConfig.NPC_IDLE_TIME_RANGE
     _idle_left = randf_range(range_sec.x, range_sec.y)
@@ -382,6 +446,7 @@ func _start_idle() -> void:
 func _start_walk() -> void:
     _mode = Mode.WALK
     _errand_prop = null
+    _relocating = false
     _stuck_time = 0.0
     _turn_left = randf_range(GameConfig.ACTIVE_TURN_TIME_RANGE.x, GameConfig.ACTIVE_TURN_TIME_RANGE.y)
     if GameState.slow_dance_active:
@@ -416,10 +481,14 @@ func _show_text(text_value: String, color: Color) -> void:
     tween.chain().tween_callback(emote.queue_free)
 
 
-func _on_aggro(point: Vector2, radius: float, duration: float) -> void:
-    if global_position.distance_to(point) > radius or not level.can_reach(global_position, point):
+func _on_aggro(point: Vector2, radius: float, duration: float, area: Rect2) -> void:
+    if _dance_left > 0.0 or global_position.distance_to(point) > radius or not level.can_reach(global_position, point):
+        return
+    # 방 전체를 모으는 소품: 그 방(무한 모드는 소품 둘레 큰 방 크기) 안의 사람만 모인다.
+    if area.has_area() and not area.has_point(global_position):
         return
     _cancel_errand()
+    _relocating = false
     _mode = Mode.AGGRO
     _aggro_left = duration
     _stuck_time = 0.0

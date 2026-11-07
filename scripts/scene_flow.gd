@@ -15,7 +15,7 @@ static func start_level(index: int) -> void:
     _change_to(GAME_SCENE)
 
 
-## 무한 모드는 마지막 레벨의 설정으로 진행한다.
+## 무한 모드는 끝없는 맵(GameConfig.ENDLESS_SCENE)에서 진행하고, 설정은 GameState.endless_config()가 정한다.
 static func start_endless() -> void:
     GameState.set_endless(true)
     GameState.set_level(GameConfig.LEVELS.size() - 1)

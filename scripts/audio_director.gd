@@ -75,7 +75,12 @@ func _process(_delta: float) -> void:
     if in_alert and not _was_in_alert:
         _play_sfx(_alert_stream)
     _was_in_alert = in_alert
-    for entry: Dictionary in _npc_entries:
+    for i: int in range(_npc_entries.size() - 1, -1, -1):
+        var entry: Dictionary = _npc_entries[i]
+        # 무한 모드에서는 사람이 사라지므로 지워진 사람은 목록에서 뺀다.
+        if not is_instance_valid(entry['npc']):
+            _npc_entries.remove_at(i)
+            continue
         var npc: PartyNpc = entry['npc']
         var footstep: AudioStreamPlayer2D = entry['footstep']
         var walking: bool = npc.is_walking() and GameState.is_playing()
