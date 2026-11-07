@@ -24,6 +24,9 @@ const COOLDOWN_TINT: Color = Color(0.25, 0.25, 0.3)   # 재사용 대기 중 소
 @export var aggro_offset: Vector2 = Vector2.ZERO
 ## 이 소품만 효과 반경을 바꿀 때 쓴다. 0이면 GameConfig.PROPS의 값.
 @export var radius_override: float = 0.0
+## 조명·플레이리스트: 어그로 지점과 조명 반경을 소품이 놓인 방 크기에 맞춘다(aggro_offset 무시).
+## 끄면 aggro_offset과 GameConfig.PROPS의 반경을 그대로 쓴다. 스피커와 무한 모드에는 적용되지 않는다.
+@export var fit_to_room: bool = true
 ## 무한 모드: 한 번 쓰면 재사용 대기 대신 사라진다. 어그로 효과가 끝나면 노드도 지운다.
 @export var single_use: bool = false
 
@@ -52,6 +55,8 @@ func _ready() -> void:
     display_name = String(spec['name'])
     aggro_radius = radius_override if radius_override > 0.0 else float(spec['radius'])
     whole_room = bool(spec.get('whole_room', false))
+    if fit_to_room and prop_id != 'speaker':
+        _fit_to_room()
     if prop_id == 'light':
         var spot := DanceSpot.new()
         spot.name = 'DanceSpot'
@@ -78,6 +83,32 @@ func _ready() -> void:
     _bar.position = Vector2(0.0, _icon_size.y * 0.5 + BAR_GAP)
     _bar.draw.connect(_draw_bar)
     _cooldown_label.position = Vector2(-_cooldown_label.size.x * 0.5, _bar.position.y + BAR_SIZE.y + 1.0)
+
+
+## 소품이 있는 방에 맞춘다: 어그로 지점은 소품에서 방 가운데 쪽으로 PROP_TOWARD_CENTER만큼 간 곳(벽에서 PROP_ROOM_MARGIN 안쪽),
+## 반경(조명)은 방 넓이 / PROP_REFERENCE_ROOM 넓이의 제곱근만큼 배율. radius_override가 있으면 반경은 그대로 둔다.
+func _fit_to_room() -> void:
+    var level: PartyLevel = _find_level()
+    if level == null or level is EndlessLevel or level.rooms.is_empty():
+        return
+    var room: Rect2 = level.rooms[level.room_or_nearest(global_position)]
+    var inner: Rect2 = room.grow(-GameConfig.PROP_ROOM_MARGIN)
+    var here: Vector2 = level.to_local(global_position)
+    var point: Vector2 = here.lerp(room.get_center(), GameConfig.PROP_TOWARD_CENTER)
+    point = point.clamp(inner.position, inner.end)
+    aggro_offset = level.to_global(point) - global_position
+    if radius_override <= 0.0 and not whole_room:
+        var reference: Vector2 = GameConfig.PROP_REFERENCE_ROOM
+        var ratio: float = sqrt(room.get_area() / (reference.x * reference.y))
+        ratio = clampf(ratio, GameConfig.PROP_ROOM_SCALE_RANGE.x, GameConfig.PROP_ROOM_SCALE_RANGE.y)
+        aggro_radius *= ratio
+
+
+func _find_level() -> PartyLevel:
+    var node: Node = get_parent()
+    while node != null and not node is PartyLevel:
+        node = node.get_parent()
+    return node as PartyLevel
 
 
 ## 몸체 충돌 영역 (월드 좌표)
@@ -150,10 +181,8 @@ func interact(_player: Node) -> void:
 func _gather_area() -> Rect2:
     if not whole_room:
         return Rect2()
-    var node: Node = get_parent()
-    while node != null and not node is PartyLevel:
-        node = node.get_parent()
-    return (node as PartyLevel).gather_area(global_position) if node != null else Rect2()
+    var level: PartyLevel = _find_level()
+    return level.gather_area(global_position) if level != null else Rect2()
 
 
 ## 한 번 쓴 소품: 그림과 판정을 없애고, 어그로 효과만 끝날 때까지 남긴다.

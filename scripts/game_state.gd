@@ -129,16 +129,16 @@ func get_level_label() -> String:
     return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
 
 
-## 무한 모드 레벨 level의 설정. 레벨이 오를수록 사람이 많아지고(상한 ENDLESS_NPC_MAX), DM 주기·쉬는 시간,
+## 무한 모드 레벨 level의 설정. 사람 수는 1분마다 늘어나고(endless_npc_target, 상한 ENDLESS_NPC_MAX), DM 주기·쉬는 시간,
 ## 답장 문구, 글자 풍선은 일반 레벨 level(9 이상이면 레벨 9)과 같다. DM 주기는 레벨 5에서 상한.
 static func endless_config(level: int) -> Dictionary:
     var step: int = maxi(level - 1, 0)
     var every_three: int = floori(step / 3.0)
-    # DM·휴대폰 답장 관련 값(dm_interval, reply_words, decoy_count, letter_* 등)은 일반 레벨에서 그대로 가져온다.
+    # DM·휴대폰 답장 관련 값(dm_interval, reply_weights, decoy_count, letter_* 등)은 일반 레벨에서 그대로 가져온다.
     var result: Dictionary = (GameConfig.LEVELS[mini(step, GameConfig.LEVELS.size() - 1)] as Dictionary).duplicate()
     result['title'] = 'Endless Mode Level %d' % level
     result['scene'] = GameConfig.ENDLESS_SCENE
-    result['npc_target'] = mini(GameConfig.ENDLESS_NPC_START + GameConfig.ENDLESS_NPC_STEP * step, GameConfig.ENDLESS_NPC_MAX)
+    result['npc_target'] = endless_npc_target(GameConfig.ENDLESS_LEVEL_SEC * step)   # 이후로는 1분마다 _update_endless_level이 바꾼다
     result['npc_bonus'] = 0
     result['npc_kinds'] = {}
     result['follower_count'] = mini(1 + every_three, GameConfig.ENDLESS_FOLLOWER_MAX)
@@ -179,14 +179,21 @@ func tick(delta: float, nearest_px: float) -> void:
 
 
 ## 무한 모드: 게임 시간 1시간마다 레벨을 올리고 설정(cfg)을 바꾼다. 다음 DM, 다음 단어부터 적용된다.
+## 사람 수는 레벨과 따로 실제 시간 1분마다 늘어난다(endless_npc_target).
 func _update_endless_level() -> void:
     var level: int = 1 + floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC)
-    if level <= endless_level:
-        return
-    endless_level = level
-    cfg = endless_config(level)
-    level_title_left = GameConfig.LEVEL_TITLE_SEC
-    endless_level_changed.emit(level)
+    if level > endless_level:
+        endless_level = level
+        cfg = endless_config(level)
+        level_title_left = GameConfig.LEVEL_TITLE_SEC
+        endless_level_changed.emit(level)
+    cfg['npc_target'] = endless_npc_target(elapsed_time)
+
+
+## 무한 모드 목표 인원: ENDLESS_NPC_START에서 실제 시간 1분마다 ENDLESS_NPC_PER_MINUTE명씩, 최대 ENDLESS_NPC_MAX.
+static func endless_npc_target(seconds: float) -> int:
+    var minutes: int = floori(seconds / 60.0)
+    return mini(GameConfig.ENDLESS_NPC_START + GameConfig.ENDLESS_NPC_PER_MINUTE * minutes, GameConfig.ENDLESS_NPC_MAX)
 
 
 ## Q 또는 아이콘 클릭. 켜기 전용.
@@ -250,11 +257,11 @@ static func reaction_score(times_before: int) -> int:
     return floori(GameConfig.SCORE_REACTION_FIRST * pow(GameConfig.SCORE_REACTION_DECAY, maxi(times_before, 0)))
 
 
-## 레벨 클리어 보너스: SCORE_CLEAR_PER_LEVEL × 레벨 번호. 무한 모드와 테스트 맵은 0.
+## 레벨 클리어 보너스: 모든 레벨 SCORE_CLEAR. 무한 모드와 테스트 맵은 0.
 func get_clear_bonus() -> int:
     if endless_mode or test_level:
         return 0
-    return GameConfig.SCORE_CLEAR_PER_LEVEL * (level_index + 1)
+    return GameConfig.SCORE_CLEAR
 
 
 ## 사람이 길막으로 멈췄을 때 호출. 모든 사람을 막으면 히든 엔딩 조건이 된다. 점수는 없다.
