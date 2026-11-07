@@ -9,11 +9,12 @@ extends Control
 
 
 func _ready() -> void:
+    _hint.visible = false
     GameState.interact_hint_changed.connect(_on_hint_changed)
 
 
 func _process(_delta: float) -> void:
-    _score.text = '레벨 %d · 점수 %d' % [GameState.level_index, GameState.score]
+    _score.text = '%s · 점수 %d' % [GameState.get_level_label(), GameState.score]
     if GameState.is_stunned():
         _notice.text = '밀려났다... %d초' % ceili(GameState.stun_left)
     elif GameState.slow_dance_active:
@@ -22,7 +23,9 @@ func _process(_delta: float) -> void:
         _notice.text = GameState.get_level_title()
     else:
         _notice.text = ''
+    _notice.visible = _notice.text != ''
 
 
 func _on_hint_changed(text_value: String) -> void:
     _hint.text = text_value
+    _hint.visible = text_value != ''

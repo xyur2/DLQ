@@ -1,0 +1,18 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_01.png" id="f01"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_02.png" id="f02"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_03.png" id="f03"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_04.png" id="f04"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_05.png" id="f05"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_06.png" id="f06"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_07.png" id="f07"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_08.png" id="f08"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_09.png" id="f09"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_10.png" id="f10"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_11.png" id="f11"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_12.png" id="f12"]
+[ext_resource type="Texture2D" path="res://assets/npc_4/frame_13.png" id="f13"]
+
+[resource]
+animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("f07")}], "loop": true, "name": &"idle", "speed": 1.0}, {"frames": [{"duration": 1.0, "texture": ExtResource("f01")}, {"duration": 1.0, "texture": ExtResource("f02")}, {"duration": 1.0, "texture": ExtResource("f03")}, {"duration": 1.0, "texture": ExtResource("f04")}, {"duration": 1.0, "texture": ExtResource("f05")}, {"duration": 1.0, "texture": ExtResource("f06")}, {"duration": 1.0, "texture": ExtResource("f07")}, {"duration": 1.0, "texture": ExtResource("f08")}, {"duration": 1.0, "texture": ExtResource("f09")}, {"duration": 1.0, "texture": ExtResource("f10")}, {"duration": 1.0, "texture": ExtResource("f11")}, {"duration": 1.0, "texture": ExtResource("f12")}, {"duration": 1.0, "texture": ExtResource("f13")}, {"duration": 1.0, "texture": ExtResource("f12")}, {"duration": 1.0, "texture": ExtResource("f11")}, {"duration": 1.0, "texture": ExtResource("f10")}, {"duration": 1.0, "texture": ExtResource("f09")}, {"duration": 1.0, "texture": ExtResource("f08")}, {"duration": 1.0, "texture": ExtResource("f07")}, {"duration": 1.0, "texture": ExtResource("f06")}, {"duration": 1.0, "texture": ExtResource("f05")}, {"duration": 1.0, "texture": ExtResource("f04")}, {"duration": 1.0, "texture": ExtResource("f03")}, {"duration": 1.0, "texture": ExtResource("f02")}], "loop": true, "name": &"walk", "speed": 12.5}]

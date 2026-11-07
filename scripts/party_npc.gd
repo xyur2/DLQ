@@ -26,6 +26,9 @@ const EMOTE_RISE_PX: float = 40.0
 const EMOTE_SEC: float = 0.8
 const KIND_LABELS: Dictionary = {'normal': '', 'active': '활', 'tracker': '추', 'attention': '주', 'interactive': '상'}
 
+## 생김새 번호(1부터). TopView가 정한다. 0이면 임시 그림.
+var look: int = 0
+
 ## 사람 종류. TopView가 레벨의 npc_kinds에 따라 정한다.
 @export_enum('normal', 'active', 'tracker', 'attention', 'interactive') var kind: String = 'normal'
 ## 켜 두면 주기적으로 플레이어를 따라온다.
@@ -60,6 +63,7 @@ func _ready() -> void:
     collision_mask = MASK_WALL_AND_PLAYER
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('npcs')
+    _sprite.sprite_frames = GameAssets.npc_frames(look)
     _sprite.setup(GameConfig.NPC_KIND_COLORS.get(kind, GameConfig.NPC_COLOR), GameConfig.NPC_RADIUS)
     var circle := CircleShape2D.new()
     circle.radius = GameConfig.NPC_RADIUS

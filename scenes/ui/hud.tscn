@@ -17,6 +17,54 @@ corner_radius_top_right = 22
 corner_radius_bottom_right = 22
 corner_radius_bottom_left = 22
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_chip"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.05, 0.03, 0.16, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.85, 1, 0.45)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_notice"]
+content_margin_left = 28.0
+content_margin_top = 8.0
+content_margin_right = 28.0
+content_margin_bottom = 10.0
+bg_color = Color(0.05, 0.03, 0.16, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.3, 0.68, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hint"]
+content_margin_left = 22.0
+content_margin_top = 6.0
+content_margin_right = 22.0
+content_margin_bottom = 8.0
+bg_color = Color(0.05, 0.03, 0.16, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.85, 1, 0.7)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
 [node name="Hud" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -26,6 +74,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
+
+[node name="StatusChip" type="Panel" parent="."]
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 334.0
+offset_bottom = 118.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_chip")
 
 [node name="Clock" type="Control" parent="."]
 process_mode = 3
@@ -78,26 +134,31 @@ texture_filter = 3
 expand_mode = 1
 
 [node name="Score" type="Label" parent="."]
-offset_left = 32.0
+offset_left = 30.0
 offset_top = 72.0
-offset_right = 332.0
-offset_bottom = 110.0
-theme_override_font_sizes/font_size = 26
+offset_right = 330.0
+offset_bottom = 112.0
+theme_override_font_sizes/font_size = 24
 
 [node name="Notice" type="Label" parent="."]
-offset_left = 560.0
-offset_top = 40.0
-offset_right = 1360.0
-offset_bottom = 90.0
-theme_override_font_sizes/font_size = 34
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 24.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBox_notice")
 horizontal_alignment = 1
 
 [node name="Hint" type="Label" parent="."]
-offset_left = 760.0
-offset_top = 960.0
-offset_right = 1160.0
-offset_bottom = 1000.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 980.0
+offset_bottom = 980.0
+grow_horizontal = 2
 theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBox_hint")
 horizontal_alignment = 1
 
 [node name="DmIcon" type="Control" parent="."]

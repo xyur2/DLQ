@@ -8,12 +8,12 @@ const PARTY_MAP: String = 'res://assets/party_map.webp'
 const SCARE_IMAGE: String = 'res://assets/scare.png'
 const PROP_ICONS: Dictionary = {
     'speaker': 'res://assets/prop_speaker.png',
-    'light': 'res://assets/prop_light.webp',
+    'light': 'res://assets/prop_light_panel.png',
     'playlist': 'res://assets/prop_playlist.webp',
 }
 ## 캔버스의 빈 공간을 뺀 그림 영역. 없으면 이미지 전체를 쓴다.
 const PROP_ICON_REGIONS: Dictionary = {
-    'light': Rect2(436, 263, 1203, 1374),
+    'light': Rect2(234, 587, 787, 206),
     'playlist': Rect2(111, 520, 1784, 847),
 }
 # TODO(확인필요): 효과를 어떤 형식으로 가져올지 정해지면 맞춘다. 지금은 효과 하나를 씬 파일 하나로 받는다.
@@ -21,6 +21,9 @@ const PROP_EFFECTS: Dictionary = {
     'light': 'res://assets/light_effect.tscn',
     'playlist': 'res://assets/playlist_effect.tscn',
 }
+
+## 사람 생김새 수. scenes/top_view/npc_frames/npc_N.tres (assets/npc_N/의 프레임)
+const NPC_LOOK_COUNT: int = 5
 
 const PLACEHOLDER_FRAME: int = 64
 const PLACEHOLDER_DOT_RADIUS: float = 4.0
@@ -52,6 +55,14 @@ static func prop_effect(prop_id: String) -> PackedScene:
     var path: String = String(PROP_EFFECTS.get(prop_id, ''))
     if path != '' and ResourceLoader.exists(path):
         return load(path) as PackedScene
+    return null
+
+
+## 생김새 번호의 SpriteFrames. 번호가 0이거나 파일이 없으면 null(임시 그림).
+static func npc_frames(look: int) -> SpriteFrames:
+    var path: String = 'res://scenes/top_view/npc_frames/npc_%d.tres' % look
+    if look > 0 and ResourceLoader.exists(path):
+        return load(path) as SpriteFrames
     return null
 
 

@@ -2,9 +2,19 @@
 
 [ext_resource type="Script" path="res://scripts/top_view.gd" id="1_top"]
 [ext_resource type="PackedScene" path="res://scenes/top_view/player.tscn" id="4_player"]
+[ext_resource type="Script" path="res://scripts/party_lighting.gd" id="5_lighting"]
+
+[sub_resource type="CanvasItemMaterial" id="Material_add"]
+blend_mode = 1
 
 [node name="TopView" type="Node2D"]
 script = ExtResource("1_top")
+
+[node name="Lighting" type="Node2D" parent="."]
+material = SubResource("Material_add")
+script = ExtResource("5_lighting")
+
+[node name="Ambient" type="CanvasModulate" parent="Lighting"]
 
 [node name="NPCs" type="Node2D" parent="."]
 

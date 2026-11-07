@@ -1,0 +1,146 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/pause_menu.gd" id="1_pause"]
+[ext_resource type="Theme" path="res://scenes/ui/menu_theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="3_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/how_to_panel.tscn" id="4_how_to"]
+[ext_resource type="Shader" path="res://scenes/ui/blur_dim.gdshader" id="5_blur"]
+[ext_resource type="SystemFont" path="res://scenes/ui/display_font.tres" id="6_display"]
+
+[sub_resource type="ShaderMaterial" id="Material_blur"]
+shader = ExtResource("5_blur")
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_sheet"]
+bg_color = Color(0.06, 0.04, 0.17, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.85, 1, 0.7)
+shadow_color = Color(0.5, 0.3, 1, 0.4)
+shadow_size = 30
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[node name="PauseMenu" type="Control"]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_pause")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+material = SubResource("Material_blur")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 460.0
+offset_top = 90.0
+offset_right = 1460.0
+offset_bottom = 230.0
+theme_override_colors/font_color = Color(1, 0.86, 0.96, 1)
+theme_override_colors/font_outline_color = Color(1, 0.22, 0.62, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.15, 0.6, 0.6)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 0
+theme_override_constants/outline_size = 6
+theme_override_constants/shadow_outline_size = 30
+theme_override_fonts/font = ExtResource("6_display")
+theme_override_font_sizes/font_size = 88
+text = "PAUSED"
+horizontal_alignment = 1
+
+[node name="List" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 270.0
+offset_right = 1220.0
+offset_bottom = 900.0
+theme_override_constants/separation = 20
+
+[node name="Resume" type="Button" parent="List"]
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+focus_mode = 0
+text = "계속하기"
+
+[node name="Retry" type="Button" parent="List"]
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+focus_mode = 0
+text = "재도전"
+
+[node name="Home" type="Button" parent="List"]
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+focus_mode = 0
+text = "홈으로 가기"
+
+[node name="Settings" type="Button" parent="List"]
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+focus_mode = 0
+text = "설정"
+
+[node name="HowTo" type="Button" parent="List"]
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+focus_mode = 0
+text = "플레이 방법"
+
+[node name="SubPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 610.0
+offset_top = 90.0
+offset_right = 1310.0
+offset_bottom = 990.0
+theme_override_styles/panel = SubResource("StyleBox_sheet")
+
+[node name="Title" type="Label" parent="SubPanel"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 24.0
+offset_right = 660.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 48
+
+[node name="Settings" parent="SubPanel" instance=ExtResource("3_settings")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 40.0
+offset_top = 110.0
+offset_right = 660.0
+offset_bottom = 780.0
+
+[node name="HowTo" parent="SubPanel" instance=ExtResource("4_how_to")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 40.0
+offset_top = 110.0
+offset_right = 660.0
+offset_bottom = 780.0
+
+[node name="Back" type="Button" parent="SubPanel"]
+layout_mode = 0
+offset_left = 240.0
+offset_top = 800.0
+offset_right = 460.0
+offset_bottom = 880.0
+focus_mode = 0
+text = "뒤로"

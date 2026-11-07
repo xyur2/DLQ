@@ -1,0 +1,5 @@
+[gd_resource type="SystemFont" format=3]
+
+[resource]
+font_names = PackedStringArray("Bahnschrift", "Arial Black", "Impact", "Malgun Gothic", "sans-serif")
+font_weight = 700

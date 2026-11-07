@@ -9,10 +9,10 @@ extends RefCounted
 const CAMERA_ZOOM: float = 2.0                # 2 = 카메라 뷰 가로·세로 절반 (1920×1080 화면에 960×540이 보임)
 const WALL_THICKNESS: float = 48.0
 const GRID_STEP: float = 48.0
-const BACKGROUND_COLOR: Color = Color(0.03, 0.03, 0.04)
+const BACKGROUND_COLOR: Color = Color(0.03, 0.02, 0.09)
 const FLOOR_COLOR: Color = Color(0.13, 0.13, 0.15)
 const GRID_COLOR: Color = Color(1.0, 1.0, 1.0, 0.04)
-const WALL_COLOR: Color = Color(0.07, 0.07, 0.08)
+const WALL_COLOR: Color = Color(0.09, 0.06, 0.2)
 
 const PLAYER_RADIUS: float = 19.2
 const PLAYER_SPEED: float = 144.0
@@ -131,7 +131,7 @@ const TENSION_FALL_PER_SEC: float = 0.5
 # 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
     {
-        'title': '레벨 0: 거실',
+        'title': '레벨 1: 거실',
         'scene': 'res://scenes/top_view/levels/level_0.tscn',
         'npc_count': 5,
         'npc_kinds': {},           # 종류별 인원. 예: {'active': 1, 'tracker': 1, 'attention': 1, 'interactive': 1}. 나머지는 일반
@@ -144,7 +144,7 @@ const LEVELS: Array = [
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
     {
-        'title': '레벨 1: 옆방',
+        'title': '레벨 2: 옆방',
         'scene': 'res://scenes/top_view/levels/level_1.tscn',
         'npc_count': 5,
         'npc_kinds': {},
@@ -157,7 +157,7 @@ const LEVELS: Array = [
         'wrong_lock_time': 2.0,
     },
     {
-        'title': '레벨 2: 북적이는 파티',
+        'title': '레벨 3: 북적이는 파티',
         'scene': 'res://scenes/top_view/levels/level_2.tscn',
         'npc_count': 6,
         'npc_kinds': {},
@@ -200,6 +200,15 @@ const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어�
 const LETTER_MIN_GAP: float = 6.0             # 어긋나도 버튼 사이에 남기는 최소 간격(px). 서로 붙지 않게
 # 휴대폰에서 연속으로 입력하면 음향 효과가 나오는 글자
 const LETTER_COMBOS: Dictionary = {'LLL': 'take_l', 'BAJI': 'baji'}
+# 메뉴와 종료 화면
+const MENU_NOTIFY_INTERVAL: float = 1.5       # 메인 메뉴를 가만히 두면 알림이 오르는 간격(초)
+const MENU_CREDITS_SEC: float = 4.0           # 전원 버튼을 누른 뒤 개발진 정보를 보여 주는 시간
+const MENU_PHONE_ZOOM_SEC: float = 0.6        # 휴대폰이 가운데로 와서 커지는 시간
+const MENU_MESSAGE_SIZE: Vector2 = Vector2(360.0, 120.0)  # 레벨 선택 화면의 메시지 크기
+const MENU_MUSIC_PATH: String = 'res://audio/menu_music.ogg'
+const STAMP_SOUND_PATH: String = 'res://audio/stamp.ogg'
+const END_PANEL_SEC: float = 0.7              # 스토리 컷이 하나씩 나오는 간격
+const END_STAMP_SEC: float = 0.18             # 도장이 내려찍히는 시간
 const MUSIC_VOLUME_DB: float = -8.0
 const MUSIC_PHONE_DUCK_DB: float = -8.0
 const NPC_SOUND_MAX_DISTANCE: float = 700.0

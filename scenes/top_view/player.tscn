@@ -23,6 +23,7 @@ animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("f07")}], "lo
 script = ExtResource("1_player")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
+modulate = Color(1.6, 1.65, 1.2, 1)
 texture_filter = 3
 scale = Vector2(0.48, 0.48)
 sprite_frames = SubResource("SpriteFrames_player")

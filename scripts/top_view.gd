@@ -19,6 +19,7 @@ func _ready() -> void:
     add_child(level)
     move_child(level, 0)
     player.position = level.get_player_start()
+    ($Lighting as PartyLighting).setup(level.rooms, player)
     GameState.circle_ending_started.connect(_on_circle_ending_started)
 
 
@@ -32,6 +33,11 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
             kinds.append(kind_name)
     while kinds.size() < count:
         kinds.push_front('normal')
+    # 생김새는 판마다 섞어서 나눠 준다. 사람이 더 많으면 처음부터 다시 쓴다.
+    var looks: Array[int] = []
+    for n: int in GameAssets.NPC_LOOK_COUNT:
+        looks.append(n + 1)
+    looks.shuffle()
     var result: Array[PartyNpc] = []
     for i: int in count:
         var npc: PartyNpc = NPC_SCENE.instantiate()
@@ -44,6 +50,7 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
         npc.level = level
         npc.follow_target = player
         npc.kind = kinds[i]
+        npc.look = looks[i % looks.size()]
         npc.follower_option = kinds[i] == 'normal' and i < int(GameState.cfg['follower_count'])
         _npcs.add_child(npc)
         result.append(npc)

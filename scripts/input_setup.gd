@@ -12,6 +12,7 @@ static func ensure_actions() -> void:
         'open_phone': KEY_Q,
         'restart': KEY_R,
         'next_level': KEY_N,
+        'pause': KEY_ESCAPE,
         'debug_toggle': KEY_F1,
         'debug_add_stage': KEY_F2,
         'debug_clear_stage': KEY_F3,

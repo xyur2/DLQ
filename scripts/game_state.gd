@@ -6,7 +6,6 @@ extends Node
 enum State { INTRO, PLAYING, ENDING, GAME_OVER, WON }
 enum EndReason { NONE, CAUGHT, TOO_MANY_DMS, SURVIVED, HIDDEN }
 
-signal game_started()
 signal phone_toggled(is_on: bool)
 signal dm_arrived(stage: int)
 signal dm_stage_changed(stage: int)
@@ -35,7 +34,7 @@ var nearest_npc_px: float = INF
 var tension: float = 0.0
 var tremor_closeness: float = 0.0   # 손 떨림용 근접도 0~1 (TREMOR_FAR_RADIUS → 발각 반경)
 var debug_enabled: bool = false
-var intro_seen: bool = false
+var endless_mode: bool = false     # 무한 모드: 시간이 다 돼도 승리하지 않고 끝날 때까지 점수를 쌓는다
 var score: int = 0
 var stun_left: float = 0.0
 var slow_dance_active: bool = false
@@ -49,10 +48,10 @@ var _scare_started: bool = false
 
 func _ready() -> void:
     InputSetup.ensure_actions()
+    GameSettings.load_and_apply()
 
 
 ## 모든 값을 초기화한다. Main._enter_tree()에서 호출한다(자식 씬의 _ready보다 먼저).
-## 인트로를 이미 봤으면(R 재시작) 바로 PLAYING으로 시작한다.
 func start_game() -> void:
     level_index = clampi(level_index, 0, GameConfig.LEVELS.size() - 1)
     cfg = GameConfig.LEVELS[level_index]
@@ -72,18 +71,11 @@ func start_game() -> void:
     _circle_armed = false
     _ending_left = 0.0
     _scare_started = false
-    state = State.PLAYING if intro_seen else State.INTRO
-
-
-## 인트로 화면을 클릭했을 때 호출.
-func begin_play() -> void:
-    intro_seen = true
     state = State.PLAYING
-    game_started.emit()
 
 
 func has_next_level() -> bool:
-    return level_index + 1 < GameConfig.LEVELS.size()
+    return not endless_mode and level_index + 1 < GameConfig.LEVELS.size()
 
 
 ## 다음 start_game()부터 적용된다. 씬을 다시 불러야 맵이 바뀐다.
@@ -91,8 +83,17 @@ func set_level(index: int) -> void:
     level_index = clampi(index, 0, GameConfig.LEVELS.size() - 1)
 
 
+func set_endless(enabled: bool) -> void:
+    endless_mode = enabled
+
+
 func get_level_title() -> String:
-    return String(cfg['title'])
+    return '무한 모드' if endless_mode else String(cfg['title'])
+
+
+## 화면에 보이는 레벨 번호는 1부터 시작한다.
+func get_level_label() -> String:
+    return '무한 모드' if endless_mode else 'Level %d' % (level_index + 1)
 
 
 func is_playing() -> bool:
@@ -312,7 +313,7 @@ func _check_end() -> void:
         _end_game(EndReason.CAUGHT)
     elif dm_stage >= GameConfig.MAX_DM_STAGE:
         _end_game(EndReason.TOO_MANY_DMS)
-    elif elapsed_time >= GameConfig.SURVIVE_TIME:
+    elif elapsed_time >= GameConfig.SURVIVE_TIME and not endless_mode:
         _end_game(EndReason.SURVIVED)
 
 

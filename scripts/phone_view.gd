@@ -11,7 +11,9 @@ extends Control
 
 const LETTER_SCENE: PackedScene = preload('res://scenes/phone/letter_button.tscn')
 const ALPHABET: String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const LOCK_TINT: Color = Color(1.0, 0.7, 0.7)
+const LOCK_TINT: Color = Color(1.0, 0.82, 0.86)
+const LOCK_SCREEN_COLOR: Color = Color(0.32, 0.05, 0.14)
+const SCREEN_COLOR: Color = Color(0.08, 0.055, 0.2)
 const LETTER_HISTORY_MAX: int = 8
 const PHONE_NOISE_PHASE: float = 5000.0   # 휴대폰 흔들림을 손·커서와 다른 패턴으로
 
@@ -252,7 +254,7 @@ func _set_locked(locked: bool) -> void:
     _timer_bar.visible = locked
     _timer_bar.value = 1.0 if locked else 0.0
     var tint: Color = LOCK_TINT if locked else Color.WHITE
-    _screen_background.modulate = tint
+    (_screen_background.get_theme_stylebox('panel') as StyleBoxFlat).bg_color = LOCK_SCREEN_COLOR if locked else SCREEN_COLOR
     _screen.modulate = tint
 
 

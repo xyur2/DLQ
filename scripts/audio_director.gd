@@ -31,6 +31,10 @@ func _ready() -> void:
     add_child(_sfx)
     _voice = AudioStreamPlayer.new()
     add_child(_voice)
+    _music.bus = GameSettings.BUS_BGM
+    _music_slow.bus = GameSettings.BUS_BGM
+    for player: AudioStreamPlayer in [_crowd, _heart, _sfx, _voice]:
+        player.bus = GameSettings.BUS_SFX
     _alert_stream = _load_stream('res://audio/alert.ogg', false)
     _vibrate_stream = _load_stream('res://audio/vibrate.ogg', false)
     _game_over_stream = _load_stream('res://audio/game_over.ogg', false)
@@ -93,6 +97,7 @@ func _make_npc_player(npc: PartyNpc, path: String) -> AudioStreamPlayer2D:
     var player := AudioStreamPlayer2D.new()
     player.stream = _load_stream(path, true)
     player.max_distance = GameConfig.NPC_SOUND_MAX_DISTANCE
+    player.bus = GameSettings.BUS_SFX
     npc.add_child(player)
     return player
 
