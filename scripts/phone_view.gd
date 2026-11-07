@@ -65,6 +65,9 @@ var _slide: float = 0.0   # 0: 내려가 있음, 1: 올라와 있음
 
 
 func _ready() -> void:
+    # 화면 스타일은 씬 리소스라 재시작해도 남는다. 잠금 색이 다음 판으로 넘어가지 않게 이 판 전용으로 복사하고 원래 색으로 되돌린다.
+    _screen_background.add_theme_stylebox_override('panel', _screen_background.get_theme_stylebox('panel').duplicate())
+    _set_locked(false)
     visible = false
     _noise.seed = randi()
     _noise.frequency = GameConfig.TREMOR_NOISE_FREQUENCY
