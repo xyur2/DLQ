@@ -1,7 +1,7 @@
 class_name PhoneView
 extends Control
 ## 휴대폰 화면. 탑뷰를 완전히 가리고, 제시된 답장(단어 또는 문장)의 알파벳을 순서대로 눌러 답장한다.
-## - 답장 문구는 GameConfig.REPLY_PHRASES에서 레벨의 reply_words(단어 수), long_chance(긴 단어 확률)에 맞게 고른다.
+## - 답장 문구는 레벨의 reply_weights 비율로 GameConfig.REPLY_PHRASE_GROUPS의 묶음을 고른 뒤 그 안에서 무작위로 고른다.
 ## - 오른쪽 위 빨간 배지에 쌓인 DM 수를 보여 준다. 답장하면 바로 0이 되어 사라진다.
 ## - 문장이면 단어 하나를 다 누를 때마다 글자 풍선을 지우고 다음 단어의 풍선을 새로 놓는다.
 ## - 틀린 알파벳을 누르면 점수가 깎이고 cfg['wrong_lock_time']초 동안 터치가 막힌다.
@@ -269,26 +269,20 @@ func _try_start_puzzle() -> void:
     _start_word()
 
 
-## 레벨의 reply_words(단어 수 범위)에서 단어 수를 고르고, long_chance 확률로 긴 단어가 든 문구를 고른다.
-## 맞는 문구가 없으면 단어 수만 맞춘 문구, 그것도 없으면 아무 문구.
+## 레벨의 reply_weights 비율로 REPLY_PHRASE_GROUPS의 묶음을 고르고, 그 묶음에서 문구를 무작위로 고른다.
 static func _pick_phrase() -> String:
-    var words: Vector2i = GameState.cfg.get('reply_words', Vector2i(1, 1))
-    var count: int = randi_range(words.x, words.y)
-    var want_long: bool = randf() < float(GameState.cfg.get('long_chance', 0.0))
-    var exact: Array = []
-    var same_count: Array = []
-    for phrase: String in GameConfig.REPLY_PHRASES:
-        var parts: PackedStringArray = phrase.split(' ', false)
-        if parts.size() != count:
-            continue
-        same_count.append(phrase)
-        if _has_long_word(parts) == want_long:
-            exact.append(phrase)
-    if not exact.is_empty():
-        return String(exact.pick_random())
-    if not same_count.is_empty():
-        return String(same_count.pick_random())
-    return String(GameConfig.REPLY_PHRASES.pick_random())
+    var groups: Array = GameConfig.REPLY_PHRASE_GROUPS
+    var weights: Array = GameState.cfg.get('reply_weights', [1])
+    var count: int = clampi(weights.size(), 1, groups.size())
+    var total: float = 0.0
+    for i: int in count:
+        total += maxf(float(weights[i]), 0.0)
+    var roll: float = randf() * total
+    for i: int in count:
+        roll -= maxf(float(weights[i]), 0.0)
+        if roll < 0.0:
+            return String((groups[i] as Array).pick_random())
+    return String((groups[0] as Array).pick_random())
 
 
 static func _has_long_word(parts: PackedStringArray) -> bool:
