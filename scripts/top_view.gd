@@ -23,7 +23,7 @@ func _ready() -> void:
     GameState.circle_ending_started.connect(_on_circle_ending_started)
 
 
-## 플레이어에게서 NPC_SPAWN_MIN_DIST 이상 떨어진 곳에 NPC를 만든다.
+## 플레이어에게서 NPC_SPAWN_MIN_DIST 이상, 다른 NPC에게서 NPC_SPAWN_SPACING 이상 떨어진 곳에 NPC를 만든다.
 ## 종류는 레벨의 npc_kinds를 따르고 나머지는 일반. follower_option은 일반 사람 앞에서부터 켠다.
 func spawn_npcs(count: int) -> Array[PartyNpc]:
     var kinds: Array[String] = []
@@ -57,6 +57,11 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
     return result
 
 
+func _is_free_spawn_point(point: Vector2, placed: Array[PartyNpc]) -> bool:
+    if point.distance_to(player.position) < GameConfig.NPC_SPAWN_MIN_DIST:
+        return false
+    for other: PartyNpc in placed:
+        if point.distance_to(other.position) < GameConfig.NPC_SPAWN_SPACING:
 func _is_clear_of_npcs(point: Vector2, others: Array[PartyNpc]) -> bool:
     for other: PartyNpc in others:
         if other.position.distance_to(point) < GameConfig.NPC_SPAWN_GAP:
