@@ -114,10 +114,12 @@ func get_level_label() -> String:
     return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
 
 
-## 무한 모드 레벨 level의 설정. 레벨이 오를수록 사람이 많고 DM이 자주 오며, 상한에서 멈춘다(GameConfig.ENDLESS_*).
+## 무한 모드 레벨 level의 설정. 레벨이 오를수록 사람이 많아지고(상한 ENDLESS_NPC_MAX), 답장 문구와 글자 풍선은
+## 일반 레벨 level(9 이상이면 레벨 9)과 같다. DM 주기와 쉬는 시간은 바뀌지 않는다.
 static func endless_config(level: int) -> Dictionary:
     var step: int = maxi(level - 1, 0)
     var every_three: int = floori(step / 3.0)
+    var text: Dictionary = GameConfig.LEVELS[mini(step, GameConfig.LEVELS.size() - 1)]
     return {
         'title': '무한 모드 레벨 %d' % level,
         'scene': GameConfig.ENDLESS_SCENE,
@@ -125,11 +127,13 @@ static func endless_config(level: int) -> Dictionary:
         'npc_bonus': 0,
         'npc_kinds': {},
         'follower_count': mini(1 + every_three, GameConfig.ENDLESS_FOLLOWER_MAX),
-        'dm_interval': maxf(GameConfig.ENDLESS_DM_START - GameConfig.ENDLESS_DM_STEP * step, GameConfig.ENDLESS_DM_MIN),
-        'reply_cooldown': maxf(GameConfig.ENDLESS_COOLDOWN_START - GameConfig.ENDLESS_COOLDOWN_STEP * step, GameConfig.ENDLESS_COOLDOWN_MIN),
-        'letter_gap': maxf(GameConfig.ENDLESS_LETTER_GAP_START - GameConfig.ENDLESS_LETTER_GAP_STEP * step, GameConfig.LETTER_MIN_GAP),
+        'dm_interval': GameConfig.ENDLESS_DM_INTERVAL,
+        'reply_cooldown': GameConfig.ENDLESS_REPLY_COOLDOWN,
+        'reply_pool': text['reply_pool'],
+        'letter_gap': text['letter_gap'],
+        'letter_spread': text['letter_spread'],
         'caught_radius': 80.0,
-        'decoy_count': mini(GameConfig.ENDLESS_DECOY_START + every_three, GameConfig.ENDLESS_DECOY_MAX),
+        'decoy_count': text['decoy_count'],
         'wrong_lock_time': 2.0,
     }
 

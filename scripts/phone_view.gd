@@ -1,28 +1,36 @@
 class_name PhoneView
 extends Control
-## 휴대폰 화면. 탑뷰를 완전히 가리고, 제시된 단어의 알파벳을 순서대로 눌러 답장한다.
+## 휴대폰 화면. 탑뷰를 완전히 가리고, 제시된 답장(단어 또는 문장)의 알파벳을 순서대로 눌러 답장한다.
+## - 답장 문구는 레벨의 reply_pool(GameConfig.REPLY_POOLS)에서 고른다. 레벨이 오를수록 단어가 길어지고 문장이 된다.
+## - 문장이면 단어 하나를 다 누를 때마다 글자 풍선을 지우고 다음 단어의 풍선을 새로 놓는다.
 ## - 틀린 알파벳을 누르면 점수가 깎이고 cfg['wrong_lock_time']초 동안 터치가 막힌다.
 ## - 제한 시간은 없다. 답장하지 않으면 DM이 cfg['dm_interval']초마다 계속 쌓일 뿐이다.
-## - 끄기는 전원 버튼으로만 가능하다. 끄고 다시 켜면 같은 단어를 이어서 한다.
+## - 끄기는 전원 버튼으로만 가능하다. 끄고 다시 켜면 문장의 몇 번째 단어인지, 누른 글자, 풍선 배치까지 그대로 이어서 한다.
 ## 숨은 입력: 글자 버튼이나 키보드로 GameConfig.LETTER_COMBOS의 글자를 연속으로 입력하면 음향 효과가 나온다.
 ## 손 떨림: 손 이미지와 실제 마우스 커서가 함께 흔들리고, 휴대폰은 다른 패턴으로 약하게 흔들린다.
 ## 같은 패턴이면 커서와 버튼의 거리가 변하지 않아 누르기 쉬워지므로 패턴을 나눈다.
 ## 전환: 켜고 끌 때 휴대폰과 손은 아래에서 올라오고 내려가며, 배경은 천천히 어두워지고 밝아진다.
 
 const LETTER_SCENE: PackedScene = preload('res://scenes/phone/letter_button.tscn')
+const LETTER_SCENE_SIZE: Vector2 = Vector2(84.0, 64.0)   # letter_button.tscn의 크기. 열 수 계산에 씀
 const ALPHABET: String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const LOCK_TINT: Color = Color(1.0, 0.82, 0.86)
 const LOCK_SCREEN_COLOR: Color = Color(0.32, 0.05, 0.14)
 const SCREEN_COLOR: Color = Color(0.08, 0.055, 0.2)
 const LETTER_HISTORY_MAX: int = 8
+const SENTENCE_BLANK: String = '•'   # 문장 진행 표시에서 아직 누르지 않은 글자
 const BANNER_SLIDE_PX: float = 24.0
 const BANNER_FADE_SEC: float = 0.22
 const PHONE_NOISE_PHASE: float = 5000.0   # 휴대폰 흔들림을 손·커서와 다른 패턴으로
 
 var _letters: Array[LetterButton] = []
 var _puzzle_active: bool = false
-var _word: String = ''
-var _next_index: int = 0
+var _words: PackedStringArray = []   # 답장 문구의 단어들. 단어 하나짜리 답장이면 원소 하나
+var _word_index: int = 0             # 지금 누르는 단어의 번호
+var _word: String = ''               # 지금 누르는 단어
+var _next_index: int = 0             # 지금 단어에서 다음에 눌러야 할 글자 번호
+var _progress_font_size: int = 0
+var _word_font_size: int = 0
 var _lock_left: float = 0.0
 var _noise: FastNoiseLite = FastNoiseLite.new()
 var _noise_time: float = 0.0
@@ -57,6 +65,8 @@ func _ready() -> void:
     _noise.frequency = GameConfig.TREMOR_NOISE_FREQUENCY
     _hands_base = _hands.position
     _banner_base_y = _banner.position.y
+    _progress_font_size = _progress.get_theme_font_size('font_size')
+    _word_font_size = _word_label.get_theme_font_size('font_size')
     _girlfriend_next = randi() % GameConfig.GIRLFRIEND_MESSAGES.size()
     _banner.gui_input.connect(_on_banner_input)
     _power_hitbox.pressed.connect(_on_power_pressed)
@@ -196,13 +206,29 @@ func _try_start_puzzle() -> void:
     if _puzzle_active or not GameState.phone_on or GameState.dm_stage <= 0:
         return
     _puzzle_active = true
-    _word = String(GameConfig.REPLY_WORDS.pick_random())
+    var pool: Array = GameConfig.REPLY_POOLS[String(GameState.cfg.get('reply_pool', 'word4'))]
+    _words = String(pool.pick_random()).split(' ', false)
+    _word_index = 0
+    _start_word()
+
+
+## 문장의 _word_index번째 단어를 시작한다. 글자 풍선을 지우고 새로 놓는다.
+func _start_word() -> void:
+    _word = _words[_word_index]
     _next_index = 0
+    _clear_letters()
     _spawn_letters()
     _refresh_labels()
 
 
+func _clear_letters() -> void:
+    for button: LetterButton in _letters:
+        button.queue_free()
+    _letters.clear()
+
+
 ## 단어 글자 + 단어에 없는 알파벳(decoy)을 격자 칸에 무작위로 놓는다.
+## 레벨이 오를수록 칸 사이 간격(letter_gap)이 좁고, 풍선이 쓰는 줄 수(letter_spread)가 줄어 빈칸 없이 모인다.
 func _spawn_letters() -> void:
     var chars: Array[String] = []
     for c: String in _word:
@@ -215,9 +241,20 @@ func _spawn_letters() -> void:
     for i: int in mini(int(GameState.cfg['decoy_count']), pool.size()):
         chars.append(pool[i])
 
+    # 열 수: 레벨의 간격(letter_gap)을 지키며 화면 너비에 들어가는 만큼(3~LETTER_GRID.x열). 간격이 넓은 낮은 레벨은 3열.
+    # 쓰는 줄 수 = 풍선 수 × letter_spread ÷ 열 수 (모두 들어가는 최소 줄 수 ~ LETTER_GRID.y)
+    var gap: float = maxf(float(GameState.cfg['letter_gap']), GameConfig.LETTER_MIN_GAP)
+    var button_width: float = LETTER_SCENE_SIZE.x
+    var columns: int = clampi(floori((_letter_area.size.x + gap) / (button_width + gap)), 3, GameConfig.LETTER_GRID.x)
+    var spread: float = float(GameState.cfg.get('letter_spread', 2.0))
+    var needed_rows: int = ceili(float(chars.size()) / float(columns))
+    if needed_rows > GameConfig.LETTER_GRID.y:
+        columns = GameConfig.LETTER_GRID.x
+        needed_rows = ceili(float(chars.size()) / float(columns))
+    var rows: int = clampi(ceili(float(chars.size()) * spread / float(columns)), needed_rows, GameConfig.LETTER_GRID.y)
     var cells: Array[Vector2i] = []
-    for row: int in GameConfig.LETTER_GRID.y:
-        for col: int in GameConfig.LETTER_GRID.x:
+    for row: int in rows:
+        for col: int in columns:
             cells.append(Vector2i(col, row))
     cells.shuffle()
 
@@ -233,8 +270,7 @@ func _spawn_letters() -> void:
     # 칸 = 버튼 + 레벨의 글자 간격(letter_gap). 레벨이 오를수록 간격이 좁아져 버튼이 모인다.
     # 영역보다 커지면 영역에 맞춘다. 격자는 영역 가운데에 놓는다.
     var button_size: Vector2 = _letters[0].size
-    var grid := Vector2(GameConfig.LETTER_GRID)
-    var gap: float = maxf(float(GameState.cfg['letter_gap']), GameConfig.LETTER_MIN_GAP)
+    var grid := Vector2(columns, rows)
     var cell := Vector2(
         minf(button_size.x + gap, (_letter_area.size.x - button_size.x) / maxf(grid.x - 1.0, 1.0)),
         minf(button_size.y + gap, (_letter_area.size.y - button_size.y) / maxf(grid.y - 1.0, 1.0))
@@ -287,8 +323,13 @@ func _on_letter_picked(button: LetterButton) -> void:
         _next_index += 1
         _refresh_labels()
         if _next_index >= _word.length():
-            _finish_puzzle()
-            GameState.report_reply_success()
+            if _word_index + 1 < _words.size():
+                # 문장: 다음 단어로. 글자 풍선을 새로 놓는다.
+                _word_index += 1
+                _start_word()
+            else:
+                _finish_puzzle()
+                GameState.report_reply_success()
     else:
         _lock_left = float(GameState.cfg['wrong_lock_time'])
         _set_locked(true)
@@ -313,22 +354,47 @@ func _set_locked(locked: bool) -> void:
 func _finish_puzzle() -> void:
     _puzzle_active = false
     _set_locked(false)
-    for button: LetterButton in _letters:
-        button.queue_free()
-    _letters.clear()
+    _clear_letters()
+    _words = PackedStringArray()
+    _word_index = 0
     _word = ''
     _next_index = 0
     _refresh_labels()
 
 
-## 단어와 진행 상황 표시. 예: "L O _ _"
+## 위: 지금 누를 단어. 아래: 진행 상황.
+## 단어 하나면 "L O _ _", 문장이면 끝낸 단어는 그대로, 지금 단어는 누른 데까지, 남은 글자는 •로 "SEE YOU VE•• ••••".
+## (문장에서 _를 쓰면 붙어서 한 줄로 보여 글자 수를 셀 수 없다.)
 func _refresh_labels() -> void:
     if not _puzzle_active:
         _word_label.text = ''
         _progress.text = ''
         return
     _word_label.text = _word
-    var parts: PackedStringArray = []
-    for i: int in _word.length():
-        parts.append(_word[i] if i < _next_index else '_')
-    _progress.text = ' '.join(parts)
+    if _words.size() <= 1:
+        var letters: PackedStringArray = []
+        for i: int in _word.length():
+            letters.append(_word[i] if i < _next_index else '_')
+        _progress.text = ' '.join(letters)
+    else:
+        var parts: PackedStringArray = []
+        for w: int in _words.size():
+            var word: String = _words[w]
+            if w < _word_index:
+                parts.append(word)
+            elif w == _word_index:
+                parts.append(word.left(_next_index) + SENTENCE_BLANK.repeat(word.length() - _next_index))
+            else:
+                parts.append(SENTENCE_BLANK.repeat(word.length()))
+        _progress.text = ' '.join(parts)
+    _fit_font(_word_label, _word_font_size)
+    _fit_font(_progress, _progress_font_size)
+
+
+## 글이 칸보다 넓으면 들어갈 때까지 글자 크기를 줄인다.
+func _fit_font(label: Label, base_size: int) -> void:
+    var font: Font = label.get_theme_font('font')
+    var font_size: int = base_size
+    while font_size > 18 and font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > label.size.x:
+        font_size -= 2
+    label.add_theme_font_size_override('font_size', font_size)

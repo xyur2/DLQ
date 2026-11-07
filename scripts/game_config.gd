@@ -146,7 +146,9 @@ const TEST_LEVEL: Dictionary = {
     'follower_count': 1,
     'dm_interval': 3.0,
     'reply_cooldown': 5.0,
+    'reply_pool': 'word4',
     'letter_gap': 40.0,
+    'letter_spread': 2.0,
     'caught_radius': 80.0,
     'decoy_count': 6,
     'wrong_lock_time': 2.0,
@@ -154,7 +156,8 @@ const TEST_LEVEL: Dictionary = {
 
 # 플레이할 수 있는 레벨 9개. 화면에는 Level 1~9로 나온다(level_index 0~8).
 # 맵은 3레벨마다 바뀐다: 1~3 level_1(큰 방 + 작은 방), 4~6 level_4(큰 방 + 작은 방 4개), 7~9 level_7(큰 방 - 긴 복도 - 큰 방, 복도 옆 작은 방 3개).
-# 레벨이 오를수록 DM이 자주 오고(3.0 → 1.8초), 답장 후 쉬는 시간이 짧고(5 → 3초), 휴대폰 글자 간격이 좁고, 사람이 많다.
+# DM 주기(3초)와 답장 후 쉬는 시간(5초)은 모든 레벨이 같다. 레벨이 오를수록 답장이 길어지고(4글자 단어 → 긴 단어 → 2~4단어 문장),
+# 휴대폰 글자 풍선이 촘촘해지고(letter_gap, letter_spread), 섞이는 글자가 늘고, 사람이 많아진다.
 # 사람 수 = 맵의 방 기본 인원 합(8, 14, 20) + npc_bonus(맵 안에서 1번째 레벨 2, 2번째 4, 3번째 6).
 # 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
@@ -166,56 +169,51 @@ const LEVELS: Array = [
         'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수 (일반 사람 중에서)
         'dm_interval': 3.0,        # DM 도착 주기(초)
         'reply_cooldown': 5.0,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
-        'letter_gap': 40.0,        # 휴대폰 글자 버튼 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
+        'reply_pool': 'word4',     # 답장 문구를 고르는 목록 (REPLY_POOLS의 키). 문장이면 단어마다 글자 풍선이 새로 나온다
+        'letter_gap': 40.0,        # 휴대폰 글자 풍선 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
+        'letter_spread': 2.0,      # 풍선을 흩어 놓는 정도. 줄 수 = 풍선 수 × 이 값 ÷ 4열 (1이면 빈칸 없이 모임, 최대 6줄)
         'caught_radius': 80.0,
         'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
     {'title': '레벨 2: 손님이 늘었다', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 1, 'dm_interval': 2.85, 'reply_cooldown': 4.75, 'letter_gap': 34.0,
-        'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
+        'follower_count': 1, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'word5',
+        'letter_gap': 34.0, 'letter_spread': 1.85, 'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
     {'title': '레벨 3: 북적이는 옆방', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 1, 'dm_interval': 2.7, 'reply_cooldown': 4.5, 'letter_gap': 28.0,
-        'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
+        'follower_count': 1, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'word6',
+        'letter_gap': 28.0, 'letter_spread': 1.7, 'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
     {'title': '레벨 4: 작은 방들', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 2, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 2.55, 'reply_cooldown': 4.25, 'letter_gap': 23.0,
-        'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
+        'follower_count': 2, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'two',
+        'letter_gap': 23.0, 'letter_spread': 1.55, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
     {'title': '레벨 5: 방마다 손님', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'letter_gap': 18.0,
-        'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
+        'follower_count': 2, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'two_long',
+        'letter_gap': 18.0, 'letter_spread': 1.4, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
     {'title': '레벨 6: 빈방이 없다', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 2.25, 'reply_cooldown': 3.75, 'letter_gap': 14.0,
-        'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
+        'follower_count': 2, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'three',
+        'letter_gap': 14.0, 'letter_spread': 1.3, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
     {'title': '레벨 7: 긴 복도', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 2, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 2.1, 'reply_cooldown': 3.5, 'letter_gap': 10.0,
-        'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
+        'follower_count': 3, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'three_long',
+        'letter_gap': 10.0, 'letter_spread': 1.2, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
     {'title': '레벨 8: 복도의 손님들', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 1.95, 'reply_cooldown': 3.25, 'letter_gap': 8.0,
-        'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
+        'follower_count': 3, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'four',
+        'letter_gap': 8.0, 'letter_spread': 1.1, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
     {'title': '레벨 9: 파티의 끝', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 1.8, 'reply_cooldown': 3.0, 'letter_gap': 6.0,
-        'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
+        'follower_count': 3, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'four_long',
+        'letter_gap': 6.0, 'letter_spread': 1.0, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
 ]
 
 # 무한 모드. 방과 벽 없이 상하좌우로 끝없이 이어진 바닥(ENDLESS_SCENE).
 # 사람과 소품은 플레이어 둘레 구역(ENDLESS_ZONE_HALF) 안, 화면 밖에서 생기고, 구역에서 멀어지고 화면 밖이면 사라진다.
 # 소품은 한 번 쓰면 사라진다. 게임 시간 1시간(ENDLESS_LEVEL_SEC, 시계 1시간)마다 무한 레벨이 오른다.
-# 무한 레벨 n의 값 = START + STEP × (n − 1)이고 상한(MAX, MIN)에서 멈춘다. 사람 수와 DM 주기는 레벨 11에서 상한.
+# 무한 레벨 n의 사람 수 = START + STEP × (n − 1), 레벨 11에서 상한(30명). DM 주기와 쉬는 시간은 바뀌지 않는다.
+# 답장 문구, 글자 풍선 간격, 섞이는 글자는 일반 레벨 n(9 이상이면 레벨 9)과 같다.
 const ENDLESS_SCENE: String = 'res://scenes/top_view/levels/endless.tscn'
 const ENDLESS_LEVEL_SEC: float = 180.0          # 게임 시간 1시간 (SURVIVE_TIME과 같음)
 const ENDLESS_NPC_START: int = 10               # 구역 안 사람 수
 const ENDLESS_NPC_STEP: int = 2
 const ENDLESS_NPC_MAX: int = 30
-const ENDLESS_DM_START: float = 3.0             # DM 도착 주기(초)
-const ENDLESS_DM_STEP: float = 0.15
-const ENDLESS_DM_MIN: float = 1.5
-const ENDLESS_COOLDOWN_START: float = 5.0       # 답장 후 쉬는 시간(초)
-const ENDLESS_COOLDOWN_STEP: float = 0.25
-const ENDLESS_COOLDOWN_MIN: float = 2.5
-const ENDLESS_LETTER_GAP_START: float = 40.0    # 휴대폰 글자 간격. LETTER_MIN_GAP에서 멈춤
-const ENDLESS_LETTER_GAP_STEP: float = 5.0
-const ENDLESS_DECOY_START: int = 6              # 섞이는 글자 수. 3레벨마다 +1
-const ENDLESS_DECOY_MAX: int = 8
+const ENDLESS_DM_INTERVAL: float = 3.0          # DM 도착 주기(초). 레벨과 상관없이 같음
+const ENDLESS_REPLY_COOLDOWN: float = 5.0       # 답장 후 쉬는 시간(초)
 const ENDLESS_FOLLOWER_MAX: int = 3             # 따라오는 사람. 1명에서 3레벨마다 +1
 const ENDLESS_ZONE_HALF: Vector2 = Vector2(960.0, 720.0)   # 플레이어 둘레 1920×1440 구역. 30명이면 레벨 9 맵과 비슷한 밀도
 const ENDLESS_DESPAWN_MARGIN: float = 240.0     # 구역에서 이만큼 더 멀어지고 화면 밖이면 사라진다
@@ -248,8 +246,19 @@ const TREMOR_NOISE_GAIN: float = 1.6          # 노이즈 값(대략 ±0.6)을 �
 const TREMOR_PHONE_RATIO: float = 0.5         # 휴대폰은 손·커서의 이 비율만큼, 다른 패턴으로 흔들림
 const PHONE_SLIDE_SEC: float = 0.45           # 휴대폰이 올라오고 내려가는 시간, 배경이 어두워지고 밝아지는 시간
 const PHONE_SLIDE_DISTANCE: float = 1100.0    # 내려가 있을 때의 거리(px). 화면 밖으로 완전히 나가는 값
-# 답장 단어. 대문자 알파벳만.
-const REPLY_WORDS: Array = ['LOVE', 'MISS', 'SOON', 'WAIT', 'CALL', 'LATER', 'HUSH', 'KISS', 'BABY', 'SORRY']
+# 답장 문구 목록. 레벨의 reply_pool로 고른다. 대문자 알파벳과 띄어쓰기만. 문장은 단어마다 글자 풍선이 새로 나온다.
+# 진행 표시가 휴대폰 화면보다 길면 글자 크기를 줄여 맞춘다.
+const REPLY_POOLS: Dictionary = {
+    'word4': ['LOVE', 'MISS', 'SOON', 'WAIT', 'CALL', 'HUSH', 'KISS', 'BABY', 'HOME', 'LATE', 'HOLD', 'TEXT'],
+    'word5': ['LATER', 'SORRY', 'HONEY', 'SWEET', 'DREAM', 'QUIET', 'HURRY', 'ALONE', 'NIGHT', 'SMILE'],
+    'word6': ['SECRET', 'ALWAYS', 'MOMENT', 'LONELY', 'TONIGHT', 'FOREVER', 'DARLING', 'PROMISE', 'MISSING'],
+    'two': ['MISS YOU', 'CALL ME', 'LOVE YOU', 'NOT NOW', 'HOLD ON', 'SEE YOU', 'WAIT HERE', 'BE QUIET'],
+    'two_long': ['CALL LATER', 'MISSING YOU', 'SWEET DREAMS', 'COME OUTSIDE', 'TOO RISKY', 'ALWAYS YOURS'],
+    'three': ['I MISS YOU', 'SEE YOU SOON', 'CALL ME LATER', 'WAIT FOR ME', 'LOVE YOU TOO', 'NOT RIGHT NOW'],
+    'three_long': ['MEET ME OUTSIDE', 'CANT TALK NOW', 'SHE IS HERE', 'KEEP IT SECRET', 'DELETE THIS CHAT', 'MISS YOU ALREADY'],
+    'four': ['I LOVE YOU TOO', 'SEE YOU VERY SOON', 'I WILL CALL LATER', 'DO NOT TEXT ME', 'SHE IS WATCHING ME'],
+    'four_long': ['WAIT FOR ME OUTSIDE', 'SHE IS RIGHT HERE', 'KEEP THIS A SECRET', 'CANT TALK RIGHT NOW', 'MEET ME AT MIDNIGHT'],
+}
 const LETTER_GRID: Vector2i = Vector2i(4, 6)  # 알파벳 버튼을 놓는 칸 (열, 행). 칸 간격은 레벨의 letter_gap
 const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어긋나는 최대 정도(px). 간격이 좁으면 자동으로 줄어듦
 const LETTER_MIN_GAP: float = 6.0             # 어긋나도 버튼 사이에 남기는 최소 간격(px). 서로 붙지 않게
