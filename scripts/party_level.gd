@@ -191,6 +191,59 @@ func can_reach(from_point: Vector2, to_point: Vector2) -> bool:
 ## from에서 to로 갈 때 지금 향해야 할 지점. 다른 방이면 문 앞 → 문 건너편 → 목적지 순서.
 ## 갈 수 없으면 from을 그대로 돌려준다.
 func next_step(from_point: Vector2, to_point: Vector2) -> Vector2:
+    return _next_step(from_point, to_point, false)
+
+
+# ── 닫힌 문을 열고 가는 사람용 (PartyNpc의 문 열기) ──
+
+## 닫힌 문도 지날 수 있다고 칠 때 from에서 to로 갈 수 있는지
+func can_reach_through_doors(from_point: Vector2, to_point: Vector2) -> bool:
+    return _rooms_connected(room_at(from_point), room_at(to_point), true)
+
+
+## 닫힌 문도 지날 수 있다고 칠 때의 next_step. 닫힌 문 앞에 오면 closed_door_ahead()로 문을 연다.
+func next_step_through_doors(from_point: Vector2, to_point: Vector2) -> Vector2:
+    return _next_step(from_point, to_point, true)
+
+
+## from에서 to로 갈 때 바로 다음에 지날 문이 닫혀 있으면 그 문, 아니면 null
+func closed_door_ahead(from_point: Vector2, to_point: Vector2) -> PartyDoor:
+    var from_room: int = room_at(from_point)
+    var path: Array[int] = room_path_any(from_room, room_at(to_point), true)
+    if path.size() < 2:
+        return null
+    var door: PartyDoor = _door_between(path[0], path[1], true)
+    return door if door != null and not door.is_open else null
+
+
+## from_point에서 닫힌 문을 하나 이상 열어야 갈 수 있는 방 중 하나의 지점. 고르지 않으면 Vector2.INF.
+## 그런 방 중 사람이 0명인 방(room_load 기준, 플레이어 제외)이 있으면 DOOR_OPEN_EMPTY_CHANCE 확률로 그 방,
+## 아니면 DOOR_OPEN_CHANCE 확률로 아무 방이나 고른다. 고른 방의 인원은 바로 1 늘려 여러 명이 한꺼번에 몰리지 않게 한다.
+func closed_room_point(from_point: Vector2) -> Vector2:
+    var from_room: int = room_at(from_point)
+    if from_room < 0 or _doors.is_empty():
+        return Vector2.INF
+    var empty: Array[int] = []
+    var closed: Array[int] = []
+    for i: int in rooms.size():
+        if _rooms_connected(from_room, i) or not _rooms_connected(from_room, i, true):
+            continue   # 열린 문으로 이미 갈 수 있거나, 아예 이어져 있지 않음
+        closed.append(i)
+        if i < room_load.size() and room_load[i] == 0:
+            empty.append(i)
+    var pick: int = -1
+    if not empty.is_empty() and randf() < GameConfig.DOOR_OPEN_EMPTY_CHANCE:
+        pick = empty.pick_random()
+    elif not closed.is_empty() and randf() < GameConfig.DOOR_OPEN_CHANCE:
+        pick = closed.pick_random()
+    if pick < 0:
+        return Vector2.INF
+    if pick < room_load.size():
+        room_load[pick] += 1
+    return random_free_point_in_room(pick)
+
+
+func _next_step(from_point: Vector2, to_point: Vector2, any_door: bool) -> Vector2:
     var from_room: int = room_at(from_point)
     var to_room: int = room_at(to_point)
     if from_room == to_room or to_room < 0:
@@ -198,13 +251,13 @@ func next_step(from_point: Vector2, to_point: Vector2) -> Vector2:
     if from_room < 0:
         # 문틀 안: 목적지까지 더 가까운 쪽 방의 문 앞으로 나간다.
         var near_door: PartyDoor = _nearest_door(from_point)
-        return near_door.approach_point(_exit_side(near_door, to_room)) if near_door != null else to_point
-    var path: Array[int] = room_path(from_room, to_room)
+        return near_door.approach_point(_exit_side(near_door, to_room, any_door)) if near_door != null else to_point
+    var path: Array[int] = room_path_any(from_room, to_room, any_door)
     if path.size() < 2:
         return from_point
     # 여러 방을 거쳐야 하면 바로 다음 방으로 가는 문부터 지난다.
     to_room = path[1]
-    var door: PartyDoor = _open_door_between(from_room, to_room)
+    var door: PartyDoor = _door_between(from_room, to_room, any_door)
     if door == null:
         return from_point
     # 문틀과 나란히 서 있고 문 앞 지점보다 문에 가까우면 건너편으로, 아니면 먼저 문 앞으로 간다.
@@ -220,14 +273,19 @@ func next_step(from_point: Vector2, to_point: Vector2) -> Vector2:
     return near_side
 
 
-func _rooms_connected(a: int, b: int) -> bool:
+func _rooms_connected(a: int, b: int, any_door: bool = false) -> bool:
     if a < 0 or b < 0 or a == b:
         return true
-    return not room_path(a, b).is_empty()
+    return not room_path_any(a, b, any_door).is_empty()
 
 
 ## a에서 b까지 열린 문으로 지나는 방 순서 [a, ..., b]. 갈 수 없으면 빈 배열. 문 수가 가장 적은 길.
 func room_path(a: int, b: int) -> Array[int]:
+    return room_path_any(a, b, false)
+
+
+## room_path와 같고, any_door가 true면 닫힌 문도 지날 수 있다고 친다.
+func room_path_any(a: int, b: int, any_door: bool) -> Array[int]:
     var result: Array[int] = []
     if a < 0 or b < 0:
         return result
@@ -238,7 +296,7 @@ func room_path(a: int, b: int) -> Array[int]:
         if current == b:
             break
         for door: PartyDoor in _doors:
-            if not door.is_open:
+            if not door.is_open and not any_door:
                 continue
             var next: int = -1
             if door.room_a == current:
@@ -267,9 +325,9 @@ func reachable_rooms(from_room: int) -> Array[int]:
 
 
 ## 문틀 안에서 목적지로 갈 때 나갈 쪽 방: 문이 잇는 두 방 중 목적지까지 문을 덜 지나는 쪽
-func _exit_side(door: PartyDoor, to_room: int) -> int:
-    var via_a: Array[int] = room_path(door.room_a, to_room)
-    var via_b: Array[int] = room_path(door.room_b, to_room)
+func _exit_side(door: PartyDoor, to_room: int, any_door: bool = false) -> int:
+    var via_a: Array[int] = room_path_any(door.room_a, to_room, any_door)
+    var via_b: Array[int] = room_path_any(door.room_b, to_room, any_door)
     if via_a.is_empty():
         return door.room_b
     if via_b.is_empty():
@@ -277,11 +335,17 @@ func _exit_side(door: PartyDoor, to_room: int) -> int:
     return door.room_a if via_a.size() <= via_b.size() else door.room_b
 
 
-func _open_door_between(a: int, b: int) -> PartyDoor:
+## a와 b를 잇는 문. any_door가 false면 열린 문만, true면 열린 문을 먼저 찾고 없으면 닫힌 문.
+func _door_between(a: int, b: int, any_door: bool) -> PartyDoor:
+    var closed: PartyDoor = null
     for door: PartyDoor in _doors:
-        if door.is_open and door.connects(a, b):
+        if not door.connects(a, b):
+            continue
+        if door.is_open:
             return door
-    return null
+        if any_door and closed == null:
+            closed = door
+    return closed
 
 
 func _nearest_door(point: Vector2) -> PartyDoor:

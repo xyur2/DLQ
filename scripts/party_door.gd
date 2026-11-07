@@ -78,6 +78,12 @@ func interact(_player: Node) -> void:
     _set_open(not is_open)
 
 
+## 사람이 닫힌 문을 열고 들어올 때 (PartyNpc). 이미 열려 있으면 아무 일도 없다.
+func open_by_npc() -> void:
+    if not is_open:
+        _set_open(true)
+
+
 func _set_open(open: bool) -> void:
     is_open = open
     _blocker_shape.set_deferred('disabled', open)

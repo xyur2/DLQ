@@ -1,10 +1,11 @@
 class_name PhoneView
 extends Control
 ## 휴대폰 화면. 탑뷰를 완전히 가리고, 제시된 답장(단어 또는 문장)의 알파벳을 순서대로 눌러 답장한다.
-## - 답장 문구는 레벨의 reply_pool(GameConfig.REPLY_POOLS)에서 고른다. 레벨이 오를수록 단어가 길어지고 문장이 된다.
+## - 답장 문구는 GameConfig.REPLY_PHRASES에서 레벨의 reply_words(단어 수), long_chance(긴 단어 확률)에 맞게 고른다.
+## - 오른쪽 위 빨간 배지에 쌓인 DM 수를 보여 준다. 답장하면 바로 0이 되어 사라진다.
 ## - 문장이면 단어 하나를 다 누를 때마다 글자 풍선을 지우고 다음 단어의 풍선을 새로 놓는다.
 ## - 틀린 알파벳을 누르면 점수가 깎이고 cfg['wrong_lock_time']초 동안 터치가 막힌다.
-## - 제한 시간은 없다. 답장하지 않으면 DM이 cfg['dm_interval']초마다 계속 쌓일 뿐이다.
+## - 제한 시간은 없다. 답장하지 않으면 DM이 cfg['dm_interval']초마다 계속 쌓인다. 휴대폰을 보는 동안은 쌓이지 않는다.
 ## - 끄기는 전원 버튼으로만 가능하다. 끄고 다시 켜면 문장의 몇 번째 단어인지, 누른 글자, 풍선 배치까지 그대로 이어서 한다.
 ## 숨은 입력: 글자 버튼이나 키보드로 GameConfig.LETTER_COMBOS의 글자를 연속으로 입력하면 음향 효과가 나온다.
 ## 손 떨림: 손 이미지와 실제 마우스 커서가 함께 흔들리고, 휴대폰은 다른 패턴으로 약하게 흔들린다.
@@ -59,6 +60,8 @@ var _slide: float = 0.0   # 0: 내려가 있음, 1: 올라와 있음
 @onready var _lock_notice: Label = $PhoneRoot/Screen/LockNotice
 @onready var _letter_area: Control = $PhoneRoot/Screen/LetterArea
 @onready var _power_hitbox: Button = $PhoneRoot/PowerHitbox
+@onready var _dm_badge: Panel = $PhoneRoot/Screen/DmBadge
+@onready var _dm_badge_label: Label = $PhoneRoot/Screen/DmBadge/Count
 
 
 func _ready() -> void:
@@ -74,6 +77,8 @@ func _ready() -> void:
     _power_hitbox.pressed.connect(_on_power_pressed)
     GameState.phone_toggled.connect(_on_phone_toggled)
     GameState.dm_stage_changed.connect(_on_stage_changed)
+    GameState.dm_arrived.connect(_on_dm_arrived)
+    _dm_badge.pivot_offset = _dm_badge.size * 0.5
     # 게임이 끝나면(발각 등) 일시 정지되기 전에 커서 흔들림을 멈추고 커서를 제자리로 돌린다.
     GameState.game_ended.connect(func(_reason: int) -> void: _release_mouse())
     _refresh_labels()
@@ -159,10 +164,17 @@ func _shake_mouse(offset: Vector2) -> void:
 
 
 func _update_status() -> void:
-    if GameState.dm_stage > 0:
-        _status.text = 'New messages: %s' % GameState.get_dm_badge_text()
-    else:
-        _status.text = 'No new messages'
+    var has_dm: bool = GameState.dm_stage > 0
+    _status.text = 'New messages: %s' % GameState.get_dm_badge_text() if has_dm else 'No new messages'
+    _dm_badge.visible = has_dm
+    _dm_badge_label.text = GameState.get_dm_badge_text()
+
+
+## DM이 오면 배지가 튀어 오른다.
+func _on_dm_arrived(_stage: int) -> void:
+    _dm_badge.scale = Vector2.ONE * 1.3
+    _dm_badge.create_tween().tween_property(_dm_badge, 'scale', Vector2.ONE, 0.18) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 ## 휴대폰을 켠 동안 여자친구 메시지가 위에 떴다 사라진다. 누르면 바로 사라진다.
@@ -224,10 +236,38 @@ func _try_start_puzzle() -> void:
     if _puzzle_active or not GameState.phone_on or GameState.dm_stage <= 0:
         return
     _puzzle_active = true
-    var pool: Array = GameConfig.REPLY_POOLS[String(GameState.cfg.get('reply_pool', 'word4'))]
-    _words = String(pool.pick_random()).split(' ', false)
+    _words = _pick_phrase().split(' ', false)
     _word_index = 0
     _start_word()
+
+
+## 레벨의 reply_words(단어 수 범위)에서 단어 수를 고르고, long_chance 확률로 긴 단어가 든 문구를 고른다.
+## 맞는 문구가 없으면 단어 수만 맞춘 문구, 그것도 없으면 아무 문구.
+static func _pick_phrase() -> String:
+    var words: Vector2i = GameState.cfg.get('reply_words', Vector2i(1, 1))
+    var count: int = randi_range(words.x, words.y)
+    var want_long: bool = randf() < float(GameState.cfg.get('long_chance', 0.0))
+    var exact: Array = []
+    var same_count: Array = []
+    for phrase: String in GameConfig.REPLY_PHRASES:
+        var parts: PackedStringArray = phrase.split(' ', false)
+        if parts.size() != count:
+            continue
+        same_count.append(phrase)
+        if _has_long_word(parts) == want_long:
+            exact.append(phrase)
+    if not exact.is_empty():
+        return String(exact.pick_random())
+    if not same_count.is_empty():
+        return String(same_count.pick_random())
+    return String(GameConfig.REPLY_PHRASES.pick_random())
+
+
+static func _has_long_word(parts: PackedStringArray) -> bool:
+    for part: String in parts:
+        if part.length() >= GameConfig.LONG_WORD_LEN:
+            return true
+    return false
 
 
 ## 문장의 _word_index번째 단어를 시작한다. 글자 풍선을 지우고 새로 놓는다.
@@ -246,6 +286,7 @@ func _clear_letters() -> void:
 
 
 ## 단어 글자 + 단어에 없는 알파벳(decoy)을 격자 칸에 무작위로 놓는다.
+## decoy_count가 -1이면 가짜 글자로 칸(LETTER_GRID)을 꽉 채운다(모자라면 같은 가짜 글자가 또 나옴).
 ## 레벨이 오를수록 칸 사이 간격(letter_gap)이 좁고, 풍선이 쓰는 줄 수(letter_spread)가 줄어 빈칸 없이 모인다.
 func _spawn_letters() -> void:
     var chars: Array[String] = []
@@ -256,8 +297,11 @@ func _spawn_letters() -> void:
         if not _word.contains(c):
             pool.append(c)
     pool.shuffle()
-    for i: int in mini(int(GameState.cfg['decoy_count']), pool.size()):
-        chars.append(pool[i])
+    var decoys: int = int(GameState.cfg.get('decoy_count', 0))
+    if decoys < 0:
+        decoys = GameConfig.LETTER_GRID.x * GameConfig.LETTER_GRID.y - chars.size()
+    for i: int in maxi(decoys, 0):
+        chars.append(pool[i % pool.size()])
 
     # 열 수: 레벨의 간격(letter_gap)을 지키며 화면 너비에 들어가는 만큼(3~LETTER_GRID.x열). 간격이 넓은 낮은 레벨은 3열.
     # 쓰는 줄 수 = 풍선 수 × letter_spread ÷ 열 수 (모두 들어가는 최소 줄 수 ~ LETTER_GRID.y)
@@ -294,12 +338,10 @@ func _spawn_letters() -> void:
         minf(button_size.y + gap, (_letter_area.size.y - button_size.y) / maxf(grid.y - 1.0, 1.0))
     )
     var origin: Vector2 = (_letter_area.size - (cell * (grid - Vector2.ONE) + button_size)) * 0.5
-    # 남는 간격에서 최소 간격을 뺀 만큼만 어긋나게 해서, 이웃 버튼과 붙지 않게 한다.
+    # 레벨의 letter_jitter만큼 불규칙하게 어긋나게 한다. 남는 간격에서 최소 간격을 뺀 만큼까지만 어긋나서 이웃 버튼과 붙지 않는다.
+    var jitter_limit: float = float(GameState.cfg.get('letter_jitter', 0.0))
     var spare: Vector2 = (cell - button_size - Vector2.ONE * GameConfig.LETTER_MIN_GAP) * 0.5
-    var jitter_max := Vector2(
-        clampf(spare.x, 0.0, GameConfig.LETTER_JITTER),
-        clampf(spare.y, 0.0, GameConfig.LETTER_JITTER)
-    )
+    var jitter_max := Vector2(clampf(spare.x, 0.0, jitter_limit), clampf(spare.y, 0.0, jitter_limit))
     var max_pos: Vector2 = _letter_area.size - button_size
     for i: int in _letters.size():
         var jitter := Vector2(

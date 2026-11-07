@@ -8,7 +8,9 @@ extends CharacterBody2D
 ## - 방이 붐비면 CrowdBalancer가 relocate()로 다른 방에 보낸다. 쉬거나 그냥 걷는 사람만 보낸다.
 ## - 길막: 걷다가 플레이어에게 막히면 멈춰 서고, 오래 막히면 플레이어를 밀쳐 낸다.
 ## - 슬로우 댄스: 제자리 근처만 조금씩 움직인다.
-## 다른 방으로 갈 때는 PartyLevel.next_step을 따라 열린 문을 지난다. 문이 닫혀 있으면 그 방으로 가지 않는다.
+## 다른 방으로 갈 때는 PartyLevel.next_step을 따라 열린 문을 지난다.
+## - 닫힌 문 열기: 걸어갈 곳을 고를 때 닫힌 문 너머 방(특히 사람이 0명인 방)을 고르기도 한다(PartyLevel.closed_room_point).
+##   그러면 닫힌 문까지 가서 문을 열고 들어간다. 확률은 GameConfig.DOOR_OPEN_EMPTY_CHANCE, DOOR_OPEN_CHANCE.
 ##
 ## 종류(kind). 값은 GameConfig의 각 종류 구역에서 조정한다.
 ## - normal: 위 기본 행동만 한다.
@@ -58,6 +60,7 @@ var _turn_left: float = 0.0             # 활발형: 다음 방향 전환까지
 var _errand_prop: PartyProp = null      # 상호작용형: 작동시키러 가는 소품
 var _errand_left: float = 0.0
 var _relocating: bool = false           # 붐비는 방에서 다른 방으로 옮기는 중
+var _opening_doors: bool = false        # 닫힌 문 너머의 방으로 걸어가는 중 (가는 길의 닫힌 문을 연다)
 var _dance_left: float = 0.0            # 플레이어와 춤추는 남은 시간
 ## 이어서 받은 반응(클릭) 횟수. 같은 사람을 여러 번 누를수록 점수가 줄어든다.
 ## 마지막 반응 뒤 SCORE_REACTION_RESET_SEC가 지나면 0으로 돌아가 다시 처음 점수를 준다.
@@ -103,6 +106,7 @@ func start_follow(duration: float) -> void:
         return
     _cancel_errand()
     _relocating = false
+    _opening_doors = false
     _mode = Mode.FOLLOW
     _follow_left = duration
     _stuck_time = 0.0
@@ -130,6 +134,7 @@ func receive_reaction(positive: bool) -> bool:
 func start_dance(duration: float) -> void:
     _cancel_errand()
     _relocating = false
+    _opening_doors = false
     _mode = Mode.IDLE
     _idle_left = duration
     _dance_left = duration
@@ -149,6 +154,7 @@ func face_toward(point: Vector2) -> void:
 func surround(point: Vector2, look_at_point: Vector2) -> void:
     _errand_prop = null
     _relocating = false
+    _opening_doors = false
     _mode = Mode.IDLE
     velocity = Vector2.ZERO
     global_position = point
@@ -218,9 +224,14 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_walk(delta: float) -> void:
-    if not level.can_reach(global_position, _target):
+    if _opening_doors:
+        if not level.can_reach_through_doors(global_position, _target):
+            _start_walk()
+        else:
+            _open_door_ahead()
+    elif not level.can_reach(global_position, _target):
         _start_walk()   # 가는 중에 문이 닫힘
-    if kind == 'active' and not GameState.slow_dance_active and not _relocating:
+    if kind == 'active' and not GameState.slow_dance_active and not _relocating and not _opening_doors:
         _turn_left -= delta
         if _turn_left <= 0.0:
             _start_walk()   # 활발형: 도착하기 전에 방향을 바꾼다
@@ -247,12 +258,14 @@ func can_relocate() -> bool:
 
 
 ## point(다른 방의 지점)로 걸어간다. 도착하면 평소처럼 쉰다.
-func relocate(point: Vector2) -> void:
+## open_doors가 true면 가는 길의 닫힌 문을 열고 간다 (한 방에 오래 머문 플레이어에게 모일 때).
+func relocate(point: Vector2, open_doors: bool = false) -> void:
     _mode = Mode.WALK
     _errand_prop = null
     _target = point
     _stuck_time = 0.0
     _relocating = true
+    _opening_doors = open_doors
 
 
 # ── 종류별 특수 행동 ──
@@ -313,6 +326,7 @@ func _start_errand() -> void:
         return
     _errand_prop = choices.pick_random()
     _relocating = false
+    _opening_doors = false
     _errand_left = GameConfig.INTERACTIVE_GIVE_UP_SEC
     _mode = Mode.WALK
     _stuck_time = 0.0
@@ -399,7 +413,17 @@ func _walk_speed() -> float:
 
 ## 지금 향할 지점. 목적지가 다른 방이면 문 앞, 문 건너편 순서로 거친다.
 func _steer_point() -> Vector2:
+    if _opening_doors and _mode == Mode.WALK:
+        return level.next_step_through_doors(global_position, _target)
     return level.next_step(global_position, _target)
+
+
+## 가는 길의 다음 문이 닫혀 있고 손이 닿으면 연다.
+func _open_door_ahead() -> void:
+    var door: PartyDoor = level.closed_door_ahead(global_position, _target)
+    if door != null and global_position.distance_to(door.global_position) <= GameConfig.DOOR_OPEN_REACH:
+        door.open_by_npc()
+        _show_text('KNOCK', Color(1.0, 0.85, 0.4))
 
 
 func _move_to_target(speed: float, delta: float) -> void:
@@ -438,6 +462,7 @@ func _avoidance(direction: Vector2) -> Vector2:
 func _start_idle() -> void:
     _mode = Mode.IDLE
     _relocating = false
+    _opening_doors = false
     velocity = Vector2.ZERO
     var range_sec: Vector2 = GameConfig.ACTIVE_IDLE_TIME_RANGE if kind == 'active' else GameConfig.NPC_IDLE_TIME_RANGE
     _idle_left = randf_range(range_sec.x, range_sec.y)
@@ -447,6 +472,7 @@ func _start_walk() -> void:
     _mode = Mode.WALK
     _errand_prop = null
     _relocating = false
+    _opening_doors = false
     _stuck_time = 0.0
     _turn_left = randf_range(GameConfig.ACTIVE_TURN_TIME_RANGE.x, GameConfig.ACTIVE_TURN_TIME_RANGE.y)
     if GameState.slow_dance_active:
@@ -454,7 +480,10 @@ func _start_walk() -> void:
         var offset := Vector2(randf_range(-wander, wander), randf_range(-wander, wander))
         _target = level.clamp_point(_dance_anchor + offset, level.room_at(_dance_anchor))
     else:
-        _target = level.random_point(global_position)
+        # 가끔(빈 방이면 더 자주) 닫힌 문 너머의 방을 골라 문을 열고 들어간다.
+        var behind_door: Vector2 = level.closed_room_point(global_position)
+        _opening_doors = behind_door != Vector2.INF
+        _target = behind_door if _opening_doors else level.random_point(global_position)
 
 
 func _new_reaction_goal() -> void:
@@ -489,6 +518,7 @@ func _on_aggro(point: Vector2, radius: float, duration: float, area: Rect2) -> v
         return
     _cancel_errand()
     _relocating = false
+    _opening_doors = false
     _mode = Mode.AGGRO
     _aggro_left = duration
     _stuck_time = 0.0

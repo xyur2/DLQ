@@ -69,11 +69,14 @@ func _on_game_ended(reason: int) -> void:
 
 ## 최고 점수 줄. 테스트 맵은 기록하지 않으므로 비운다.
 func _best_text() -> String:
+    var bonus: String = ''
+    if GameState.end_reason == GameState.EndReason.SURVIVED and GameState.get_clear_bonus() > 0:
+        bonus = 'Clear bonus +%d\n' % GameState.get_clear_bonus()
     if GameState.get_record_key() == '':
-        return ''
+        return bonus
     if GameState.new_record:
-        return 'NEW BEST!'
-    return 'Best %d' % GameState.best_score
+        return bonus + 'NEW BEST!'
+    return bonus + 'Best %d' % GameState.best_score
 
 
 func _setup_panels(story: String) -> void:

@@ -127,23 +127,17 @@ func get_level_label() -> String:
 static func endless_config(level: int) -> Dictionary:
     var step: int = maxi(level - 1, 0)
     var every_three: int = floori(step / 3.0)
-    var text: Dictionary = GameConfig.LEVELS[mini(step, GameConfig.LEVELS.size() - 1)]
-    return {
-        'title': 'Endless Mode Level %d' % level,
-        'scene': GameConfig.ENDLESS_SCENE,
-        'npc_target': mini(GameConfig.ENDLESS_NPC_START + GameConfig.ENDLESS_NPC_STEP * step, GameConfig.ENDLESS_NPC_MAX),
-        'npc_bonus': 0,
-        'npc_kinds': {},
-        'follower_count': mini(1 + every_three, GameConfig.ENDLESS_FOLLOWER_MAX),
-        'dm_interval': text['dm_interval'],
-        'reply_cooldown': text['reply_cooldown'],
-        'reply_pool': text['reply_pool'],
-        'letter_gap': text['letter_gap'],
-        'letter_spread': text['letter_spread'],
-        'caught_radius': 80.0,
-        'decoy_count': text['decoy_count'],
-        'wrong_lock_time': 2.0,
-    }
+    # DM·휴대폰 답장 관련 값(dm_interval, reply_words, decoy_count, letter_* 등)은 일반 레벨에서 그대로 가져온다.
+    var result: Dictionary = (GameConfig.LEVELS[mini(step, GameConfig.LEVELS.size() - 1)] as Dictionary).duplicate()
+    result['title'] = 'Endless Mode Level %d' % level
+    result['scene'] = GameConfig.ENDLESS_SCENE
+    result['npc_target'] = mini(GameConfig.ENDLESS_NPC_START + GameConfig.ENDLESS_NPC_STEP * step, GameConfig.ENDLESS_NPC_MAX)
+    result['npc_bonus'] = 0
+    result['npc_kinds'] = {}
+    result['follower_count'] = mini(1 + every_three, GameConfig.ENDLESS_FOLLOWER_MAX)
+    result['caught_radius'] = 80.0
+    result['wrong_lock_time'] = 2.0
+    return result
 
 
 func is_playing() -> bool:
@@ -165,7 +159,9 @@ func tick(delta: float, nearest_px: float) -> void:
     dance_left = maxf(0.0, dance_left - delta)
     _update_slow_dance()
     nearest_npc_px = nearest_px
-    _dm_timer -= delta
+    # 휴대폰을 보는 동안은 DM 타이머가 멈춘다 (답장하는 중에 DM이 쌓이지 않게).
+    if not phone_on:
+        _dm_timer -= delta
     if _dm_timer <= 0.0:
         _dm_timer += float(cfg['dm_interval'])
         _set_dm_stage(dm_stage + 1)
@@ -240,11 +236,17 @@ static func reaction_score(times_before: int) -> int:
     return floori(GameConfig.SCORE_REACTION_FIRST * pow(GameConfig.SCORE_REACTION_DECAY, maxi(times_before, 0)))
 
 
-## 사람이 길막으로 멈췄을 때 호출. 모든 사람을 막으면 히든 엔딩 조건이 된다.
+## 레벨 클리어 보너스: SCORE_CLEAR_PER_LEVEL × 레벨 번호. 무한 모드와 테스트 맵은 0.
+func get_clear_bonus() -> int:
+    if endless_mode or test_level:
+        return 0
+    return GameConfig.SCORE_CLEAR_PER_LEVEL * (level_index + 1)
+
+
+## 사람이 길막으로 멈췄을 때 호출. 모든 사람을 막으면 히든 엔딩 조건이 된다. 점수는 없다.
 func report_npc_blocked(npc_id: int) -> void:
     if is_playing():
         _blocked_npcs[npc_id] = true
-        _add_score(GameConfig.SCORE_BLOCK)
 
 
 ## 길막이 길어졌을 때 호출. 플레이어는 밀려나고 잠시 아무것도 할 수 없다.
@@ -425,6 +427,8 @@ func _end_game(reason: EndReason) -> void:
     if not is_playing() and state != State.ENDING:
         return
     end_reason = reason
+    if reason == EndReason.SURVIVED:
+        _add_score(get_clear_bonus())   # 최고 점수 기록 전에 더한다
     state = State.WON if reason == EndReason.SURVIVED else State.GAME_OVER
     new_record = ScoreRecords.submit(get_record_key(), score)
     if new_record:
