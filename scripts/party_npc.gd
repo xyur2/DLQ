@@ -21,7 +21,7 @@ extends CharacterBody2D
 enum Mode { IDLE, WALK, AGGRO, FOLLOW }
 
 const LAYER_NPC: int = 4
-const MASK_SOLID: int = 1 | 2 | 4         # 벽, 플레이어, 다른 사람과 부딪힌다
+const MASK_SOLID: int = 1 | 2 | 4         # 벽, 소품, 플레이어, 다른 사람과 부딪힌다
 const AVOID_AHEAD_DOT: float = 0.3        # 이보다 앞쪽에 있는 사람은 옆으로 비켜 간다
 const STUCK_MOVE_RATIO: float = 0.25      # 기대 이동량의 이 비율보다 적게 움직이면 막힌 것으로 본다
 const BLOCK_HEADING_MIN_DOT: float = 0.3  # 목적지가 플레이어 쪽이어야 길막으로 본다
@@ -63,7 +63,7 @@ var _errand_left: float = 0.0
 
 func _ready() -> void:
     collision_layer = LAYER_NPC
-    collision_mask = MASK_WALLS_PLAYER_NPCS
+    collision_mask = MASK_SOLID
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('npcs')
     _sprite.sprite_frames = GameAssets.npc_frames(look)

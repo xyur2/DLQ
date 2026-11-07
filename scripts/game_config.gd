@@ -28,7 +28,6 @@ const NPC_IDLE_TIME_RANGE: Vector2 = Vector2(1.0, 3.0)
 const NPC_MAP_MARGIN: float = 72.0
 const NPC_ARRIVE_DISTANCE: float = 9.6
 const NPC_STUCK_TIMEOUT: float = 1.5
-const NPC_SPAWN_GAP: float = 48.0             # 사람끼리 처음에 떨어져 있는 최소 거리
 const NPC_SPAWN_MIN_DIST: float = 240.0      # 맵 절반에 맞춰 480 → 240
 const NPC_SPAWN_SPACING: float = 64.0        # 처음 놓을 때 사람끼리 떨어뜨리는 거리 (지름 38.4 + 여유)
 # 사람끼리는 몸이 부딪혀 겹치지 않는다. 걷는 사람은 가까운 사람을 미리 피해 옆으로 비켜 간다.

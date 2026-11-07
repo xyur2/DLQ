@@ -3,7 +3,7 @@ extends Area2D
 ## 상호작용 소품(스피커·조명·플레이리스트). E를 누르면 어그로 지점으로 사람을 모은다.
 ## 종류별 이름·반경·재사용 대기·색은 GameConfig.PROPS, 위치와 어그로 지점은 top_view.tscn에서 정한다.
 ## 모양은 소품 이미지, 작동 효과는 효과 씬(GameAssets.PROP_EFFECTS). 효과 씬이 없으면 원으로 대신 표시한다.
-## 재사용 대기 중에는 소품이 어두워지고, 위에 흰색 원형 타이머(CooldownTimer)가 남은 시간만큼 줄어든다.
+## 재사용 대기 중에는 소품이 어두워지고, 위에 흰색 원형 타이머(CooldownTimer), 아래에 막대와 남은 초가 나온다.
 
 const LAYER_PROP: int = 8
 const BODY_RATIO: float = 0.85            # 충돌 크기 = 그림 크기 × 이 비율
@@ -42,6 +42,7 @@ var _icon_size: Vector2 = Vector2.ZERO
 @onready var _body_shape: CollisionShape2D = $Body/CollisionShape2D
 @onready var _bar: Node2D = $CooldownBar
 @onready var _cooldown_label: Label = $CooldownLabel
+@onready var _timer: Node2D = $CooldownTimer
 
 
 func _ready() -> void:
@@ -96,8 +97,7 @@ func _process(delta: float) -> void:
     _cooldown_left = maxf(0.0, _cooldown_left - delta)
     _active_left = maxf(0.0, _active_left - delta)
     _icon.modulate = COOLDOWN_TINT if _cooldown_left > 0.0 else Color.WHITE
-    _timer.visible = _cooldown_left > 0.0
-    _timer.queue_redraw()
+    _update_cooldown_display()
     if _active_left <= 0.0:
         _remove_effect()
     queue_redraw()
@@ -120,8 +120,7 @@ func interact(_player: Node) -> void:
     _cooldown_left = cooldown_total
     _active_left = GameConfig.AGGRO_DURATION
     _icon.modulate = COOLDOWN_TINT
-    _timer.visible = true
-    _timer.queue_redraw()
+    _update_cooldown_display()
     _spawn_effect()
     GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION)
 
@@ -130,9 +129,11 @@ func _update_cooldown_display() -> void:
     var waiting: bool = _cooldown_left > 0.0
     _bar.visible = waiting
     _cooldown_label.visible = waiting
+    _timer.visible = waiting
     if waiting:
         _cooldown_label.text = '%d초' % ceili(_cooldown_left)
         _bar.queue_redraw()
+        _timer.queue_redraw()
 
 
 func _draw_bar() -> void:
