@@ -107,8 +107,8 @@ const CIRCLE_STARE_SEC: float = 3.0           # 둘러싸고 째려보는 시간
 const CIRCLE_SCARE_SEC: float = 1.5           # 이후 공포 효과 시간, 끝나면 게임 종료
 
 # 춤추기: 조명(light 소품)이 비추는 바닥(어그로 지점) 안에서 E를 누르면 가까운 사람 한 명과 춤춘다. 조명 하나에 한 번.
-const DANCE_SEC: float = 3.0                  # 춤추는 동안 아무것도 할 수 없는 시간(초)
-const DANCE_TURNS: float = 1.0                # 춤추는 동안 플레이어와 짝이 둘 사이 가운데를 도는 바퀴 수 (정수면 제자리로 돌아옴). 3초에 한 바퀴
+const DANCE_SEC: float = 5.0                  # 춤추는 동안 아무것도 할 수 없는 시간(초)
+const DANCE_TURNS: float = 1.0                # 춤추는 동안 플레이어와 짝이 둘 사이 가운데를 도는 바퀴 수 (정수면 제자리로 돌아옴). 5초에 한 바퀴
 const DANCE_CAMERA_RETURN_SEC: float = 0.35   # 춤이 끝난 뒤 카메라가 가운데에서 플레이어에게 돌아오는 시간
 const DANCE_SCORE: int = 150                  # 춤 한 번 점수 (답장 최고 100, 반응 처음 10)
 const DANCE_SPOT_RADIUS: float = 110.0        # 조명이 비추는 바닥 반경. 플레이어 중심이 이 안이어야 춤출 수 있음
@@ -139,7 +139,8 @@ const PROPS: Dictionary = {
     'playlist': {'name': 'Playlist', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0, 'whole_room': true},
 }
 
-const SURVIVE_TIME: float = 180.0
+const SURVIVE_TIME: float = 180.0             # 게임 시간 1시간. 레벨 n은 시계로 (CLOCK_START_HOUR + n − 1)시부터 1시간
+const CLOCK_START_HOUR: int = 10              # 레벨 1(과 무한 모드)이 시작하는 시각. 시계는 12시간제 (12시 다음은 1시)
 const MAX_DM_STAGE: int = 10
 const ALERT_RADIUS: float = 260.0
 const TENSION_WEIGHT_PROXIMITY: float = 0.7
@@ -216,11 +217,11 @@ const LEVELS: Array = [
 # 무한 모드. 방과 벽 없이 상하좌우로 끝없이 이어진 바닥(ENDLESS_SCENE).
 # 사람과 소품은 플레이어 둘레 구역(ENDLESS_ZONE_HALF) 안, 화면 밖에서 생기고, 구역에서 멀어지고 화면 밖이면 사라진다.
 # 소품은 한 번 쓰면 사라진다. 게임 시간 1시간(ENDLESS_LEVEL_SEC, 시계 1시간)마다 무한 레벨이 오른다.
-# 무한 레벨 n의 사람 수 = START + STEP × (n − 1), 레벨 11에서 상한(40명).
+# 무한 레벨 n의 사람 수 = START + STEP × (n − 1), 레벨 9에서 상한(40명).
 # DM 주기·쉬는 시간, 답장 문구, 글자 풍선 간격, 섞이는 글자는 일반 레벨 n(9 이상이면 레벨 9)과 같다. DM 주기는 레벨 5에서 상한.
 const ENDLESS_SCENE: String = 'res://scenes/top_view/levels/endless.tscn'
 const ENDLESS_LEVEL_SEC: float = 180.0          # 게임 시간 1시간 (SURVIVE_TIME과 같음)
-const ENDLESS_NPC_START: int = 12               # 구역 안 사람 수
+const ENDLESS_NPC_START: int = 18               # 구역 안 사람 수 (무한 레벨 1)
 const ENDLESS_NPC_STEP: int = 3
 const ENDLESS_NPC_MAX: int = 40
 const ENDLESS_FOLLOWER_MAX: int = 3             # 따라오는 사람. 1명에서 3레벨마다 +1
@@ -286,10 +287,10 @@ const LETTER_COMBOS: Dictionary = {'LLL': 'take_l', 'BAJI': 'baji'}
 const MENU_NOTIFY_INTERVAL: float = 1.5       # 메인 메뉴에서 알림이 오르는 간격(초). 조작과 상관없음
 const MENU_CREDITS_SEC: float = 4.0           # 전원 버튼을 누른 뒤 개발진 정보를 보여 주는 시간
 const MENU_PHONE_ZOOM_SEC: float = 0.6        # 휴대폰이 가운데로 와서 커지는 시간
-const MENU_MESSAGE_FIRST_DELAY: float = 1.2   # 레벨 선택 화면에서 첫 메시지가 오기 전 비어 있는 시간
+const MENU_MESSAGE_FIRST_DELAY: float = 0.5   # 레벨 선택 화면에서 첫 메시지가 오기 전 비어 있는 시간
 const MENU_MESSAGES: Array = ['Where are you?', 'Should I come over?', 'Why no reply?']
 const MENU_MESSAGE_MAX: int = 4               # 레벨 선택 화면 메시지 최대 개수. 말풍선 4개까지 들어감
-const MENU_MESSAGE_INTERVAL: float = 0.9      # 레벨 선택 화면에 메시지가 하나씩 도착하는 간격
+const MENU_MESSAGE_INTERVAL: float = 0.45     # 레벨 선택 화면에 메시지가 하나씩 도착하는 간격
 const MENU_MESSAGE_HOLD: float = 2.2          # 다 도착한 뒤 비우고 다시 시작하기까지
 const MENU_ICON_DELAY: float = 0.25           # 홈으로 돌아와 휴대폰이 멈춘 뒤 아이콘이 나타나기 시작할 때까지
 const MENU_ICON_FADE_SEC: float = 0.7         # 아이콘이 나타나는 시간

@@ -406,6 +406,16 @@ offset_bottom = 620.0
 mouse_filter = 2
 theme_override_constants/separation = 16
 
+[node name="Best" type="Label" parent="Zoomed/Levels"]
+layout_mode = 0
+offset_top = 612.0
+offset_right = 420.0
+offset_bottom = 650.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 26
+text = "Best -"
+horizontal_alignment = 1
+
 [node name="Hint" type="Label" parent="Zoomed/Levels"]
 layout_mode = 0
 offset_top = 650.0

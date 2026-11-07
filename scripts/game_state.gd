@@ -43,6 +43,8 @@ var endless_mode: bool = false     # 무한 모드: 시간이 다 돼도 승리�
 var endless_level: int = 1         # 무한 모드 레벨. 게임 시간 1시간마다 오른다
 var level_title_left: float = 0.0  # 위쪽 알림에 레벨 이름을 보여 줄 남은 시간 (시작할 때, 무한 레벨이 오를 때)
 var score: int = 0
+var best_score: int = 0            # 이 스테이지의 최고 점수 (ScoreRecords). 판이 끝날 때 갱신된다
+var new_record: bool = false       # 이번 판이 최고 점수를 갱신했는지
 var stun_left: float = 0.0
 var dance_left: float = 0.0        # 춤추는 남은 시간. 이 동안 행동 불가
 var slow_dance_active: bool = false
@@ -77,6 +79,8 @@ func start_game() -> void:
     tremor_closeness = 0.0
     _dm_timer = float(cfg['dm_interval'])
     score = 0
+    best_score = ScoreRecords.get_best(get_record_key())
+    new_record = false
     stun_left = 0.0
     dance_left = 0.0
     slow_dance_active = false
@@ -295,17 +299,31 @@ func get_dm_badge_text() -> String:
     return String(GameConfig.DM_BADGE_TEXT[mini(dm_stage, GameConfig.MAX_DM_STAGE)])
 
 
-## 왼쪽 위 시각. 180초 동안 11h 00 → 12h 00.
-func get_clock_text() -> String:
+## 최고 점수를 저장하는 키. 테스트 맵은 ''(저장하지 않음).
+func get_record_key() -> String:
     if endless_mode:
-        # 무한 모드는 12시에서 멈추지 않고 계속 흐른다 (1시간 = ENDLESS_LEVEL_SEC).
-        var total_minutes: int = floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC * 60.0)
-        return '%02dh %02d' % [(11 + floori(total_minutes / 60.0)) % 24, total_minutes % 60]
-    var ratio: float = clampf(elapsed_time / GameConfig.SURVIVE_TIME, 0.0, 1.0)
-    var minutes: int = int(ratio * 60.0)
-    if minutes >= 60:
-        return '12h 00'
-    return '11h %02d' % minutes
+        return ScoreRecords.ENDLESS_KEY
+    return '' if test_level else ScoreRecords.level_key(level_index)
+
+
+## 이 판이 시작하는 시각(시). 레벨 1은 10시, 레벨 2는 11시 … 레벨마다 1시간씩 진행된다. 무한 모드와 테스트 맵은 10시.
+func get_start_hour() -> int:
+    if endless_mode or test_level:
+        return GameConfig.CLOCK_START_HOUR
+    return GameConfig.CLOCK_START_HOUR + level_index
+
+
+## 왼쪽 위 시각(12시간제). SURVIVE_TIME초 동안 1시간이 지난다. 예: 레벨 1은 10h 00 → 11h 00.
+## 무한 모드는 멈추지 않고 계속 흐른다 (1시간 = ENDLESS_LEVEL_SEC).
+func get_clock_text() -> String:
+    var minutes: int
+    if endless_mode:
+        minutes = floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC * 60.0)
+    else:
+        minutes = mini(floori(clampf(elapsed_time / GameConfig.SURVIVE_TIME, 0.0, 1.0) * 60.0), 60)
+    var total: int = get_start_hour() * 60 + minutes
+    var hour: int = posmod(floori(total / 60.0) - 1, 12) + 1
+    return '%02dh %02d' % [hour, total % 60]
 
 
 func set_debug(enabled: bool) -> void:
@@ -408,4 +426,7 @@ func _end_game(reason: EndReason) -> void:
         return
     end_reason = reason
     state = State.WON if reason == EndReason.SURVIVED else State.GAME_OVER
+    new_record = ScoreRecords.submit(get_record_key(), score)
+    if new_record:
+        best_score = score
     game_ended.emit(reason)

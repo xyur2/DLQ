@@ -55,7 +55,7 @@ func _on_game_ended(reason: int) -> void:
     _setup_panels(String(STORY_NAMES[reason]))
     _setup_buttons(reason)
     _setup_stamp(reason)
-    _info.text = '%s\n%s - Score %d' % [LINES[reason], GameState.get_level_label(), GameState.score]
+    _info.text = '%s\n%s - Score %d\n%s' % [LINES[reason], GameState.get_level_label(), GameState.score, _best_text()]
     _info.visible = false
     var tween: Tween = create_tween()
     tween.tween_property(self, 'modulate:a', 1.0, FADE_SEC)
@@ -65,6 +65,15 @@ func _on_game_ended(reason: int) -> void:
     tween.tween_callback(_show_stamp)
     tween.tween_interval(GameConfig.END_STAMP_SEC + 0.3)
     tween.tween_callback(_finish)
+
+
+## 최고 점수 줄. 테스트 맵은 기록하지 않으므로 비운다.
+func _best_text() -> String:
+    if GameState.get_record_key() == '':
+        return ''
+    if GameState.new_record:
+        return 'NEW BEST!'
+    return 'Best %d' % GameState.best_score
 
 
 func _setup_panels(story: String) -> void:
