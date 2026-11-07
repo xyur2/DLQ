@@ -107,7 +107,8 @@ const CIRCLE_STARE_SEC: float = 3.0           # 둘러싸고 째려보는 시간
 const CIRCLE_SCARE_SEC: float = 1.5           # 이후 공포 효과 시간, 끝나면 게임 종료
 
 # 춤추기: 조명(light 소품)이 비추는 바닥(어그로 지점) 안에서 E를 누르면 가까운 사람 한 명과 춤춘다. 조명 하나에 한 번.
-const DANCE_SEC: float = 2.0                  # 춤추는 동안 아무것도 할 수 없는 시간(초)
+const DANCE_SEC: float = 3.0                  # 춤추는 동안 아무것도 할 수 없는 시간(초)
+const DANCE_TURNS: float = 2.0                # 춤추는 동안 플레이어와 짝이 둘 사이 가운데를 도는 바퀴 수 (정수면 제자리로 돌아옴)
 const DANCE_SCORE: int = 150                  # 춤 한 번 점수 (답장 최고 100, 반응 처음 10)
 const DANCE_SPOT_RADIUS: float = 110.0        # 조명이 비추는 바닥 반경. 플레이어 중심이 이 안이어야 춤출 수 있음
 const DANCE_PARTNER_RANGE: float = 160.0      # 플레이어에게서 이 거리 안의 가장 가까운 사람과 춤춘다

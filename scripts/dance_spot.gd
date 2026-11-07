@@ -1,7 +1,8 @@
 class_name DanceSpot
 extends Area2D
 ## 조명이 비추는 바닥(조명 소품의 어그로 지점). 플레이어가 이 안에 서서 E를 누르면 가까운 사람 한 명과 춤춘다.
-## 춤추는 DANCE_SEC초 동안 플레이어는 아무것도 할 수 없고(GameState.is_stunned), DANCE_SCORE점을 얻는다.
+## 춤추는 DANCE_SEC초 동안 플레이어와 짝은 서로 마주 보며 둘 사이 가운데를 DANCE_TURNS바퀴 돈다(처음과 끝은 천천히).
+## 그동안 플레이어는 아무것도 할 수 없고(GameState.is_stunned), DANCE_SCORE점을 얻는다.
 ## 조명 하나에 한 번만 출 수 있고, 춘 뒤에는 빛이 꺼진다.
 ## PartyProp(조명)이 자식으로 만든다. 소품·문과 같은 상호작용 규약(그룹 interactable, interact, get_hint)을 따른다.
 
@@ -11,6 +12,11 @@ const PULSE_SPEED: float = 3.0
 
 var used: bool = false
 var _time: float = 0.0
+var _player: Node2D = null
+var _partner: PartyNpc = null
+var _center: Vector2 = Vector2.ZERO      # 둘 사이 가운데 (도는 기준점)
+var _offset: Vector2 = Vector2.ZERO      # 가운데에서 플레이어까지
+var _dance_time: float = -1.0            # 춤이 시작된 뒤 지난 시간. 음수면 춤추지 않음
 var _fade: float = 1.0
 var _shape: CollisionShape2D = null
 var _soft: GradientTexture2D = null
@@ -58,7 +64,7 @@ func _draw() -> void:
 
 
 func get_hint() -> String:
-    if _partner(_player_position()) == null:
+    if _find_partner(_player_position()) == null:
         return '조명 아래: 가까이 춤출 사람이 없다'
     return '[E] 함께 춤추기 (+%d점, %d초 동안 멈춤)' % [GameConfig.DANCE_SCORE, roundi(GameConfig.DANCE_SEC)]
 
@@ -67,17 +73,42 @@ func interact(player: Node) -> void:
     if used:
         return
     var player_position: Vector2 = (player as Node2D).global_position
-    var partner: PartyNpc = _partner(player_position)
+    var partner: PartyNpc = _find_partner(player_position)
     if partner == null or not GameState.start_dance():
         return
     used = true
     remove_from_group('interactable')
     _shape.set_deferred('disabled', true)
-    partner.start_dance(GameConfig.DANCE_SEC, player_position)
+    partner.start_dance(GameConfig.DANCE_SEC)
+    _player = player as Node2D
+    _partner = partner
+    _center = (player_position + partner.global_position) * 0.5
+    _offset = player_position - _center
+    _dance_time = 0.0
+
+
+## 춤: 플레이어와 짝을 둘 사이 가운데를 기준으로 마주 보게 돌린다.
+func _physics_process(delta: float) -> void:
+    if _dance_time < 0.0:
+        return
+    _dance_time += delta
+    var progress: float = clampf(_dance_time / GameConfig.DANCE_SEC, 0.0, 1.0)
+    var rel: Vector2 = _offset.rotated(TAU * GameConfig.DANCE_TURNS * smoothstep(0.0, 1.0, progress))
+    var player_alive: bool = is_instance_valid(_player)
+    var partner_alive: bool = is_instance_valid(_partner)
+    if player_alive:
+        _player.global_position = _center + rel
+    if partner_alive:
+        _partner.global_position = _center - rel
+    if player_alive and partner_alive:
+        _player.call('face_toward', _partner.global_position)
+        _partner.face_toward(_player.global_position)
+    if progress >= 1.0:
+        _dance_time = -1.0
 
 
 ## from에서 DANCE_PARTNER_RANGE 안의 가장 가까운 사람
-func _partner(from: Vector2) -> PartyNpc:
+func _find_partner(from: Vector2) -> PartyNpc:
     var best: PartyNpc = null
     var best_distance: float = GameConfig.DANCE_PARTNER_RANGE
     for node: Node in get_tree().get_nodes_in_group('npcs'):

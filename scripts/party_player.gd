@@ -44,7 +44,6 @@ func _ready() -> void:
 
     GameState.debug_changed.connect(_on_debug_changed)
     GameState.player_knocked_back.connect(_on_knocked_back)
-    GameState.dance_started.connect(_on_dance_started)
 
 
 func _physics_process(delta: float) -> void:
@@ -104,10 +103,9 @@ func _on_knocked_back(from_point: Vector2) -> void:
     _knockback_velocity = from_point.direction_to(global_position) * GameConfig.KNOCKBACK_SPEED
 
 
-## 춤: 제자리에서 두 바퀴 돈다.
-func _on_dance_started(duration: float) -> void:
-    var tween: Tween = _sprite.create_tween()
-    tween.tween_property(_sprite, 'rotation', _sprite.rotation + TAU * 2.0, duration)
+## 춤추는 동안 짝을 바라본다 (DanceSpot이 부름).
+func face_toward(point: Vector2) -> void:
+    _sprite.face(point - global_position)
 
 
 func _on_debug_changed(_enabled: bool) -> void:

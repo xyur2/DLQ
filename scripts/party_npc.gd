@@ -58,6 +58,7 @@ var _turn_left: float = 0.0             # 활발형: 다음 방향 전환까지
 var _errand_prop: PartyProp = null      # 상호작용형: 작동시키러 가는 소품
 var _errand_left: float = 0.0
 var _relocating: bool = false           # 붐비는 방에서 다른 방으로 옮기는 중
+var _dance_left: float = 0.0            # 플레이어와 춤추는 남은 시간
 ## 이어서 받은 반응(클릭) 횟수. 같은 사람을 여러 번 누를수록 점수가 줄어든다.
 ## 마지막 반응 뒤 SCORE_REACTION_RESET_SEC가 지나면 0으로 돌아가 다시 처음 점수를 준다.
 var times_reacted: int = 0
@@ -125,16 +126,23 @@ func receive_reaction(positive: bool) -> bool:
 
 
 ## 조명 아래에서 플레이어와 춤춘다: duration초 동안 제자리에서 플레이어를 보고 돈다.
-func start_dance(duration: float, look_point: Vector2) -> void:
+## 춤추는 동안은 스스로 움직이지 않고(DanceSpot이 자리를 옮김), 소품 어그로나 방 나누기에도 끌려가지 않는다.
+func start_dance(duration: float) -> void:
     _cancel_errand()
     _relocating = false
     _mode = Mode.IDLE
     _idle_left = duration
+    _dance_left = duration
     velocity = Vector2.ZERO
-    _sprite.face(look_point - global_position)
-    var tween: Tween = _sprite.create_tween()
-    tween.tween_property(_sprite, 'rotation', _sprite.rotation + TAU * 2.0, duration)
     _show_text('♥', Color(1.0, 0.5, 0.75))
+
+
+func is_dancing() -> bool:
+    return _dance_left > 0.0
+
+
+func face_toward(point: Vector2) -> void:
+    _sprite.face(point - global_position)
 
 
 ## 히든 엔딩: 지정된 자리로 옮겨 플레이어를 바라본다.
@@ -149,6 +157,11 @@ func surround(point: Vector2, look_at_point: Vector2) -> void:
 
 func _physics_process(delta: float) -> void:
     if not GameState.is_playing():
+        velocity = Vector2.ZERO
+        _sprite.set_motion(velocity)
+        return
+    if _dance_left > 0.0:
+        _dance_left -= delta
         velocity = Vector2.ZERO
         _sprite.set_motion(velocity)
         return
@@ -228,7 +241,7 @@ func get_room_claim() -> int:
 
 ## 다른 방으로 보내도 되는지: 쉬는 중이거나 그냥 걷는 중(소품 심부름, 이미 옮기는 중이 아님)
 func can_relocate() -> bool:
-    if GameState.slow_dance_active:
+    if GameState.slow_dance_active or _dance_left > 0.0:
         return false
     return _mode == Mode.IDLE or (_mode == Mode.WALK and _errand_prop == null and not _relocating)
 
@@ -469,7 +482,7 @@ func _show_text(text_value: String, color: Color) -> void:
 
 
 func _on_aggro(point: Vector2, radius: float, duration: float, area: Rect2) -> void:
-    if global_position.distance_to(point) > radius or not level.can_reach(global_position, point):
+    if _dance_left > 0.0 or global_position.distance_to(point) > radius or not level.can_reach(global_position, point):
         return
     # 방 전체를 모으는 소품: 그 방(무한 모드는 소품 둘레 큰 방 크기) 안의 사람만 모인다.
     if area.has_area() and not area.has_point(global_position):
