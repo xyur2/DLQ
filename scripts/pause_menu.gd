@@ -16,9 +16,15 @@ func _ready() -> void:
     UiFx.add_hover(self)
     $List/Resume.pressed.connect(_resume)
     $List/Retry.pressed.connect(SceneFlow.restart)
-    $List/Home.pressed.connect(SceneFlow.go_home)
+    $List/Home.pressed.connect(func() -> void:
+        Achievements.event('rage_quit')
+        SceneFlow.go_home()
+    )
     $List/Settings.pressed.connect(_open_sub.bind('Settings', true))
-    $List/HowTo.pressed.connect(_open_sub.bind('How to Play', false))
+    $List/HowTo.pressed.connect(func() -> void:
+        Achievements.event('how_to')
+        _open_sub('How to Play', false)
+    )
     $SubPanel/Back.pressed.connect(_close_sub)
 
 

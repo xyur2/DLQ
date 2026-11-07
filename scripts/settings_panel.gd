@@ -9,23 +9,25 @@ extends Control
 
 
 func _ready() -> void:
-    _bgm.value = GameSettings.bgm_volume
-    _sfx.value = GameSettings.sfx_volume
-    _refresh()
-    _bgm.value_changed.connect(_on_bgm_changed)
-    _sfx.value_changed.connect(_on_sfx_changed)
+	_bgm.value = GameSettings.bgm_volume
+	_sfx.value = GameSettings.sfx_volume
+	_refresh()
+	_bgm.value_changed.connect(_on_bgm_changed)
+	_sfx.value_changed.connect(_on_sfx_changed)
 
 
 func _on_bgm_changed(value: float) -> void:
-    GameSettings.set_bgm(value)
-    _refresh()
+	GameSettings.set_bgm(value)
+	Achievements.event('volume')
+	_refresh()
 
 
 func _on_sfx_changed(value: float) -> void:
-    GameSettings.set_sfx(value)
-    _refresh()
+	GameSettings.set_sfx(value)
+	Achievements.event('volume')
+	_refresh()
 
 
 func _refresh() -> void:
-    _bgm_label.text = 'BGM  %d%%' % roundi(GameSettings.bgm_volume * 100.0)
-    _sfx_label.text = 'SFX  %d%%' % roundi(GameSettings.sfx_volume * 100.0)
+	_bgm_label.text = 'BGM  %d%%' % roundi(GameSettings.bgm_volume * 100.0)
+	_sfx_label.text = 'SFX  %d%%' % roundi(GameSettings.sfx_volume * 100.0)

@@ -23,6 +23,7 @@ static func start_endless() -> void:
 
 
 static func restart() -> void:
+    Achievements.event('retry')
     _tree().paused = false
     _tree().reload_current_scene()
 

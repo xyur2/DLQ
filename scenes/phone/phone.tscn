@@ -1,13 +1,14 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cmsauxn5kc5hm"]
 
-[ext_resource type="Script" path="res://scripts/phone_view.gd" id="1_phone"]
-[ext_resource type="Texture2D" path="res://assets/phone_left_hand.png" id="2_phone_image"]
-[ext_resource type="Texture2D" path="res://assets/hand_pointer.png" id="3_hands"]
-[ext_resource type="Texture2D" path="res://assets/loading_bar_back.png" id="4_bar_back"]
-[ext_resource type="Texture2D" path="res://assets/loading_bar_fill.png" id="5_bar_fill"]
+[ext_resource type="Script" uid="uid://cad3f34b7d1gh" path="res://scripts/phone_view.gd" id="1_phone"]
+[ext_resource type="Texture2D" uid="uid://bbcmxud2meru4" path="res://assets/phone_left_hand.png" id="2_phone_image"]
+[ext_resource type="Texture2D" uid="uid://dpips8o7yj8cs" path="res://assets/hand_pointer.png" id="3_hands"]
+[ext_resource type="Texture2D" uid="uid://1m8imxl3re33" path="res://assets/loading_bar_back.png" id="4_bar_back"]
+[ext_resource type="Texture2D" uid="uid://ccs1ibaggqd3f" path="res://assets/loading_bar_fill.png" id="5_bar_fill"]
 [ext_resource type="FontVariation" path="res://scenes/ui/ui_font.tres" id="7_bold"]
-[ext_resource type="Texture2D" path="res://assets/ui/halftone_background.png" id="20_halftone"]
+[ext_resource type="Texture2D" uid="uid://by18d66s4qg5o" path="res://assets/ui/halftone_background.png" id="20_halftone"]
 [ext_resource type="PackedScene" path="res://scenes/ui/speech_bubble.tscn" id="21_bubble"]
+[ext_resource type="Texture2D" uid="uid://b4jm2fm2ol0nh" path="res://assets/ui/icon_alert.png" id="22_alert"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_screen"]
 bg_color = Color(1, 1, 1, 1)
@@ -15,8 +16,6 @@ corner_radius_top_left = 44
 corner_radius_top_right = 44
 corner_radius_bottom_right = 44
 corner_radius_bottom_left = 44
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hitbox"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dm_badge"]
 bg_color = Color(0.9, 0.1, 0.18, 1)
@@ -30,7 +29,9 @@ corner_radius_top_right = 24
 corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
 
-[node name="Phone" type="Control"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hitbox"]
+
+[node name="Phone" type="Control" unique_id=621816638]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,14 +40,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_phone")
 
-[node name="Backdrop" type="ColorRect" parent="."]
-anchors_preset = 15
+[node name="Backdrop" type="ColorRect" parent="." unique_id=1750958100]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.03, 0.02, 0.09, 1)
 
-[node name="Halftone" type="TextureRect" parent="."]
-anchors_preset = 15
+[node name="Halftone" type="TextureRect" parent="." unique_id=275252048]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
@@ -54,7 +55,8 @@ texture = ExtResource("20_halftone")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Hands" type="TextureRect" parent="."]
+[node name="Hands" type="TextureRect" parent="." unique_id=1699388809]
+layout_mode = 0
 offset_left = 708.0
 offset_top = 269.0
 offset_right = 1968.0
@@ -63,8 +65,8 @@ mouse_filter = 2
 texture = ExtResource("3_hands")
 expand_mode = 1
 
-[node name="PhoneRoot" type="Control" parent="."]
-anchors_preset = 8
+[node name="PhoneRoot" type="Control" parent="." unique_id=1813495259]
+anchors_preset = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -75,7 +77,8 @@ offset_right = 320.0
 offset_bottom = 500.0
 mouse_filter = 2
 
-[node name="ScreenBackground" type="Panel" parent="PhoneRoot"]
+[node name="ScreenBackground" type="Panel" parent="PhoneRoot" unique_id=1173487893]
+layout_mode = 0
 offset_left = 98.0
 offset_top = 19.0
 offset_right = 542.0
@@ -83,7 +86,8 @@ offset_bottom = 985.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_screen")
 
-[node name="PhoneImage" type="TextureRect" parent="PhoneRoot"]
+[node name="PhoneImage" type="TextureRect" parent="PhoneRoot" unique_id=1975418027]
+layout_mode = 0
 offset_left = -747.0
 offset_top = -216.0
 offset_right = 1395.0
@@ -92,24 +96,27 @@ mouse_filter = 2
 texture = ExtResource("2_phone_image")
 expand_mode = 1
 
-[node name="Screen" type="Control" parent="PhoneRoot"]
+[node name="Screen" type="Control" parent="PhoneRoot" unique_id=1681644992]
+anchors_preset = 0
 offset_left = 102.0
 offset_top = 23.0
 offset_right = 538.0
 offset_bottom = 981.0
 mouse_filter = 2
 
-[node name="Header" type="Label" parent="PhoneRoot/Screen"]
-offset_left = 24.0
+[node name="Header" type="Label" parent="PhoneRoot/Screen" unique_id=1249011792]
+layout_mode = 0
+offset_left = 76.0
 offset_top = 16.0
-offset_right = 124.0
+offset_right = 176.0
 offset_bottom = 56.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_bold")
 theme_override_font_sizes/font_size = 28
 text = "J"
 
-[node name="Status" type="Label" parent="PhoneRoot/Screen"]
+[node name="Status" type="Label" parent="PhoneRoot/Screen" unique_id=1363138684]
+layout_mode = 0
 offset_left = 24.0
 offset_top = 56.0
 offset_right = 412.0
@@ -117,8 +124,9 @@ offset_bottom = 86.0
 theme_override_colors/font_color = Color(0.2, 0.15, 0.35, 1)
 text = "No new messages"
 
-[node name="TimerBar" type="TextureProgressBar" parent="PhoneRoot/Screen"]
+[node name="TimerBar" type="TextureProgressBar" parent="PhoneRoot/Screen" unique_id=1266814320]
 visible = false
+layout_mode = 0
 offset_left = 18.0
 offset_top = 90.0
 offset_right = 418.0
@@ -130,7 +138,8 @@ nine_patch_stretch = true
 texture_under = ExtResource("4_bar_back")
 texture_progress = ExtResource("5_bar_fill")
 
-[node name="Word" type="Label" parent="PhoneRoot/Screen"]
+[node name="Word" type="Label" parent="PhoneRoot/Screen" unique_id=850558846]
+layout_mode = 0
 offset_left = 18.0
 offset_top = 128.0
 offset_right = 418.0
@@ -141,7 +150,8 @@ theme_override_font_sizes/font_size = 56
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Progress" type="Label" parent="PhoneRoot/Screen"]
+[node name="Progress" type="Label" parent="PhoneRoot/Screen" unique_id=1433221362]
+layout_mode = 0
 offset_left = 18.0
 offset_top = 208.0
 offset_right = 418.0
@@ -151,8 +161,9 @@ theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LockNotice" type="Label" parent="PhoneRoot/Screen"]
+[node name="LockNotice" type="Label" parent="PhoneRoot/Screen" unique_id=1317843855]
 visible = false
+layout_mode = 0
 offset_left = 18.0
 offset_top = 258.0
 offset_right = 418.0
@@ -163,15 +174,17 @@ theme_override_font_sizes/font_size = 22
 text = "Your hand slipped... can't tap!"
 horizontal_alignment = 1
 
-[node name="LetterArea" type="Control" parent="PhoneRoot/Screen"]
+[node name="LetterArea" type="Control" parent="PhoneRoot/Screen" unique_id=80685385]
+anchors_preset = 0
 offset_left = 16.0
 offset_top = 300.0
 offset_right = 420.0
 offset_bottom = 940.0
 mouse_filter = 2
 
-[node name="DmBadge" type="Panel" parent="PhoneRoot/Screen"]
+[node name="DmBadge" type="Panel" parent="PhoneRoot/Screen" unique_id=1610249555]
 visible = false
+layout_mode = 0
 offset_left = 318.0
 offset_top = 10.0
 offset_right = 420.0
@@ -179,8 +192,8 @@ offset_bottom = 58.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dm_badge")
 
-[node name="Count" type="Label" parent="PhoneRoot/Screen/DmBadge"]
-anchors_preset = 15
+[node name="Count" type="Label" parent="PhoneRoot/Screen/DmBadge" unique_id=1659340299]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -192,8 +205,21 @@ text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="GirlfriendBanner" parent="PhoneRoot/Screen" instance=ExtResource("21_bubble")]
+[node name="DoorAlert" type="TextureRect" parent="PhoneRoot/Screen" unique_id=166533264]
 visible = false
+layout_mode = 0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 68.0
+offset_bottom = 60.0
+mouse_filter = 2
+texture = ExtResource("22_alert")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GirlfriendBanner" parent="PhoneRoot/Screen" unique_id=896378321 instance=ExtResource("21_bubble")]
+visible = false
+layout_mode = 0
 offset_left = 10.0
 offset_top = 44.0
 offset_right = 310.0
@@ -201,7 +227,8 @@ offset_bottom = 126.0
 mouse_filter = 0
 mouse_default_cursor_shape = 2
 
-[node name="PowerHitbox" type="Button" parent="PhoneRoot"]
+[node name="PowerHitbox" type="Button" parent="PhoneRoot" unique_id=1076052584]
+layout_mode = 0
 offset_left = -60.0
 offset_top = 160.0
 offset_right = 120.0
@@ -210,12 +237,13 @@ tooltip_text = "Power"
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxEmpty_hitbox")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_hitbox")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_hitbox")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_hitbox")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_hitbox")
 action_mode = 0
 
-[node name="PowerLabel" type="Label" parent="PhoneRoot"]
+[node name="PowerLabel" type="Label" parent="PhoneRoot" unique_id=570467430]
+layout_mode = 0
 offset_left = -50.0
 offset_top = 218.0
 offset_right = 62.0

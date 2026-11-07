@@ -138,6 +138,12 @@ func interact(_player: Node) -> void:
         _update_cooldown_display()
     _spawn_effect()
     GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION, _gather_area())
+    if _player is PartyPlayer:
+        var gathered: int = 0
+        for npc: Node in get_tree().get_nodes_in_group('npcs'):
+            if (npc as PartyNpc)._mode == PartyNpc.Mode.AGGRO:
+                gathered += 1
+        Achievements.event('prop_used', {'id': prop_id, 'gathered': gathered})
 
 
 ## whole_room이면 소품이 있는 방(무한 모드는 소품 둘레 큰 방 크기), 아니면 빈 영역(반경만 씀)

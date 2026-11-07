@@ -1,23 +1,42 @@
 [gd_scene format=3]
 
-[node name="HowToPanel" type="Label"]
+[node name="HowToPanel" type="ScrollContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 23
+horizontal_scroll_mode = 0
+
+[node name="Text" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
 text = "Homecoming party. Everyone here knows your girlfriend. And then another message arrives.
 
+CONTROLS
 [MOVE] WASD
 [PROPS / DOORS] E up close
-[PHONE ON] Q or message icon
+[PHONE ON] Q or the message icon
 [PHONE OFF] Side power button
+[REACT / TALK] Left or right click people
 [PAUSE] ESC
 
-Reply by tapping the letters of the word in order. A wrong letter locks the phone for a moment.
+REPLY
+Tap the letters of the word in order. Longer replies come word by word. A wrong letter locks the phone for a moment. Messages stop piling up while you look at the phone.
 
-If someone gets close while your phone is on, you're caught. Too many unread messages and it's over too. Hold out until midnight to win.
+DON'T GET CAUGHT
+If someone gets close while your phone is on, you're caught. Ten unread messages and she blocks you. Hold out until the clock moves one hour to clear the level.
 
-Left or right click people to react to them. You can also block their way."
+PROPS
+The speaker and the light pull nearby people to them. The playlist gathers everyone in its room. Close doors to keep people out, but they can open them again.
+
+PEOPLE
+People with a ! above their head follow you. Click them to talk and send them away. Stay in one room for 30 seconds and the crowd comes to you. Stand in someone's way too long and they push you back.
+
+PARTY TIME
+Step into a spotlight and press E to dance with someone nearby. During Slow Dance Time everyone barely moves.
+
+SCORE
+Replies, reactions, dancing and clearing levels score points. Beat your best on every level and collect achievements."
 autowrap_mode = 3

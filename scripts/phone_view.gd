@@ -60,6 +60,10 @@ var _slide: float = 0.0   # 0: 내려가 있음, 1: 올라와 있음
 @onready var _lock_notice: Label = $PhoneRoot/Screen/LockNotice
 @onready var _letter_area: Control = $PhoneRoot/Screen/LetterArea
 @onready var _power_hitbox: Button = $PhoneRoot/PowerHitbox
+@onready var _door_alert: TextureRect = $PhoneRoot/Screen/DoorAlert
+var _reply_started_at: float = -1.0
+var _reply_wrong: int = 0
+var _door_alert_left: float = 0.0
 @onready var _dm_badge: Panel = $PhoneRoot/Screen/DmBadge
 @onready var _dm_badge_label: Label = $PhoneRoot/Screen/DmBadge/Count
 
@@ -81,6 +85,9 @@ func _ready() -> void:
     GameState.phone_toggled.connect(_on_phone_toggled)
     GameState.dm_stage_changed.connect(_on_stage_changed)
     GameState.dm_arrived.connect(_on_dm_arrived)
+    GameState.door_opened_by_npc.connect(_on_door_opened)
+    _door_alert.visible = false
+    _door_alert.pivot_offset = _door_alert.size * 0.5
     _dm_badge.pivot_offset = _dm_badge.size * 0.5
     # 게임이 끝나면(발각 등) 일시 정지되기 전에 커서 흔들림을 멈추고 커서를 제자리로 돌린다.
     GameState.game_ended.connect(func(_reason: int) -> void: _release_mouse())
@@ -97,6 +104,9 @@ func _process(delta: float) -> void:
         if _lock_left <= 0.0:
             _set_locked(false)
     _update_status()
+    if _door_alert_left > 0.0:
+        _door_alert_left -= delta
+        _door_alert.visible = _door_alert_left > 0.0 and GameState.phone_on
 
 
 ## 휴대폰을 켜고 끌 때의 전환. 끄는 중에도 게임은 진행되므로 입력은 막지 않는다.
@@ -196,6 +206,7 @@ func _update_girlfriend(delta: float) -> void:
 
 
 func _show_banner() -> void:
+    Achievements.event('gf_received')
     _banner.show_text(String(GameConfig.GIRLFRIEND_MESSAGES[_girlfriend_next]), BANNER_FONT_SIZE, BANNER_SENDER)
     _girlfriend_next = (_girlfriend_next + 1) % GameConfig.GIRLFRIEND_MESSAGES.size()
     _girlfriend_show = GameConfig.GIRLFRIEND_SHOW_SEC
@@ -217,6 +228,18 @@ func _on_banner_input(event: InputEvent) -> void:
     if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
         accept_event()
         _hide_banner()
+        Achievements.event('gf_dismissed')
+
+
+## 사람이 닫힌 문을 열고 들어오면, 휴대폰을 보는 중일 때 왼쪽 위에 느낌표가 튀어 오른다.
+func _on_door_opened(_point: Vector2) -> void:
+    if not GameState.phone_on:
+        return
+    _door_alert_left = GameConfig.DOOR_ALERT_SEC
+    _door_alert.visible = true
+    _door_alert.scale = Vector2.ONE * 1.4
+    _door_alert.create_tween().tween_property(_door_alert, 'scale', Vector2.ONE, 0.2) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _on_power_pressed() -> void:
@@ -239,6 +262,8 @@ func _try_start_puzzle() -> void:
     if _puzzle_active or not GameState.phone_on or GameState.dm_stage <= 0:
         return
     _puzzle_active = true
+    _reply_started_at = -1.0
+    _reply_wrong = 0
     _words = _pick_phrase().split(' ', false)
     _word_index = 0
     _start_word()
@@ -382,6 +407,8 @@ func _on_letter_picked(button: LetterButton) -> void:
     if not _puzzle_active or _lock_left > 0.0 or not GameState.is_playing():
         return
     if button.letter == _word[_next_index]:
+        if _reply_started_at < 0.0:
+            _reply_started_at = GameState.elapsed_time
         button.mark_used()
         _next_index += 1
         _refresh_labels()
@@ -391,9 +418,17 @@ func _on_letter_picked(button: LetterButton) -> void:
                 _word_index += 1
                 _start_word()
             else:
+                GameState.last_reply = {
+                    'words': _words.size(),
+                    'long': _has_long_word(_words),
+                    'sec': GameState.elapsed_time - _reply_started_at,
+                    'wrong': _reply_wrong,
+                    'stage': GameState.dm_stage,
+                }
                 _finish_puzzle()
                 GameState.report_reply_success()
     else:
+        _reply_wrong += 1
         _lock_left = float(GameState.cfg['wrong_lock_time'])
         _set_locked(true)
         GameState.report_wrong_letter()

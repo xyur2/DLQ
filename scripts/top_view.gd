@@ -118,9 +118,14 @@ func _unhandled_input(event: InputEvent) -> void:
     if npc == null or player.global_position.distance_to(npc.global_position) > GameConfig.REACTION_RANGE:
         return
     get_viewport().set_input_as_handled()
+    # 따라오는 사람(머리 위 느낌표)은 클릭해서 말을 걸면 돌아간다.
+    if npc.talk():
+        Achievements.event('talked')
+        return
     var positive: bool = mb.button_index == MOUSE_BUTTON_LEFT
     if npc.receive_reaction(positive):
         GameState.report_reaction(positive, npc.times_reacted - 1)
+        Achievements.event('reaction', {'npc': npc.get_instance_id(), 'positive': positive})
 
 
 func _npc_at(point: Vector2) -> PartyNpc:

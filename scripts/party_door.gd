@@ -75,13 +75,30 @@ func interact(_player: Node) -> void:
     if is_open and _is_doorway_occupied():
         _blocked_hint_left = 1.0
         return
+    var closing: bool = is_open
     _set_open(not is_open)
+    if _player is Node2D:
+        Achievements.event('door_toggled', {'closed': closing, 'other_count': _count_other_side(_player as Node2D)})
 
 
 ## 사람이 닫힌 문을 열고 들어올 때 (PartyNpc). 이미 열려 있으면 아무 일도 없다.
 func open_by_npc() -> void:
     if not is_open:
         _set_open(true)
+        GameState.report_door_opened_by_npc(global_position)
+
+
+## 플레이어 반대편 방에 있는 사람 수
+func _count_other_side(player: Node2D) -> int:
+    var level: PartyLevel = _level()
+    if level == null:
+        return 0
+    var other: int = room_b if level.room_at(player.global_position) == room_a else room_a
+    var count: int = 0
+    for npc: Node in get_tree().get_nodes_in_group('npcs'):
+        if level.room_at((npc as Node2D).global_position) == other:
+            count += 1
+    return count
 
 
 func _set_open(open: bool) -> void:

@@ -95,10 +95,13 @@ func _update_camp(delta: float) -> void:
         camp_room = room
         camp_time = 0.0
         return
+    var was_camping: bool = is_camping()
     camp_time += delta
     if not is_camping():
         _pull_left = 0.0   # 30초가 되는 순간 첫 사람을 부른다
         return
+    if not was_camping:
+        Achievements.event('camping')
     _pull_left -= delta
     if _pull_left > 0.0:
         return

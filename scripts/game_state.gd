@@ -25,6 +25,10 @@ signal circle_ending_started()
 signal circle_scare_started()
 signal endless_level_changed(level: int)
 signal dance_started(duration: float)
+signal game_started()
+signal wrong_letter_pressed()
+## 사람이 닫힌 문을 열고 들어왔을 때 (PartyDoor). 휴대폰 알림과 업적에 쓴다.
+signal door_opened_by_npc(point: Vector2)
 
 var state: State = State.INTRO
 var end_reason: EndReason = EndReason.NONE
@@ -43,6 +47,7 @@ var endless_mode: bool = false     # 무한 모드: 시간이 다 돼도 승리�
 var endless_level: int = 1         # 무한 모드 레벨. 게임 시간 1시간마다 오른다
 var level_title_left: float = 0.0  # 위쪽 알림에 레벨 이름을 보여 줄 남은 시간 (시작할 때, 무한 레벨이 오를 때)
 var score: int = 0
+var last_reply: Dictionary = {}   # 방금 보낸 답장 {words, long, sec, wrong, stage}. PhoneView가 답장 직전에 채운다(업적용)
 var best_score: int = 0            # 이 스테이지의 최고 점수 (ScoreRecords). 판이 끝날 때 갱신된다
 var new_record: bool = false       # 이번 판이 최고 점수를 갱신했는지
 var stun_left: float = 0.0
@@ -89,7 +94,9 @@ func start_game() -> void:
     _circle_armed = false
     _ending_left = 0.0
     _scare_started = false
+    last_reply = {}
     state = State.PLAYING
+    game_started.emit()
 
 
 func has_next_level() -> bool:
@@ -221,6 +228,13 @@ func report_reply_failed() -> void:
 func report_wrong_letter() -> void:
     if is_playing():
         _add_score(-GameConfig.SCORE_WRONG_LETTER)
+        wrong_letter_pressed.emit()
+
+
+## 사람이 닫힌 문을 열었을 때 PartyDoor가 호출.
+func report_door_opened_by_npc(point: Vector2) -> void:
+    if is_playing():
+        door_opened_by_npc.emit(point)
 
 
 ## 사람에게 반응을 보냈을 때 TopView가 호출.
@@ -247,6 +261,7 @@ func get_clear_bonus() -> int:
 func report_npc_blocked(npc_id: int) -> void:
     if is_playing():
         _blocked_npcs[npc_id] = true
+        Achievements.event('blocked', {'npc': npc_id})
 
 
 ## 길막이 길어졌을 때 호출. 플레이어는 밀려나고 잠시 아무것도 할 수 없다.

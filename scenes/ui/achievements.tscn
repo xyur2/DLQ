@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/achievements.gd" id="1_achievements"]
+[ext_resource type="Theme" path="res://scenes/ui/menu_theme.tres" id="2_theme"]
+[ext_resource type="FontVariation" path="res://scenes/ui/korean_font.tres" id="3_korean"]
+[ext_resource type="FontVariation" path="res://scenes/ui/title_font.tres" id="4_title"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_toast"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 1
+shadow_offset = Vector2(8, 8)
+
+[node name="Achievements" type="CanvasLayer"]
+layer = 95
+script = ExtResource("1_achievements")
+
+[node name="Toast" type="Panel" parent="."]
+visible = false
+offset_left = 24.0
+offset_top = 880.0
+offset_right = 664.0
+offset_bottom = 1050.0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+theme_override_styles/panel = SubResource("StyleBox_toast")
+
+[node name="Header" type="Label" parent="Toast"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 10.0
+offset_right = 616.0
+offset_bottom = 44.0
+theme_override_colors/font_color = Color(0.85, 0.05, 0.4, 1)
+theme_override_font_sizes/font_size = 22
+text = "ACHIEVEMENT UNLOCKED"
+
+[node name="Name" type="Label" parent="Toast"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 40.0
+offset_right = 616.0
+offset_bottom = 96.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_title")
+theme_override_font_sizes/font_size = 44
+text = "Name"
+
+[node name="Desc" type="Label" parent="Toast"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 98.0
+offset_right = 616.0
+offset_bottom = 156.0
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_fonts/font = ExtResource("3_korean")
+theme_override_font_sizes/font_size = 24
+text = "설명"
+autowrap_mode = 3
+
+[node name="Sound" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"

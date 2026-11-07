@@ -94,7 +94,7 @@ const LEVEL_TITLE_SEC: float = 3.0            # 레벨 시작 때 위쪽에 레�
 # 따라오는 사람
 const FOLLOW_SPEED: float = 108.0             # 플레이어(144)보다 느려서 따돌릴 수 있음
 const FOLLOW_STOP_DISTANCE: float = 80.0      # 이 거리 안으로 들어오면 멈춰 서서 따라오기를 끝낸다 (발각 반경과 같음)
-const FOLLOW_DURATION: float = 8.0            # follower_option이 켜진 사람이 한 번 따라오는 최대 시간
+const FOLLOW_DURATION: float = 8.0            # (말을 걸 때까지 따라오므로 지금은 쓰지 않음)  follower_option이 켜진 사람이 한 번 따라오는 최대 시간
 const FOLLOW_COOLDOWN: float = 37.5           # 다시 따라오기까지의 시간. 플레이 피드백: 빈도 2/3 (25 → 37.5)
 
 # 사람에게 보내는 반응 (왼쪽 클릭 긍정, 오른쪽 클릭 부정)
@@ -350,3 +350,4 @@ const FOOTSTEP_VOLUME_DB: float = 10.0        # 발소리 기본 음량. 가까�
 const FOOTSTEP_ATTENUATION: float = 2.5       # 거리에 따라 작아지는 정도. 클수록 가까울 때와 멀 때 차이가 큼
 const VIBRATE_CLIP_SEC: float = 0.5   # vibrate.wav는 진동이 1.24초마다 반복되는 10초짜리라 첫 진동만 쓴다
 const SEND_CLIP_SEC: float = 0.5
+const DOOR_ALERT_SEC: float = 2.5   # 사람이 문을 열고 들어왔을 때 휴대폰 왼쪽 위 느낌표를 보여 주는 시간

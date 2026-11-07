@@ -300,10 +300,10 @@ expand_mode = 1
 [node name="Buttons" type="VBoxContainer" parent="Home"]
 layout_mode = 0
 offset_left = 1100.0
-offset_top = 200.0
+offset_top = 150.0
 offset_right = 1860.0
 offset_bottom = 920.0
-theme_override_constants/separation = 24
+theme_override_constants/separation = 16
 
 [node name="MainMode" type="Button" parent="Home/Buttons"]
 custom_minimum_size = Vector2(602, 122)
@@ -334,6 +334,16 @@ theme_override_styles/normal = SubResource("StyleBox_ribbon_680")
 theme_override_styles/hover = SubResource("StyleBox_ribbon_680")
 theme_override_styles/pressed = SubResource("StyleBox_ribbon_680")
 text = "HOW TO PLAY"
+
+[node name="Achievements" type="Button" parent="Home/Buttons"]
+custom_minimum_size = Vector2(680, 122)
+layout_mode = 2
+size_flags_horizontal = 8
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBox_ribbon_680")
+theme_override_styles/hover = SubResource("StyleBox_ribbon_680")
+theme_override_styles/pressed = SubResource("StyleBox_ribbon_680")
+text = "ACHIEVEMENTS"
 
 [node name="Settings" type="Button" parent="Home/Buttons"]
 custom_minimum_size = Vector2(524, 122)
@@ -456,6 +466,20 @@ offset_left = 770.0
 offset_top = 340.0
 offset_right = 1150.0
 offset_bottom = 1000.0
+
+[node name="Achievements" type="ScrollContainer" parent="Zoomed"]
+visible = false
+layout_mode = 0
+offset_left = 764.0
+offset_top = 330.0
+offset_right = 1158.0
+offset_bottom = 1070.0
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="Zoomed/Achievements"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
 
 [node name="Previous" type="Button" parent="Zoomed"]
 layout_mode = 0

@@ -5,7 +5,7 @@ extends Control
 ## 다른 화면으로 갈 때는 홈의 휴대폰이 가운데로 와서 커진 다음 내용이 나타난다.
 ## 배치는 scenes/menu/menu.tscn에서 편집한다.
 
-enum View { HOME, LEVELS, HOW_TO, SETTINGS }
+enum View { HOME, LEVELS, HOW_TO, SETTINGS, ACHIEVEMENTS }
 
 const PHONE_HOME_POSITION: Vector2 = Vector2(160.0, 852.0)
 const PHONE_HOME_SCALE: float = 3.9
@@ -23,7 +23,10 @@ const NUDGE_PX: float = 5.0
 const MESSAGE_SCENE: PackedScene = preload('res://scenes/ui/speech_bubble.tscn')
 const MESSAGE_FONT_SIZE: int = 24
 const NUDGE_SEC: float = 0.04
-const VIEW_TITLES: Dictionary = {View.HOW_TO: 'How to Play', View.SETTINGS: 'Settings'}
+const VIEW_TITLES: Dictionary = {View.HOW_TO: 'How to Play', View.SETTINGS: 'Settings', View.ACHIEVEMENTS: 'Achievements'}
+const KOREAN_FONT: Font = preload('res://scenes/ui/korean_font.tres')
+const ACHIEVEMENT_DONE_COLOR: Color = Color(0, 0, 0)
+const ACHIEVEMENT_LOCKED_COLOR: Color = Color(0.55, 0.55, 0.6)
 
 var _view: View = View.HOME
 var _busy: bool = false
@@ -45,6 +48,8 @@ var _content_tween: Tween = null
 @onready var _levels: Control = $Zoomed/Levels
 @onready var _how_to: Control = $Zoomed/HowTo
 @onready var _settings: Control = $Zoomed/Settings
+@onready var _achievements: Control = $Zoomed/Achievements
+@onready var _achievement_list: VBoxContainer = $Zoomed/Achievements/List
 @onready var _messages: VBoxContainer = $Zoomed/Levels/Messages
 @onready var _level_name: Label = $Zoomed/Levels/LevelName
 @onready var _best: Label = $Zoomed/Levels/Best
@@ -75,6 +80,7 @@ func _ready() -> void:
     $Home/Buttons/Endless.pressed.connect(_on_endless_pressed)
     $Home/Buttons/HowTo.pressed.connect(_open.bind(View.HOW_TO))
     $Home/Buttons/Settings.pressed.connect(_open.bind(View.SETTINGS))
+    $Home/Buttons/Achievements.pressed.connect(_open.bind(View.ACHIEVEMENTS))
     $Home/Buttons/Quit.pressed.connect(_on_quit_pressed)
     _power.pressed.connect(_on_power_pressed)
     _previous.pressed.connect(_change_level.bind(-1))
@@ -114,6 +120,8 @@ func _process(delta: float) -> void:
         _notify_time = 0.0
         _stage = mini(_stage + 1, GameConfig.MAX_DM_STAGE)
         _update_badge()
+        if String(GameConfig.DM_BADGE_TEXT[_stage]) == '99+':
+            Achievements.event('menu_99')
         _pop_alert()
     var shake: float = float(GameConfig.DM_ICON_SHAKE_PX[_stage])
     var wobble := Vector2(sin(_shake_time * 70.0), cos(_shake_time * 83.0)) * shake
@@ -153,6 +161,7 @@ func _on_power_pressed() -> void:
     if _busy:
         return
     _credits_left = GameConfig.MENU_CREDITS_SEC
+    Achievements.event('menu_power')
     _credits.visible = true
     _icon.visible = false
 
@@ -261,12 +270,49 @@ func _show_view(view: View) -> void:
     _levels.visible = view == View.LEVELS
     _how_to.visible = view == View.HOW_TO
     _settings.visible = view == View.SETTINGS
+    _achievements.visible = view == View.ACHIEVEMENTS
+    if view == View.HOW_TO:
+        Achievements.event('how_to')
+    if view == View.ACHIEVEMENTS:
+        _refresh_achievements()
     if view == View.LEVELS:
         _refresh_level()
     else:
         _title.text = String(VIEW_TITLES[view])
         _previous.visible = false
         _next.visible = false
+
+
+## 업적 목록. 달성한 업적은 검은 글씨, 아직이면 회색. 숨겨진 업적은 달성 전까지 이름과 설명을 가린다.
+func _refresh_achievements() -> void:
+    for child: Node in _achievement_list.get_children():
+        _achievement_list.remove_child(child)
+        child.queue_free()
+    var header := Label.new()
+    header.text = '%d / %d UNLOCKED' % [Achievements.unlocked_count(), AchievementList.ITEMS.size()]
+    header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    header.add_theme_font_size_override('font_size', 28)
+    _achievement_list.add_child(header)
+    for item: Dictionary in AchievementList.ITEMS:
+        var done: bool = Achievements.is_unlocked(String(item['id']))
+        var secret: bool = AchievementList.is_hidden(item) and not done
+        var color: Color = ACHIEVEMENT_DONE_COLOR if done else ACHIEVEMENT_LOCKED_COLOR
+        var entry := VBoxContainer.new()
+        entry.add_theme_constant_override('separation', 2)
+        var title := Label.new()
+        title.text = ('???' if secret else String(item['name'])) + ('' if done else '  (LOCKED)')
+        title.add_theme_font_size_override('font_size', 26)
+        title.add_theme_color_override('font_color', color)
+        entry.add_child(title)
+        var desc := Label.new()
+        desc.text = '숨겨진 업적입니다.' if secret else String(item['desc'])
+        desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+        desc.add_theme_font_override('font', KOREAN_FONT)
+        desc.add_theme_font_size_override('font_size', 19)
+        desc.add_theme_color_override('font_color', color)
+        entry.add_child(desc)
+        _achievement_list.add_child(entry)
+    (_achievements as ScrollContainer).scroll_vertical = 0
 
 
 func _change_level(step: int) -> void:

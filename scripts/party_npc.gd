@@ -2,8 +2,9 @@ class_name PartyNpc
 extends CharacterBody2D
 ## 사람. 대기와 무작위 이동을 반복하고, 상황에 따라 다음과 같이 행동한다.
 ## - 소품 어그로: 지속 시간 동안 해당 지점에 모인다.
-## - 따라오는 사람: follower_option이 켜져 있거나 반응을 충분히 받으면 일정 시간 플레이어를 따라온다.
-##   FOLLOW_STOP_DISTANCE 안으로 들어오면 그 자리에 멈춰 서고 따라오기를 끝낸다.
+## - 따라오는 사람: follower_option이 켜져 있거나 반응을 충분히 받으면 플레이어를 따라온다.
+##   머리 위에 느낌표가 뜨고, 플레이어가 클릭해서 말을 걸기(talk) 전까지 계속 따라온다.
+##   FOLLOW_STOP_DISTANCE 안으로 들어오면 그 자리에 서서 기다린다.
 ## - 사람끼리는 몸이 부딪혀 겹치지 않고, 걷는 사람은 가까운 사람을 미리 피해 옆으로 비켜 간다.
 ## - 방이 붐비면 CrowdBalancer가 relocate()로 다른 방에 보낸다. 쉬거나 그냥 걷는 사람만 보낸다.
 ## - 길막: 걷다가 플레이어에게 막히면 멈춰 서고, 오래 막히면 플레이어를 밀쳐 낸다.
@@ -22,6 +23,10 @@ extends CharacterBody2D
 ## 슬로우 댄스 중에는 특수 행동을 하지 않는다.
 
 enum Mode { IDLE, WALK, AGGRO, FOLLOW }
+
+const FOLLOW_ALERT_TEXTURE: Texture2D = preload('res://assets/ui/icon_alert.png')   # 홈 화면 알림 느낌표 재활용
+const FOLLOW_ALERT_SIZE: float = 46.0
+const FOLLOW_ALERT_HEIGHT: float = 40.0
 
 const LAYER_NPC: int = 4
 const MASK_SOLID: int = 1 | 2 | 4         # 벽, 소품, 플레이어, 다른 사람과 부딪힌다
@@ -49,6 +54,7 @@ var _stuck_time: float = 0.0
 var _aggro_left: float = 0.0
 var _follow_left: float = 0.0
 var _follow_cooldown: float = 0.0
+var _follow_alert: Sprite2D = null
 var _block_time: float = 0.0
 var _block_reported: bool = false
 var _reaction_count: int = 0
@@ -72,6 +78,14 @@ var _last_reaction_time: float = -INF   # 마지막으로 반응을 받은 게�
 
 
 func _ready() -> void:
+    _follow_alert = Sprite2D.new()
+    _follow_alert.texture = FOLLOW_ALERT_TEXTURE
+    _follow_alert.scale = Vector2.ONE * FOLLOW_ALERT_SIZE / float(FOLLOW_ALERT_TEXTURE.get_width())
+    _follow_alert.position = Vector2(0.0, -GameConfig.NPC_RADIUS - FOLLOW_ALERT_HEIGHT)
+    _follow_alert.z_index = 20
+    _follow_alert.self_modulate = Color(1.9, 1.9, 1.5)   # 파티 조명에 어두워지지 않게 밝게 보정
+    _follow_alert.visible = false
+    add_child(_follow_alert)
     collision_layer = LAYER_NPC
     collision_mask = MASK_SOLID
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -113,6 +127,17 @@ func start_follow(duration: float) -> void:
 
 
 ## 왼쪽 클릭(긍정)·오른쪽 클릭(부정). 연타 방지 시간 안이면 무시하고 false를 돌려준다.
+## 플레이어가 클릭해서 말을 걸었다. 따라오는 중이면 돌아가고 true.
+func talk() -> bool:
+    if _mode != Mode.FOLLOW:
+        return false
+    _dance_anchor = global_position
+    _follow_cooldown = GameConfig.FOLLOW_COOLDOWN
+    _start_idle()
+    _show_text('OK...', Color(0.55, 0.85, 1.0))
+    return true
+
+
 func receive_reaction(positive: bool) -> bool:
     if _reaction_cooldown > 0.0:
         return false
@@ -208,17 +233,18 @@ func _physics_process(delta: float) -> void:
             else:
                 velocity = Vector2.ZERO
         Mode.FOLLOW:
-            _follow_left -= delta
+            # 말을 걸어 돌려보내기 전까지 따라온다. 충분히 가까우면 그 자리에 서서 기다린다.
             _target = follow_target.global_position
-            if _follow_left <= 0.0 or global_position.distance_to(_target) <= GameConfig.FOLLOW_STOP_DISTANCE:
-                # 시간이 다 됐거나 충분히 가까워졌다: 그 자리에 멈춰 서고 따라오기를 끝낸다.
-                _dance_anchor = global_position
-                _start_idle()
+            if global_position.distance_to(_target) <= GameConfig.FOLLOW_STOP_DISTANCE:
+                velocity = Vector2.ZERO
             elif not level.can_reach(global_position, _target):
                 velocity = Vector2.ZERO   # 문이 닫혀 있으면 문 너머로 따라가지 못한다
             else:
                 _move_to_target(GameConfig.FOLLOW_SPEED * _speed_multiplier(), delta)
     _sprite.set_motion(velocity)
+    _follow_alert.visible = _mode == Mode.FOLLOW
+    if _follow_alert.visible:
+        _follow_alert.position.y = -GameConfig.NPC_RADIUS - FOLLOW_ALERT_HEIGHT + sin(Time.get_ticks_msec() * 0.008) * 4.0
     if GameState.debug_enabled:
         queue_redraw()
 
