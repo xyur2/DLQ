@@ -9,3 +9,25 @@ script = ExtResource("1_prop")
 texture_filter = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+
+[node name="Body" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Body"]
+
+[node name="CooldownBar" type="Node2D" parent="."]
+visible = false
+modulate = Color(2, 2.5, 1.28, 1)
+
+[node name="CooldownLabel" type="Label" parent="."]
+visible = false
+modulate = Color(2, 2.5, 1.28, 1)
+offset_left = -60.0
+offset_right = 60.0
+offset_bottom = 24.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 15
+text = "0초"
+horizontal_alignment = 1

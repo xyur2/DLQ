@@ -15,6 +15,8 @@ const LOCK_TINT: Color = Color(1.0, 0.82, 0.86)
 const LOCK_SCREEN_COLOR: Color = Color(0.32, 0.05, 0.14)
 const SCREEN_COLOR: Color = Color(0.08, 0.055, 0.2)
 const LETTER_HISTORY_MAX: int = 8
+const BANNER_SLIDE_PX: float = 24.0
+const BANNER_FADE_SEC: float = 0.22
 const PHONE_NOISE_PHASE: float = 5000.0   # 휴대폰 흔들림을 손·커서와 다른 패턴으로
 
 var _letters: Array[LetterButton] = []
@@ -27,10 +29,16 @@ var _noise_time: float = 0.0
 var _hands_base: Vector2 = Vector2.ZERO
 var _mouse_offset: Vector2i = Vector2i.ZERO
 var _typed: String = ''
+var _girlfriend_wait: float = 0.0
+var _girlfriend_show: float = 0.0
+var _girlfriend_next: int = 0
+var _banner_base_y: float = 0.0
 var _slide: float = 0.0   # 0: 내려가 있음, 1: 올라와 있음
 
 @onready var _backdrop: ColorRect = $Backdrop
 @onready var _phone_root: Control = $PhoneRoot
+@onready var _banner: Panel = $PhoneRoot/Screen/GirlfriendBanner
+@onready var _banner_text: Label = $PhoneRoot/Screen/GirlfriendBanner/Text
 @onready var _hands: TextureRect = $Hands
 @onready var _screen_background: Panel = $PhoneRoot/ScreenBackground
 @onready var _screen: Control = $PhoneRoot/Screen
@@ -48,6 +56,9 @@ func _ready() -> void:
     _noise.seed = randi()
     _noise.frequency = GameConfig.TREMOR_NOISE_FREQUENCY
     _hands_base = _hands.position
+    _banner_base_y = _banner.position.y
+    _girlfriend_next = randi() % GameConfig.GIRLFRIEND_MESSAGES.size()
+    _banner.gui_input.connect(_on_banner_input)
     _power_hitbox.pressed.connect(_on_power_pressed)
     GameState.phone_toggled.connect(_on_phone_toggled)
     GameState.dm_stage_changed.connect(_on_stage_changed)
@@ -57,6 +68,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
     _update_slide(delta)
     _update_tremor(delta)
+    _update_girlfriend(delta)
     if _lock_left > 0.0 and GameState.is_playing():
         _lock_left -= delta
         _timer_bar.value = maxf(0.0, _lock_left) / float(GameState.cfg['wrong_lock_time'])
@@ -125,6 +137,45 @@ func _update_status() -> void:
         _status.text = '새 메시지 없음'
 
 
+## 휴대폰을 켠 동안 여자친구 메시지가 위에 떴다 사라진다. 누르면 바로 사라진다.
+func _update_girlfriend(delta: float) -> void:
+    if not GameState.phone_on or not GameState.is_playing():
+        _banner.visible = false
+        return
+    if _banner.visible:
+        _girlfriend_show -= delta
+        if _girlfriend_show <= 0.0:
+            _hide_banner()
+        return
+    _girlfriend_wait -= delta
+    if _girlfriend_wait <= 0.0:
+        _show_banner()
+
+
+func _show_banner() -> void:
+    _banner_text.text = String(GameConfig.GIRLFRIEND_MESSAGES[_girlfriend_next])
+    _girlfriend_next = (_girlfriend_next + 1) % GameConfig.GIRLFRIEND_MESSAGES.size()
+    _girlfriend_show = GameConfig.GIRLFRIEND_SHOW_SEC
+    _banner.visible = true
+    _banner.modulate.a = 0.0
+    _banner.position.y = _banner_base_y - BANNER_SLIDE_PX
+    var tween: Tween = _banner.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    tween.tween_property(_banner, 'position:y', _banner_base_y, BANNER_FADE_SEC)
+    tween.tween_property(_banner, 'modulate:a', 1.0, BANNER_FADE_SEC)
+
+
+func _hide_banner() -> void:
+    _banner.visible = false
+    _girlfriend_wait = randf_range(GameConfig.GIRLFRIEND_INTERVAL_RANGE.x, GameConfig.GIRLFRIEND_INTERVAL_RANGE.y)
+
+
+func _on_banner_input(event: InputEvent) -> void:
+    var mb := event as InputEventMouseButton
+    if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+        accept_event()
+        _hide_banner()
+
+
 func _on_power_pressed() -> void:
     GameState.close_phone()
 
@@ -133,6 +184,7 @@ func _on_phone_toggled(is_on: bool) -> void:
     _typed = ''
     if is_on:
         visible = true
+        _girlfriend_wait = GameConfig.GIRLFRIEND_FIRST_DELAY
         _try_start_puzzle()
 
 

@@ -7,6 +7,7 @@ extends Node2D
 ## 사람(NPC)은 이 노드의 random_point / next_step으로 방 사이를 문을 거쳐 이동한다.
 
 const WALL_LAYER: int = 1
+const FREE_POINT_ATTEMPTS: int = 12
 
 ## 방 바닥 영역 (벽 안쪽)
 @export var rooms: Array[Rect2] = []
@@ -69,6 +70,23 @@ func random_point_in_room(index: int) -> Vector2:
 
 ## 어느 방이든 무작위 지점. 넓은 방이 더 자주 뽑힌다. from_point를 주면 그곳에서 갈 수 있는 방만 고른다.
 func random_point(from_point: Vector2 = Vector2.INF) -> Vector2:
+    var point: Vector2 = _any_room_point(from_point)
+    for _attempt: int in FREE_POINT_ATTEMPTS:
+        if not is_on_prop(point):
+            break
+        point = _any_room_point(from_point)
+    return point
+
+
+## 소품 위거나 소품에 너무 가까운 지점인지
+func is_on_prop(point: Vector2) -> bool:
+    for prop: PartyProp in get_props():
+        if prop.get_body_rect().grow(GameConfig.NPC_RADIUS).has_point(point):
+            return true
+    return false
+
+
+func _any_room_point(from_point: Vector2) -> Vector2:
     var candidates: Array[int] = []
     var total: float = 0.0
     for i: int in rooms.size():

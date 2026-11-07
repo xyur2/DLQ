@@ -43,7 +43,7 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
         var npc: PartyNpc = NPC_SCENE.instantiate()
         var point: Vector2 = level.random_point()
         for _attempt: int in SPAWN_MAX_ATTEMPTS:
-            if point.distance_to(player.position) >= GameConfig.NPC_SPAWN_MIN_DIST:
+            if point.distance_to(player.position) >= GameConfig.NPC_SPAWN_MIN_DIST and _is_clear_of_npcs(point, result):
                 break
             point = level.random_point()
         npc.position = point
@@ -55,6 +55,13 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
         _npcs.add_child(npc)
         result.append(npc)
     return result
+
+
+func _is_clear_of_npcs(point: Vector2, others: Array[PartyNpc]) -> bool:
+    for other: PartyNpc in others:
+        if other.position.distance_to(point) < GameConfig.NPC_SPAWN_GAP:
+            return false
+    return true
 
 
 ## 지나가는 사람을 클릭하면 반응을 보낸다. 왼쪽은 긍정, 오른쪽은 부정.

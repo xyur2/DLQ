@@ -19,7 +19,7 @@ extends CharacterBody2D
 enum Mode { IDLE, WALK, AGGRO, FOLLOW }
 
 const LAYER_NPC: int = 4
-const MASK_WALL_AND_PLAYER: int = 1 | 2   # NPC끼리는 통과
+const MASK_WALLS_PLAYER_NPCS: int = 1 | 2 | 4   # 벽, 소품, 플레이어, 다른 사람과 부딪힘
 const STUCK_MOVE_RATIO: float = 0.25      # 기대 이동량의 이 비율보다 적게 움직이면 막힌 것으로 본다
 const BLOCK_HEADING_MIN_DOT: float = 0.3  # 목적지가 플레이어 쪽이어야 길막으로 본다
 const EMOTE_RISE_PX: float = 40.0
@@ -60,7 +60,7 @@ var _errand_left: float = 0.0
 
 func _ready() -> void:
     collision_layer = LAYER_NPC
-    collision_mask = MASK_WALL_AND_PLAYER
+    collision_mask = MASK_WALLS_PLAYER_NPCS
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('npcs')
     _sprite.sprite_frames = GameAssets.npc_frames(look)
@@ -151,7 +151,8 @@ func _physics_process(delta: float) -> void:
             if _aggro_left <= 0.0 or not level.can_reach(global_position, _target):
                 _dance_anchor = global_position
                 _start_idle()
-            elif global_position.distance_to(_target) > GameConfig.NPC_ARRIVE_DISTANCE:
+            elif global_position.distance_to(_target) > GameConfig.NPC_ARRIVE_DISTANCE and _stuck_time < GameConfig.NPC_STUCK_TIMEOUT:
+                # 먼저 온 사람이나 소품에 막히면 그 자리에 선다.
                 _move_to_target(GameConfig.NPC_AGGRO_SPEED * _speed_multiplier(), delta)
             else:
                 velocity = Vector2.ZERO
@@ -270,7 +271,8 @@ func _update_errand(delta: float) -> void:
         _start_walk()
         return
     _move_to_target(_walk_speed(), delta)
-    var near_prop: bool = global_position.distance_to(_errand_prop.global_position) <= GameConfig.INTERACTIVE_REACH
+    var reach: float = GameConfig.INTERACTIVE_REACH + _errand_prop.get_body_radius()
+    var near_prop: bool = global_position.distance_to(_errand_prop.global_position) <= reach
     if near_prop or global_position.distance_to(_target) <= GameConfig.NPC_ARRIVE_DISTANCE:
         var prop: PartyProp = _errand_prop
         _errand_prop = null
