@@ -58,8 +58,10 @@ var _turn_left: float = 0.0             # 활발형: 다음 방향 전환까지
 var _errand_prop: PartyProp = null      # 상호작용형: 작동시키러 가는 소품
 var _errand_left: float = 0.0
 var _relocating: bool = false           # 붐비는 방에서 다른 방으로 옮기는 중
-## 지금까지 받은 반응(클릭) 횟수. 같은 사람을 여러 번 누를수록 점수가 줄어든다.
+## 이어서 받은 반응(클릭) 횟수. 같은 사람을 여러 번 누를수록 점수가 줄어든다.
+## 마지막 반응 뒤 SCORE_REACTION_RESET_SEC가 지나면 0으로 돌아가 다시 처음 점수를 준다.
 var times_reacted: int = 0
+var _last_reaction_time: float = -INF   # 마지막으로 반응을 받은 게임 시간 (GameState.elapsed_time)
 
 @onready var _sprite: CharacterSprite = $Sprite
 @onready var _shape: CollisionShape2D = $CollisionShape2D
@@ -110,7 +112,10 @@ func receive_reaction(positive: bool) -> bool:
     if _reaction_cooldown > 0.0:
         return false
     _reaction_cooldown = GameConfig.REACTION_COOLDOWN
+    if GameState.elapsed_time - _last_reaction_time >= GameConfig.SCORE_REACTION_RESET_SEC:
+        times_reacted = 0
     times_reacted += 1
+    _last_reaction_time = GameState.elapsed_time
     _show_emote(positive)
     _reaction_count += 1
     if _reaction_count >= _reaction_goal:

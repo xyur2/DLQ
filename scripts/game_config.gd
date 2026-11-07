@@ -118,6 +118,7 @@ const SCORE_REPLY_STAGE_PENALTY: int = 15     # 밀린 단계마다 깎임
 const SCORE_REPLY_MIN: int = 10
 const SCORE_REACTION_FIRST: int = 10         # 같은 사람에게 처음 반응할 때
 const SCORE_REACTION_DECAY: float = 0.5       # 같은 사람에게 다시 반응할 때마다 곱함 (내림): 10, 5, 2, 1, 0...
+const SCORE_REACTION_RESET_SEC: float = 20.0  # 같은 사람에게 마지막으로 반응한 뒤 이만큼 지나면 다시 처음 점수(10점)부터
 const SCORE_BLOCK: int = 10
 const SCORE_WRONG_LETTER: int = 10          # 틀린 글자를 누르면 깎임. 0 아래로는 내려가지 않음
 
