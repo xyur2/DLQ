@@ -69,7 +69,7 @@ func _unhandled_input(event: InputEvent) -> void:
     if target != null:
         target.call('interact', self)
     elif GameState.debug_enabled:
-        print('상호작용 대상 없음')
+        print('Nothing to interact with')
 
 
 ## 상호작용 대상 규약: Area2D, 그룹 'interactable', 메서드 interact(player)와 get_hint(). (소품, 문)

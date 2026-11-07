@@ -133,9 +133,9 @@ const SCORE_WRONG_LETTER: int = 10          # 틀린 글자를 누르면 깎임.
 # 소품 종류별 값. 위치와 어그로 지점은 레벨 씬에서 배치한다.
 # whole_room: 반경 대신 소품이 있는 방 전체의 사람을 모은다(무한 모드는 소품 가운데의 ENDLESS_GATHER_SIZE 범위).
 const PROPS: Dictionary = {
-    'speaker': {'name': '스피커', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25), 'icon_size': 110.0},
-    'light': {'name': '조명', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35), 'icon_size': 96.0},
-    'playlist': {'name': '플레이리스트', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0, 'whole_room': true},
+    'speaker': {'name': 'Speaker', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25), 'icon_size': 110.0},
+    'light': {'name': 'Light', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35), 'icon_size': 96.0},
+    'playlist': {'name': 'Playlist', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0, 'whole_room': true},
 }
 
 const SURVIVE_TIME: float = 180.0
@@ -148,7 +148,7 @@ const TENSION_FALL_PER_SEC: float = 0.5
 
 # 테스트 맵(레벨 0). 플레이 목록(LEVELS)에는 없고, 디버그 모드(F1)에서 F4로 레벨을 넘기면 마지막 레벨 다음에 나온다.
 const TEST_LEVEL: Dictionary = {
-    'title': '레벨 0: 테스트 맵',
+    'title': 'Level 0: Test Map',
     'scene': 'res://scenes/top_view/levels/level_0.tscn',
     'npc_bonus': 0,
     'npc_kinds': {},
@@ -172,7 +172,7 @@ const TEST_LEVEL: Dictionary = {
 # 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
     {
-        'title': '레벨 1: 옆방',
+        'title': 'Level 1: The Side Room',
         'scene': 'res://scenes/top_view/levels/level_1.tscn',
         'npc_bonus': 2,            # 방 기본 인원 합에 더하는 사람 수
         'npc_kinds': {},           # 종류별 인원. 예: {'active': 1, 'tracker': 1, 'attention': 1, 'interactive': 1}. 나머지는 일반
@@ -186,28 +186,28 @@ const LEVELS: Array = [
         'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
-    {'title': '레벨 2: 손님이 늘었다', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 4, 'npc_kinds': {},
+    {'title': 'Level 2: More Guests', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 4, 'npc_kinds': {},
         'follower_count': 1, 'dm_interval': 2.85, 'reply_cooldown': 4.75, 'reply_pool': 'word5',
         'letter_gap': 34.0, 'letter_spread': 1.85, 'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
-    {'title': '레벨 3: 북적이는 옆방', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 6, 'npc_kinds': {},
+    {'title': 'Level 3: Crowded Side Room', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 6, 'npc_kinds': {},
         'follower_count': 1, 'dm_interval': 2.7, 'reply_cooldown': 4.5, 'reply_pool': 'word6',
         'letter_gap': 28.0, 'letter_spread': 1.7, 'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
-    {'title': '레벨 4: 작은 방들', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 2, 'npc_kinds': {},
+    {'title': 'Level 4: Little Rooms', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 2, 'npc_kinds': {},
         'follower_count': 2, 'dm_interval': 2.55, 'reply_cooldown': 4.25, 'reply_pool': 'two',
         'letter_gap': 23.0, 'letter_spread': 1.55, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
-    {'title': '레벨 5: 방마다 손님', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 4, 'npc_kinds': {},
+    {'title': 'Level 5: Guests Everywhere', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 4, 'npc_kinds': {},
         'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'two_long',
         'letter_gap': 18.0, 'letter_spread': 1.4, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
-    {'title': '레벨 6: 빈방이 없다', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 6, 'npc_kinds': {},
+    {'title': 'Level 6: No Empty Rooms', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 6, 'npc_kinds': {},
         'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'three',
         'letter_gap': 14.0, 'letter_spread': 1.3, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
-    {'title': '레벨 7: 긴 복도', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 2, 'npc_kinds': {},
+    {'title': 'Level 7: The Long Hallway', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 2, 'npc_kinds': {},
         'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'three_long',
         'letter_gap': 10.0, 'letter_spread': 1.2, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
-    {'title': '레벨 8: 복도의 손님들', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 4, 'npc_kinds': {},
+    {'title': 'Level 8: Hallway Crowd', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 4, 'npc_kinds': {},
         'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'four',
         'letter_gap': 8.0, 'letter_spread': 1.1, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
-    {'title': '레벨 9: 파티의 끝', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 6, 'npc_kinds': {},
+    {'title': 'Level 9: Last Call', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 6, 'npc_kinds': {},
         'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'four_long',
         'letter_gap': 6.0, 'letter_spread': 1.0, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
 ]
@@ -273,8 +273,8 @@ const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어�
 const LETTER_MIN_GAP: float = 6.0             # 어긋나도 버튼 사이에 남기는 최소 간격(px). 서로 붙지 않게
 # 휴대폰을 켠 동안 위에 뜨는 여자친구 메시지. 누르면 사라진다.
 const GIRLFRIEND_MESSAGES: Array = [
-    '자기야 어디야?', '왜 이렇게 안 보여', '누구랑 연락해?', '나 지금 찾으러 갈게',
-    '휴대폰 그만 보고 나와', '내 친구가 너 봤대', '왜 답장 안 해?', '지금 어디 있어?',
+    'Babe, where are you?', "Why can't I find you?", 'Who are you texting?', "I'm coming to find you",
+    'Get off your phone', 'My friend just saw you', "Why aren't you answering?", 'Where are you right now?',
 ]
 const GIRLFRIEND_FIRST_DELAY: float = 1.5     # 휴대폰을 켠 뒤 첫 메시지까지
 const GIRLFRIEND_INTERVAL_RANGE: Vector2 = Vector2(5.0, 10.0)
@@ -285,10 +285,10 @@ const LETTER_COMBOS: Dictionary = {'LLL': 'take_l', 'BAJI': 'baji'}
 const MENU_NOTIFY_INTERVAL: float = 1.5       # 메인 메뉴를 가만히 두면 알림이 오르는 간격(초)
 const MENU_CREDITS_SEC: float = 4.0           # 전원 버튼을 누른 뒤 개발진 정보를 보여 주는 시간
 const MENU_PHONE_ZOOM_SEC: float = 0.6        # 휴대폰이 가운데로 와서 커지는 시간
-const MENU_MESSAGE_SIZE: Vector2 = Vector2(360.0, 120.0)  # 레벨 선택 화면의 메시지 크기
+const MENU_MESSAGE_SIZE: Vector2 = Vector2(340.0, 245.0)  # 레벨 선택 화면의 메시지 크기
 const MENU_MESSAGE_FIRST_DELAY: float = 1.2   # 레벨 선택 화면에서 첫 메시지가 오기 전 비어 있는 시간
-const MENU_MESSAGES: Array = ['어디야?', '왜 답이 없어', '지금 보러 갈까?']
-const MENU_MESSAGE_MAX: int = 4               # 레벨 선택 화면 메시지 최대 개수 (휴대폰 화면에 4개까지 들어감). 레벨 5부터는 4개
+const MENU_MESSAGES: Array = ['Where are you?', 'Why no reply?', 'Should I come over?']
+const MENU_MESSAGE_MAX: int = 2               # 레벨 선택 화면 메시지 최대 개수. 메시지 높이 245px라 휴대폰 화면에 2개까지 들어감
 const MENU_MESSAGE_INTERVAL: float = 0.9      # 레벨 선택 화면에 메시지가 하나씩 도착하는 간격
 const MENU_MESSAGE_HOLD: float = 2.2          # 다 도착한 뒤 비우고 다시 시작하기까지
 const MENU_ICON_DELAY: float = 0.25           # 홈으로 돌아와 휴대폰이 멈춘 뒤 아이콘이 나타나기 시작할 때까지

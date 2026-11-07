@@ -28,7 +28,7 @@ const STUCK_MOVE_RATIO: float = 0.25      # 기대 이동량의 이 비율보다
 const BLOCK_HEADING_MIN_DOT: float = 0.3  # 목적지가 플레이어 쪽이어야 길막으로 본다
 const EMOTE_RISE_PX: float = 40.0
 const EMOTE_SEC: float = 0.8
-const KIND_LABELS: Dictionary = {'normal': '', 'active': '활', 'tracker': '추', 'attention': '주', 'interactive': '상'}
+const KIND_LABELS: Dictionary = {'normal': '', 'active': 'A', 'tracker': 'T', 'attention': 'N', 'interactive': 'I'}
 
 ## 생김새 번호(1부터). TopView가 정한다. 0이면 임시 그림.
 var look: int = 0
@@ -134,7 +134,7 @@ func start_dance(duration: float) -> void:
     _idle_left = duration
     _dance_left = duration
     velocity = Vector2.ZERO
-    _show_text('♥', Color(1.0, 0.5, 0.75))
+    _show_text('DANCE!', Color(1.0, 0.5, 0.75))
 
 
 func is_dancing() -> bool:
@@ -318,7 +318,7 @@ func _start_errand() -> void:
     _stuck_time = 0.0
     var prop_point: Vector2 = _errand_prop.global_position
     _target = level.clamp_point(prop_point, level.room_at(prop_point))
-    _show_text('♪', Color(0.5, 0.95, 0.8))
+    _show_text('TUNE!', Color(0.5, 0.95, 0.8))
 
 
 ## 소품으로 가던 중 다른 일(어그로, 따라오기)로 끊기면 잠시 뒤 다시 시도한다.
@@ -463,7 +463,7 @@ func _new_reaction_goal() -> void:
 
 
 func _show_emote(positive: bool) -> void:
-    _show_text('♥' if positive else '✖', Color(1.0, 0.4, 0.55) if positive else Color(0.55, 0.75, 1.0))
+    _show_text('NICE!' if positive else 'UGH!', Color(1.0, 0.4, 0.55) if positive else Color(0.55, 0.75, 1.0))
 
 
 ## 머리 위로 떠오르다 사라지는 글자

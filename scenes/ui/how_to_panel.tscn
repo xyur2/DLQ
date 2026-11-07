@@ -7,17 +7,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 23
-text = "홈커밍 파티. 여기 있는 사람들은 전부 여자친구를 안다. 그런데 또 메시지가 왔다.
+text = "Homecoming party. Everyone here knows your girlfriend. And then another message arrives.
 
-[이동] WASD
-[소품·문] 근처에서 E
-[휴대폰 켜기] Q 또는 메시지 아이콘
-[휴대폰 끄기] 옆면 전원 버튼
-[일시 정지] ESC
+[MOVE] WASD
+[PROPS / DOORS] E up close
+[PHONE ON] Q or message icon
+[PHONE OFF] Side power button
+[PAUSE] ESC
 
-휴대폰에서 제시된 단어의 알파벳을 순서대로 누르면 답장된다. 틀리면 잠시 누를 수 없다.
+Reply by tapping the letters of the word in order. A wrong letter locks the phone for a moment.
 
-휴대폰을 켠 채 사람이 가까이 오면 들킨다. 메시지가 너무 쌓여도 끝이다. 12시까지 버티면 클리어.
+If someone gets close while your phone is on, you're caught. Too many unread messages and it's over too. Hold out until midnight to win.
 
-사람을 왼쪽·오른쪽 클릭하면 반응을 보낼 수 있고, 앞을 막을 수도 있다."
+Left or right click people to react to them. You can also block their way."
 autowrap_mode = 3

@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bsuk8nrr3rs8a"
-path="res://.godot/imported/Paperlogy-3Light.ttf-e02dfd740c95ee660a59a6082265f829.fontdata"
+uid="uid://bx0iowv1b73wi"
+path="res://.godot/imported/MightMakesRightBB.ttf-5471cd552feb47212231f940918ee046.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/Paperlogy-3Light.ttf"
-dest_files=["res://.godot/imported/Paperlogy-3Light.ttf-e02dfd740c95ee660a59a6082265f829.fontdata"]
+source_file="res://assets/fonts/MightMakesRightBB.ttf"
+dest_files=["res://.godot/imported/MightMakesRightBB.ttf-5471cd552feb47212231f940918ee046.fontdata"]
 
 [params]
 

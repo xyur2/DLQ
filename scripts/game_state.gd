@@ -114,7 +114,7 @@ func get_level_title() -> String:
 ## 화면에 보이는 레벨 번호는 1부터 시작한다.
 func get_level_label() -> String:
     if endless_mode:
-        return '무한 모드 %d' % endless_level
+        return 'Endless Mode %d' % endless_level
     return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
 
 
@@ -125,7 +125,7 @@ static func endless_config(level: int) -> Dictionary:
     var every_three: int = floori(step / 3.0)
     var text: Dictionary = GameConfig.LEVELS[mini(step, GameConfig.LEVELS.size() - 1)]
     return {
-        'title': '무한 모드 레벨 %d' % level,
+        'title': 'Endless Mode Level %d' % level,
         'scene': GameConfig.ENDLESS_SCENE,
         'npc_target': mini(GameConfig.ENDLESS_NPC_START + GameConfig.ENDLESS_NPC_STEP * step, GameConfig.ENDLESS_NPC_MAX),
         'npc_bonus': 0,

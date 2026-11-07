@@ -65,8 +65,8 @@ func _draw() -> void:
 
 func get_hint() -> String:
     if _find_partner(_player_position()) == null:
-        return '조명 아래: 가까이 춤출 사람이 없다'
-    return '[E] 함께 춤추기 (+%d점, %d초 동안 멈춤)' % [GameConfig.DANCE_SCORE, roundi(GameConfig.DANCE_SEC)]
+        return 'Under the light: nobody close enough to dance'
+    return '[E] Dance together (+%d, frozen %ds)' % [GameConfig.DANCE_SCORE, roundi(GameConfig.DANCE_SEC)]
 
 
 func interact(player: Node) -> void:
