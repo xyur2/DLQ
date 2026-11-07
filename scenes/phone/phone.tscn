@@ -202,10 +202,10 @@ mouse_filter = 0
 mouse_default_cursor_shape = 2
 
 [node name="PowerHitbox" type="Button" parent="PhoneRoot"]
-offset_left = 62.0
-offset_top = 176.0
-offset_right = 104.0
-offset_bottom = 296.0
+offset_left = -60.0
+offset_top = 160.0
+offset_right = 120.0
+offset_bottom = 312.0
 tooltip_text = "Power"
 focus_mode = 0
 mouse_default_cursor_shape = 2

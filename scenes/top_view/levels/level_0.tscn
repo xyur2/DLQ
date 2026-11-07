@@ -4,6 +4,9 @@
 [ext_resource type="PackedScene" path="res://scenes/top_view/prop.tscn" id="2_prop"]
 [ext_resource type="TileSet" path="res://scenes/top_view/map_tiles.tres" id="4_tiles"]
 
+[sub_resource type="RectangleShape2D" id="Shape_box"]
+size = Vector2(96, 96)
+
 [node name="Level0" type="Node2D"]
 script = ExtResource("1_level")
 rooms = Array[Rect2]([Rect2(0, 0, 960, 720)])
@@ -37,3 +40,59 @@ aggro_offset = Vector2(0, 544)
 position = Vector2(480, 660)
 prop_id = "playlist"
 aggro_offset = Vector2(0, -580)
+
+[node name="Obstacles" type="Node2D" parent="."]
+
+[node name="WhiteBox" type="StaticBody2D" parent="Obstacles"]
+position = Vector2(300, 440)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacles/WhiteBox"]
+shape = SubResource("Shape_box")
+
+[node name="Fill" type="Polygon2D" parent="Obstacles/WhiteBox"]
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-48, -48, 48, -48, 48, 48, -48, 48)
+
+[node name="Outline" type="Line2D" parent="Obstacles/WhiteBox"]
+points = PackedVector2Array(-48, -48, 48, -48, 48, 48, -48, 48)
+closed = true
+width = 4.0
+default_color = Color(0, 0, 0, 1)
+
+[node name="YellowBox" type="StaticBody2D" parent="Obstacles"]
+position = Vector2(660, 280)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacles/YellowBox"]
+shape = SubResource("Shape_box")
+
+[node name="Fill" type="Polygon2D" parent="Obstacles/YellowBox"]
+color = Color(1, 0.85, 0.1, 1)
+polygon = PackedVector2Array(-48, -48, 48, -48, 48, 48, -48, 48)
+
+[node name="Outline" type="Line2D" parent="Obstacles/YellowBox"]
+points = PackedVector2Array(-48, -48, 48, -48, 48, 48, -48, 48)
+closed = true
+width = 4.0
+default_color = Color(0, 0, 0, 1)
+
+[node name="BlueBox" type="StaticBody2D" parent="Obstacles"]
+position = Vector2(720, 520)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacles/BlueBox"]
+shape = SubResource("Shape_box")
+
+[node name="Fill" type="Polygon2D" parent="Obstacles/BlueBox"]
+color = Color(0.2, 0.45, 1, 1)
+polygon = PackedVector2Array(-48, -48, 48, -48, 48, 48, -48, 48)
+
+[node name="Outline" type="Line2D" parent="Obstacles/BlueBox"]
+points = PackedVector2Array(-48, -48, 48, -48, 48, 48, -48, 48)
+closed = true
+width = 4.0
+default_color = Color(0, 0, 0, 1)

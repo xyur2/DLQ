@@ -138,7 +138,24 @@ func is_on_prop(point: Vector2) -> bool:
     for prop: PartyProp in get_props():
         if prop.get_body_rect().grow(GameConfig.NPC_RADIUS).has_point(point):
             return true
+    for rect: Rect2 in _obstacle_rects():
+        if rect.grow(GameConfig.NPC_RADIUS).has_point(point):
+            return true
     return false
+
+
+## 자식 Obstacles 아래의 장애물(StaticBody2D + 사각형 충돌) 영역. 사람이 그 위로 목적지를 잡거나 생성되지 않게 한다.
+func _obstacle_rects() -> Array[Rect2]:
+    var result: Array[Rect2] = []
+    var obstacles: Node = get_node_or_null('Obstacles')
+    if obstacles == null:
+        return result
+    for body: Node in obstacles.get_children():
+        var shape_node: CollisionShape2D = body.get_node_or_null('CollisionShape2D')
+        if shape_node != null and shape_node.shape is RectangleShape2D:
+            var size_value: Vector2 = (shape_node.shape as RectangleShape2D).size
+            result.append(Rect2(shape_node.global_position - size_value * 0.5, size_value))
+    return result
 
 
 func _any_room_point(from_point: Vector2) -> Vector2:
