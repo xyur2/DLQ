@@ -176,16 +176,16 @@ uv = PackedVector2Array(1062, 528, 1964, 525, 1967, 1362, 905, 1364)
 [node name="Info" type="Label" parent="."]
 layout_mode = 0
 offset_left = 1420.0
-offset_top = 500.0
+offset_top = 460.0
 offset_right = 1892.0
-offset_bottom = 660.0
-theme_override_font_sizes/font_size = 22
+offset_bottom = 670.0
+theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 8
+theme_override_constants/outline_size = 10
 
 [node name="Buttons" type="Control" parent="."]
 anchors_preset = 0

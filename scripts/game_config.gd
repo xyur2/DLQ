@@ -275,7 +275,7 @@ const LETTER_MIN_GAP: float = 6.0             # 어긋나도 버튼 사이에 �
 # 휴대폰을 켠 동안 위에 뜨는 여자친구 메시지. 누르면 사라진다.
 const GIRLFRIEND_MESSAGES: Array = [
     'Babe, where are you?', "Why can't I find you?", 'Who are you texting?', "I'm coming to find you",
-    'Get off your phone', 'My friend just saw you', "Why aren't you answering?", 'Where are you right now?',
+    'Get off your phone', 'My friend just saw you', 'Hello??', 'Answer me.', 'Where are you?', "Why aren't you answering?", 'Where are you right now?',
 ]
 const GIRLFRIEND_FIRST_DELAY: float = 1.5     # 휴대폰을 켠 뒤 첫 메시지까지
 const GIRLFRIEND_INTERVAL_RANGE: Vector2 = Vector2(5.0, 10.0)
@@ -283,13 +283,12 @@ const GIRLFRIEND_SHOW_SEC: float = 3.0
 # 휴대폰에서 연속으로 입력하면 음향 효과가 나오는 글자
 const LETTER_COMBOS: Dictionary = {'LLL': 'take_l', 'BAJI': 'baji'}
 # 메뉴와 종료 화면
-const MENU_NOTIFY_INTERVAL: float = 1.5       # 메인 메뉴를 가만히 두면 알림이 오르는 간격(초)
+const MENU_NOTIFY_INTERVAL: float = 1.5       # 메인 메뉴에서 알림이 오르는 간격(초). 조작과 상관없음
 const MENU_CREDITS_SEC: float = 4.0           # 전원 버튼을 누른 뒤 개발진 정보를 보여 주는 시간
 const MENU_PHONE_ZOOM_SEC: float = 0.6        # 휴대폰이 가운데로 와서 커지는 시간
-const MENU_MESSAGE_SIZE: Vector2 = Vector2(340.0, 245.0)  # 레벨 선택 화면의 메시지 크기
 const MENU_MESSAGE_FIRST_DELAY: float = 1.2   # 레벨 선택 화면에서 첫 메시지가 오기 전 비어 있는 시간
-const MENU_MESSAGES: Array = ['Where are you?', 'Why no reply?', 'Should I come over?']
-const MENU_MESSAGE_MAX: int = 2               # 레벨 선택 화면 메시지 최대 개수. 메시지 높이 245px라 휴대폰 화면에 2개까지 들어감
+const MENU_MESSAGES: Array = ['Where are you?', 'Should I come over?', 'Why no reply?']
+const MENU_MESSAGE_MAX: int = 4               # 레벨 선택 화면 메시지 최대 개수. 말풍선 4개까지 들어감
 const MENU_MESSAGE_INTERVAL: float = 0.9      # 레벨 선택 화면에 메시지가 하나씩 도착하는 간격
 const MENU_MESSAGE_HOLD: float = 2.2          # 다 도착한 뒤 비우고 다시 시작하기까지
 const MENU_ICON_DELAY: float = 0.25           # 홈으로 돌아와 휴대폰이 멈춘 뒤 아이콘이 나타나기 시작할 때까지

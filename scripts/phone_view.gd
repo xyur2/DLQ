@@ -15,8 +15,10 @@ const LETTER_SCENE: PackedScene = preload('res://scenes/phone/letter_button.tscn
 const LETTER_SCENE_SIZE: Vector2 = Vector2(84.0, 64.0)   # letter_button.tscn의 크기. 열 수 계산에 씀
 const ALPHABET: String = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const LOCK_TINT: Color = Color(1.0, 0.82, 0.86)
-const LOCK_SCREEN_COLOR: Color = Color(0.32, 0.05, 0.14)
-const SCREEN_COLOR: Color = Color(0.08, 0.055, 0.2)
+const LOCK_SCREEN_COLOR: Color = Color(1.0, 0.8, 0.84)
+const SCREEN_COLOR: Color = Color.WHITE
+const BANNER_FONT_SIZE: int = 22
+const BANNER_SENDER: String = 'GIRLFRIEND'
 const LETTER_HISTORY_MAX: int = 8
 const SENTENCE_BLANK: String = '•'   # 문장 진행 표시에서 아직 누르지 않은 글자
 const BANNER_SLIDE_PX: float = 24.0
@@ -45,7 +47,7 @@ var _slide: float = 0.0   # 0: 내려가 있음, 1: 올라와 있음
 
 @onready var _backdrop: ColorRect = $Backdrop
 @onready var _phone_root: Control = $PhoneRoot
-@onready var _banner: Panel = $PhoneRoot/Screen/GirlfriendBanner
+@onready var _banner: SpeechBubble = $PhoneRoot/Screen/GirlfriendBanner
 @onready var _banner_text: Label = $PhoneRoot/Screen/GirlfriendBanner/Text
 @onready var _hands: TextureRect = $Hands
 @onready var _screen_background: Panel = $PhoneRoot/ScreenBackground
@@ -179,7 +181,7 @@ func _update_girlfriend(delta: float) -> void:
 
 
 func _show_banner() -> void:
-    _banner_text.text = String(GameConfig.GIRLFRIEND_MESSAGES[_girlfriend_next])
+    _banner.show_text(String(GameConfig.GIRLFRIEND_MESSAGES[_girlfriend_next]), BANNER_FONT_SIZE, BANNER_SENDER)
     _girlfriend_next = (_girlfriend_next + 1) % GameConfig.GIRLFRIEND_MESSAGES.size()
     _girlfriend_show = GameConfig.GIRLFRIEND_SHOW_SEC
     _banner.visible = true

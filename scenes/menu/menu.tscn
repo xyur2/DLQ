@@ -31,6 +31,18 @@ corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_badge"]
+bg_color = Color(0.9, 0.08, 0.12, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
 [sub_resource type="StyleBoxEmpty" id="StyleBox_empty"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBox_ribbon_602"]
@@ -69,6 +81,13 @@ texture_margin_top = 14.0
 texture_margin_right = 50.0
 texture_margin_bottom = 18.0
 
+[sub_resource type="ShaderMaterial" id="Material_comic_logo"]
+shader = ExtResource("20_comic")
+shader_parameter/dot_spacing = 11.0
+shader_parameter/gradient_top = 50.0
+shader_parameter/gradient_bottom = 240.0
+shader_parameter/max_radius = 0.42
+
 [sub_resource type="ShaderMaterial" id="Material_comic_title"]
 shader = ExtResource("20_comic")
 shader_parameter/dot_spacing = 8.0
@@ -85,7 +104,6 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("3_theme")
 script = ExtResource("1_menu")
-message_texture = ExtResource("6_bubble")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
@@ -99,12 +117,12 @@ stretch_mode = 6
 
 [node name="Phone" type="Control" parent="."]
 anchors_preset = 0
-offset_left = 93.0
+offset_left = 160.0
 offset_top = 852.0
-offset_right = 453.0
+offset_right = 520.0
 offset_bottom = 1212.0
 rotation = 0.5236
-scale = Vector2(3.4, 3.4)
+scale = Vector2(3.9, 3.9)
 pivot_offset = Vector2(180, 180)
 mouse_filter = 2
 
@@ -156,6 +174,27 @@ texture = ExtResource("5_icon")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="BadgeCircle" type="Panel" parent="Phone/ScreenContent/NotifyIcon"]
+visible = false
+layout_mode = 0
+offset_left = 160.0
+offset_top = -10.0
+offset_right = 240.0
+offset_bottom = 70.0
+pivot_offset = Vector2(40, 40)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_badge")
+
+[node name="BadgeLabel" type="Label" parent="Phone/ScreenContent/NotifyIcon/BadgeCircle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Credits" type="Label" parent="Phone/ScreenContent"]
 layout_mode = 0
 offset_left = 16.0
@@ -202,8 +241,8 @@ mouse_filter = 2
 layout_mode = 0
 offset_left = 50.0
 offset_top = 24.0
-offset_right = 730.0
-offset_bottom = 514.0
+offset_right = 770.0
+offset_bottom = 543.0
 mouse_filter = 2
 texture = ExtResource("6_bubble")
 expand_mode = 1
@@ -211,43 +250,48 @@ expand_mode = 1
 [node name="Title" type="Label" parent="Home"]
 layout_mode = 0
 offset_left = 120.0
-offset_top = 34.0
-offset_right = 700.0
-offset_bottom = 234.0
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+offset_top = 20.0
+offset_right = 740.0
+offset_bottom = 260.0
+material = SubResource("Material_comic_logo")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 7
+theme_override_constants/shadow_offset_y = 9
+theme_override_constants/outline_size = 16
+theme_override_constants/shadow_outline_size = 16
 theme_override_fonts/font = ExtResource("21_title")
-theme_override_font_sizes/font_size = 170
+theme_override_font_sizes/font_size = 220
 text = "DLQ"
 
 [node name="Subtitle" type="Label" parent="Home"]
 layout_mode = 0
-offset_left = 122.0
-offset_top = 226.0
-offset_right = 700.0
-offset_bottom = 290.0
+offset_left = 124.0
+offset_top = 270.0
+offset_right = 740.0
+offset_bottom = 334.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 48
 text = "DEAD LETTER QUEUE"
 
 [node name="Burst" type="TextureRect" parent="Home"]
-visible = false
 layout_mode = 0
-offset_left = 730.0
-offset_top = 370.0
-offset_right = 1060.0
-offset_bottom = 700.0
+offset_left = 867.0
+offset_top = 316.0
+offset_right = 1197.0
+offset_bottom = 646.0
 pivot_offset = Vector2(60, 270)
 mouse_filter = 2
 texture = ExtResource("11_burst")
 expand_mode = 1
 
 [node name="Alert" type="TextureRect" parent="Home"]
-visible = false
 layout_mode = 0
-offset_left = 630.0
-offset_top = 585.0
-offset_right = 860.0
-offset_bottom = 799.0
+offset_left = 767.0
+offset_top = 531.0
+offset_right = 997.0
+offset_bottom = 745.0
 pivot_offset = Vector2(115, 107)
 mouse_filter = 2
 texture = ExtResource("10_alert")
@@ -355,9 +399,9 @@ horizontal_alignment = 1
 
 [node name="Messages" type="VBoxContainer" parent="Zoomed/Levels"]
 layout_mode = 0
-offset_left = 40.0
-offset_top = 70.0
-offset_right = 380.0
+offset_left = 2.0
+offset_top = 80.0
+offset_right = 418.0
 offset_bottom = 620.0
 mouse_filter = 2
 theme_override_constants/separation = 16
