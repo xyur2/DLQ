@@ -47,6 +47,7 @@ var _content_tween: Tween = null
 @onready var _settings: Control = $Zoomed/Settings
 @onready var _messages: VBoxContainer = $Zoomed/Levels/Messages
 @onready var _level_name: Label = $Zoomed/Levels/LevelName
+@onready var _best: Label = $Zoomed/Levels/Best
 @onready var _hint: Label = $Zoomed/Levels/Hint
 @onready var _start: Button = $Zoomed/Levels/Start
 @onready var _previous: Button = $Zoomed/Previous
@@ -272,6 +273,8 @@ func _change_level(step: int) -> void:
 func _refresh_level() -> void:
     _title.text = 'Level %d' % (_level + 1)
     _level_name.text = String(GameConfig.LEVELS[_level]['title']).get_slice(': ', 1)
+    var best: int = ScoreRecords.get_best(ScoreRecords.level_key(_level))
+    _best.text = 'Best %d' % best if best > 0 else 'Best -'
     _previous.visible = _level > 0
     _next.visible = _level < GameConfig.LEVELS.size() - 1
     _clear_messages()
