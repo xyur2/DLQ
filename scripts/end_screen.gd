@@ -112,7 +112,7 @@ func _setup_stamp(reason: int) -> void:
     if ResourceLoader.exists(path):
         _stamp_image.texture = load(path)
         _stamp_box.visible = false
-    if ResourceLoader.exists(GameConfig.STAMP_SOUND_PATH):
+    if not cleared and ResourceLoader.exists(GameConfig.STAMP_SOUND_PATH):
         _stamp_sound.stream = load(GameConfig.STAMP_SOUND_PATH)
 
 

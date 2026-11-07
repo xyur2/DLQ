@@ -62,6 +62,8 @@ var _content_tween: Tween = null
 @onready var _power: Button = $Phone/PowerHitbox
 @onready var _credits: Label = $Phone/ScreenContent/Credits
 @onready var _music: AudioStreamPlayer = $Music
+var _vibrate_player: AudioStreamPlayer = null
+var _send_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
@@ -83,6 +85,8 @@ func _ready() -> void:
     _credits.visible = false
     _update_badge()
     _play_music()
+    _vibrate_player = _make_sfx_player('vibrate')
+    _send_player = _make_sfx_player('send')
     _show_screen_content()
     if SceneFlow.menu_start_view == 'levels':
         SceneFlow.menu_start_view = ''
@@ -135,6 +139,7 @@ func _burst_scale() -> float:
 
 ## 메시지가 올 때마다 느낌표, 빛살, 숫자가 튀어 오른다.
 func _pop_alert() -> void:
+    AudioDirector.play_clip(_vibrate_player, GameConfig.VIBRATE_CLIP_SEC)
     _alert.scale = Vector2.ONE * ALERT_POP_SCALE
     _badge.scale = Vector2.ONE * ALERT_POP_SCALE
     _burst.scale = Vector2.ONE * _burst_scale() * ALERT_POP_SCALE
@@ -303,6 +308,7 @@ func _message_goal() -> int:
 func _add_message() -> void:
     var message: SpeechBubble = MESSAGE_SCENE.instantiate()
     _messages.add_child(message)
+    AudioDirector.play_clip(_send_player, GameConfig.SEND_CLIP_SEC)
     message.show_text(String(GameConfig.MENU_MESSAGES[(_messages.get_child_count() - 1) % GameConfig.MENU_MESSAGES.size()]), MESSAGE_FONT_SIZE)
     message.modulate.a = 0.0
     message.pivot_offset = Vector2(0.0, message.size.y)
@@ -325,6 +331,14 @@ func _clear_messages() -> void:
     for child: Node in _messages.get_children():
         _messages.remove_child(child)
         child.queue_free()
+
+
+func _make_sfx_player(sound: String) -> AudioStreamPlayer:
+    var player := AudioStreamPlayer.new()
+    player.stream = AudioDirector.load_sound(sound)
+    player.bus = GameSettings.BUS_SFX
+    add_child(player)
+    return player
 
 
 func _play_music() -> void:
