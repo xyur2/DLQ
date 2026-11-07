@@ -72,6 +72,8 @@ func _ready() -> void:
     _power_hitbox.pressed.connect(_on_power_pressed)
     GameState.phone_toggled.connect(_on_phone_toggled)
     GameState.dm_stage_changed.connect(_on_stage_changed)
+    # 게임이 끝나면(발각 등) 일시 정지되기 전에 커서 흔들림을 멈추고 커서를 제자리로 돌린다.
+    GameState.game_ended.connect(func(_reason: int) -> void: _release_mouse())
     _refresh_labels()
 
 
@@ -105,10 +107,10 @@ func _slide_offset() -> Vector2:
 ## 손 이미지와 마우스 커서는 같은 양만큼, 휴대폰은 다른 패턴으로 흔든다.
 func _update_tremor(delta: float) -> void:
     var center: Vector2 = (size - _phone_root.size) * 0.5
-    if not GameState.phone_on:
+    if not GameState.phone_on or not GameState.is_playing():
         _hands.position = _hands_base + _slide_offset()
         _phone_root.position = center + _slide_offset()
-        _shake_mouse(Vector2.ZERO)
+        _release_mouse()
         return
     # 가까울수록 더 빠르게 떨린다.
     var speed: float = lerpf(GameConfig.TREMOR_NOISE_SPEED_MIN, GameConfig.TREMOR_NOISE_SPEED_MAX, GameState.get_tremor_ratio())
@@ -127,10 +129,24 @@ func _update_tremor(delta: float) -> void:
     _shake_mouse(offset)
 
 
+## 일시 정지되거나 장면을 떠날 때도 커서를 제자리로 돌린다.
+func _notification(what: int) -> void:
+    if what == NOTIFICATION_PAUSED or what == NOTIFICATION_EXIT_TREE:
+        _release_mouse()
+
+
+## 커서 흔들림을 멈추고, 흔들어 둔 만큼 커서를 되돌린다.
+func _release_mouse() -> void:
+    if _mouse_offset != Vector2i.ZERO:
+        _shake_mouse(Vector2.ZERO)
+    _mouse_offset = Vector2i.ZERO
+
+
 ## 지난 프레임의 흔들림을 뺀 차이만큼만 커서를 옮겨, 플레이어의 마우스 조작은 그대로 살린다.
 ## 커서는 정수 픽셀로만 움직이므로 픽셀 단위로 추적해야 오차가 쌓여 밀려나지 않는다.
+## 에디터 Game 탭 안에서 실행하면(내장 창) 창 좌표가 달라 커서가 엉뚱하게 움직일 수 있어 실제 커서는 흔들지 않는다(손은 흔들림).
 func _shake_mouse(offset: Vector2) -> void:
-    if not DisplayServer.window_is_focused():
+    if not DisplayServer.window_is_focused() or Engine.is_embedded_in_editor():
         return
     var pixels := Vector2i((offset * get_viewport().get_screen_transform().get_scale()).round())
     if pixels == _mouse_offset:

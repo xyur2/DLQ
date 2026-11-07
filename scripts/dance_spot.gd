@@ -2,6 +2,7 @@ class_name DanceSpot
 extends Area2D
 ## 조명이 비추는 바닥(조명 소품의 어그로 지점). 플레이어가 이 안에 서서 E를 누르면 가까운 사람 한 명과 춤춘다.
 ## 춤추는 DANCE_SEC초 동안 플레이어와 짝은 서로 마주 보며 둘 사이 가운데를 DANCE_TURNS바퀴 돈다(처음과 끝은 천천히).
+## 그동안 카메라는 둘 사이 가운데에 고정하고, 끝나면 플레이어에게 돌아간다.
 ## 그동안 플레이어는 아무것도 할 수 없고(GameState.is_stunned), DANCE_SCORE점을 얻는다.
 ## 조명 하나에 한 번만 출 수 있고, 춘 뒤에는 빛이 꺼진다.
 ## PartyProp(조명)이 자식으로 만든다. 소품·문과 같은 상호작용 규약(그룹 interactable, interact, get_hint)을 따른다.
@@ -85,6 +86,7 @@ func interact(player: Node) -> void:
     _center = (player_position + partner.global_position) * 0.5
     _offset = player_position - _center
     _dance_time = 0.0
+    _player.call('hold_camera', _center)
 
 
 ## 춤: 플레이어와 짝을 둘 사이 가운데를 기준으로 마주 보게 돌린다.
@@ -105,6 +107,14 @@ func _physics_process(delta: float) -> void:
         _partner.face_toward(_player.global_position)
     if progress >= 1.0:
         _dance_time = -1.0
+        if player_alive:
+            _player.call('release_camera')
+
+
+## 춤추는 중에 사라지면(무한 모드에서 조명이 지워질 때) 카메라를 돌려준다.
+func _exit_tree() -> void:
+    if _dance_time >= 0.0 and is_instance_valid(_player):
+        _player.call('release_camera')
 
 
 ## from에서 DANCE_PARTNER_RANGE 안의 가장 가까운 사람

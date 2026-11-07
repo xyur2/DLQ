@@ -7,6 +7,7 @@ const MASK_WALL_AND_NPC: int = 1 | 4
 const LAYER_PROP: int = 8
 
 var _last_hint: String = ''
+var _camera_tween: Tween = null
 var _knockback_left: float = 0.0
 var _knockback_velocity: Vector2 = Vector2.ZERO
 
@@ -106,6 +107,28 @@ func _on_knocked_back(from_point: Vector2) -> void:
 ## 춤추는 동안 짝을 바라본다 (DanceSpot이 부름).
 func face_toward(point: Vector2) -> void:
     _sprite.face(point - global_position)
+
+
+## 춤추는 동안 카메라를 point(둘 사이 가운데)에 고정한다.
+func hold_camera(point: Vector2) -> void:
+    if _camera_tween != null:
+        _camera_tween.kill()
+    _camera.top_level = true
+    _camera.global_position = point
+
+
+## 고정한 카메라를 DANCE_CAMERA_RETURN_SEC 동안 플레이어에게 옮긴 뒤 다시 플레이어를 따라가게 한다.
+func release_camera() -> void:
+    if not _camera.top_level:
+        return
+    var from: Vector2 = _camera.global_position
+    _camera_tween = create_tween()
+    _camera_tween.tween_method(func(weight: float) -> void:
+        _camera.global_position = from.lerp(global_position, weight),
+        0.0, 1.0, GameConfig.DANCE_CAMERA_RETURN_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    _camera_tween.tween_callback(func() -> void:
+        _camera.top_level = false
+        _camera.position = Vector2.ZERO)
 
 
 func _on_debug_changed(_enabled: bool) -> void:
