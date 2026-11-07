@@ -3,6 +3,8 @@ extends CharacterBody2D
 ## 사람. 대기와 무작위 이동을 반복하고, 상황에 따라 다음과 같이 행동한다.
 ## - 소품 어그로: 지속 시간 동안 해당 지점에 모인다.
 ## - 따라오는 사람: follower_option이 켜져 있거나 반응을 충분히 받으면 일정 시간 플레이어를 따라온다.
+##   FOLLOW_STOP_DISTANCE 안으로 들어오면 그 자리에 멈춰 서고 따라오기를 끝낸다.
+## - 사람끼리는 몸이 부딪혀 겹치지 않고, 걷는 사람은 가까운 사람을 미리 피해 옆으로 비켜 간다.
 ## - 길막: 걷다가 플레이어에게 막히면 멈춰 서고, 오래 막히면 플레이어를 밀쳐 낸다.
 ## - 슬로우 댄스: 제자리 근처만 조금씩 움직인다.
 ## 다른 방으로 갈 때는 PartyLevel.next_step을 따라 열린 문을 지난다. 문이 닫혀 있으면 그 방으로 가지 않는다.
@@ -10,7 +12,7 @@ extends CharacterBody2D
 ## 종류(kind). 값은 GameConfig의 각 종류 구역에서 조정한다.
 ## - normal: 위 기본 행동만 한다.
 ## - active(활발형): 1.5배 빠르고, 짧게 쉬고, 걷는 중에도 자주 방향을 바꾼다.
-## - tracker(추적형): 10~30초마다 정해진 시간 동안 플레이어 쪽으로 온다.
+## - tracker(추적형): 15~45초마다 정해진 시간 동안 플레이어 쪽으로 온다.
 ## - attention(주의 집중형): 30~45초마다 주변 사람들을 자기 주위로 부르고, 그동안 제자리에 선다.
 ## - interactive(상호작용형): 1분 안팎마다 사용할 수 있는 소품으로 걸어가 작동시킨다.
 ## 특수 행동은 대기·걷기 중일 때만 시작하고, 다른 행동(어그로, 따라오기) 중이면 끝날 때까지 미룬다.
@@ -19,7 +21,8 @@ extends CharacterBody2D
 enum Mode { IDLE, WALK, AGGRO, FOLLOW }
 
 const LAYER_NPC: int = 4
-const MASK_WALL_AND_PLAYER: int = 1 | 2   # NPC끼리는 통과
+const MASK_SOLID: int = 1 | 2 | 4         # 벽, 플레이어, 다른 사람과 부딪힌다
+const AVOID_AHEAD_DOT: float = 0.3        # 이보다 앞쪽에 있는 사람은 옆으로 비켜 간다
 const STUCK_MOVE_RATIO: float = 0.25      # 기대 이동량의 이 비율보다 적게 움직이면 막힌 것으로 본다
 const BLOCK_HEADING_MIN_DOT: float = 0.3  # 목적지가 플레이어 쪽이어야 길막으로 본다
 const EMOTE_RISE_PX: float = 40.0
@@ -60,7 +63,7 @@ var _errand_left: float = 0.0
 
 func _ready() -> void:
     collision_layer = LAYER_NPC
-    collision_mask = MASK_WALL_AND_PLAYER
+    collision_mask = MASK_SOLID
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('npcs')
     _sprite.sprite_frames = GameAssets.npc_frames(look)
@@ -151,6 +154,11 @@ func _physics_process(delta: float) -> void:
             if _aggro_left <= 0.0 or not level.can_reach(global_position, _target):
                 _dance_anchor = global_position
                 _start_idle()
+            elif _stuck_time >= GameConfig.NPC_STUCK_TIMEOUT:
+                # 먼저 모인 사람들에게 막혔다: 그 자리를 도착한 곳으로 삼아 선다.
+                _target = global_position
+                _stuck_time = 0.0
+                velocity = Vector2.ZERO
             elif global_position.distance_to(_target) > GameConfig.NPC_ARRIVE_DISTANCE:
                 _move_to_target(GameConfig.NPC_AGGRO_SPEED * _speed_multiplier(), delta)
             else:
@@ -158,15 +166,14 @@ func _physics_process(delta: float) -> void:
         Mode.FOLLOW:
             _follow_left -= delta
             _target = follow_target.global_position
-            if _follow_left <= 0.0:
+            if _follow_left <= 0.0 or global_position.distance_to(_target) <= GameConfig.FOLLOW_STOP_DISTANCE:
+                # 시간이 다 됐거나 충분히 가까워졌다: 그 자리에 멈춰 서고 따라오기를 끝낸다.
                 _dance_anchor = global_position
                 _start_idle()
             elif not level.can_reach(global_position, _target):
                 velocity = Vector2.ZERO   # 문이 닫혀 있으면 문 너머로 따라가지 못한다
-            elif global_position.distance_to(_target) > GameConfig.FOLLOW_STOP_DISTANCE:
-                _move_to_target(GameConfig.FOLLOW_SPEED * _speed_multiplier(), delta)
             else:
-                velocity = Vector2.ZERO
+                _move_to_target(GameConfig.FOLLOW_SPEED * _speed_multiplier(), delta)
     _sprite.set_motion(velocity)
     if GameState.debug_enabled:
         queue_redraw()
@@ -335,13 +342,33 @@ func _move_to_target(speed: float, delta: float) -> void:
     var before: Vector2 = global_position
     var goal: Vector2 = _steer_point()
     var dist: float = global_position.distance_to(goal)
+    var direction: Vector2 = global_position.direction_to(goal)
     # 목적지를 지나치지 않도록 속도 제한
-    velocity = global_position.direction_to(goal) * minf(speed, dist / delta)
+    var step_speed: float = minf(speed, dist / delta)
+    velocity = (direction + _avoidance(direction)).limit_length(1.0) * step_speed
     move_and_slide()
     if global_position.distance_to(before) < velocity.length() * delta * STUCK_MOVE_RATIO:
         _stuck_time += delta
     else:
         _stuck_time = 0.0
+
+
+## 가까운 사람에게서 멀어지는 방향. 앞을 막은 사람은 진행 방향의 왼쪽으로 비켜 간다(모두 같은 쪽이라 마주쳐도 엇갈린다).
+func _avoidance(direction: Vector2) -> Vector2:
+    var push := Vector2.ZERO
+    for node: Node in get_tree().get_nodes_in_group('npcs'):
+        if node == self:
+            continue
+        var away: Vector2 = global_position - (node as Node2D).global_position
+        var distance: float = away.length()
+        if distance >= GameConfig.NPC_AVOID_RADIUS or distance < 0.01:
+            continue
+        var weight: float = 1.0 - distance / GameConfig.NPC_AVOID_RADIUS
+        var away_dir: Vector2 = away / distance
+        push += away_dir * weight
+        if direction.dot(-away_dir) > AVOID_AHEAD_DOT:
+            push += direction.orthogonal() * weight
+    return push * GameConfig.NPC_AVOID_STRENGTH
 
 
 func _start_idle() -> void:

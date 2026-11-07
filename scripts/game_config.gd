@@ -28,6 +28,10 @@ const NPC_MAP_MARGIN: float = 72.0
 const NPC_ARRIVE_DISTANCE: float = 9.6
 const NPC_STUCK_TIMEOUT: float = 1.5
 const NPC_SPAWN_MIN_DIST: float = 240.0      # 맵 절반에 맞춰 480 → 240
+const NPC_SPAWN_SPACING: float = 64.0        # 처음 놓을 때 사람끼리 떨어뜨리는 거리 (지름 38.4 + 여유)
+# 사람끼리는 몸이 부딪혀 겹치지 않는다. 걷는 사람은 가까운 사람을 미리 피해 옆으로 비켜 간다.
+const NPC_AVOID_RADIUS: float = 64.0         # 이 거리 안의 사람을 피한다 (중심 거리)
+const NPC_AVOID_STRENGTH: float = 1.2        # 피하는 힘. 클수록 일찍, 크게 비켜 간다
 const NPC_AGGRO_SPREAD: float = 70.0         # 140 → 70
 const NPC_COLOR: Color = Color(0.55, 0.5, 0.5)
 
@@ -53,7 +57,7 @@ const ACTIVE_SPEED_MULTIPLIER: float = 1.5
 const ACTIVE_IDLE_TIME_RANGE: Vector2 = Vector2(0.3, 1.0)   # 일반은 NPC_IDLE_TIME_RANGE (1~3초)
 const ACTIVE_TURN_TIME_RANGE: Vector2 = Vector2(0.8, 2.0)   # 걷는 중 이 간격마다 새 목적지로 방향 전환
 # 추적형: 일정 간격마다 정해진 시간 동안 플레이어 쪽으로 온다.
-const TRACKER_INTERVAL_RANGE: Vector2 = Vector2(10.0, 30.0)
+const TRACKER_INTERVAL_RANGE: Vector2 = Vector2(15.0, 45.0)   # 플레이 피드백: 빈도 2/3 (10~30 → 15~45)
 const TRACKER_DURATION: float = 6.0
 # 주의 집중형: 일정 간격마다 주변 사람들을 자기 주위로 부른다. 부르는 동안 자신은 제자리에 선다.
 const ATTENTION_INTERVAL_RANGE: Vector2 = Vector2(30.0, 45.0)
@@ -74,9 +78,9 @@ const LEVEL_TITLE_SEC: float = 3.0            # 레벨 시작 때 위쪽에 레�
 
 # 따라오는 사람
 const FOLLOW_SPEED: float = 108.0             # 플레이어(144)보다 느려서 따돌릴 수 있음
-const FOLLOW_STOP_DISTANCE: float = 70.0      # 발각 반경(80) 안까지 붙는다
-const FOLLOW_DURATION: float = 8.0            # follower_option이 켜진 사람이 한 번 따라오는 시간
-const FOLLOW_COOLDOWN: float = 25.0           # 다시 따라오기까지의 시간
+const FOLLOW_STOP_DISTANCE: float = 80.0      # 이 거리 안으로 들어오면 멈춰 서서 따라오기를 끝낸다 (발각 반경과 같음)
+const FOLLOW_DURATION: float = 8.0            # follower_option이 켜진 사람이 한 번 따라오는 최대 시간
+const FOLLOW_COOLDOWN: float = 37.5           # 다시 따라오기까지의 시간. 플레이 피드백: 빈도 2/3 (25 → 37.5)
 
 # 사람에게 보내는 반응 (왼쪽 클릭 긍정, 오른쪽 클릭 부정)
 const REACTION_RANGE: float = 300.0           # 플레이어에서 이 거리 안의 사람에게만
@@ -127,39 +131,41 @@ const TENSION_WEIGHT_DM: float = 0.3
 const TENSION_RISE_PER_SEC: float = 3.0
 const TENSION_FALL_PER_SEC: float = 0.5
 
-# 레벨. 위로 갈수록 DM이 자주 오고, 답장 후 쉬는 시간이 짧고, 휴대폰 글자 사이 간격이 좁다.
-# 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
+# 테스트 맵(레벨 0). 플레이 목록(LEVELS)에는 없고, 디버그 모드(F1)에서 F4로 레벨을 넘기면 마지막 레벨 다음에 나온다.
+const TEST_LEVEL: Dictionary = {
+    'title': '레벨 0: 테스트 맵',
+    'scene': 'res://scenes/top_view/levels/level_0.tscn',
+    'npc_count': 5,
+    'npc_kinds': {},
+    'follower_count': 1,
+    'dm_interval': 3.0,
+    'reply_cooldown': 5.0,
+    'letter_gap': 40.0,
+    'caught_radius': 80.0,
+    'decoy_count': 6,
+    'wrong_lock_time': 2.0,
+}
+
+# 플레이할 수 있는 레벨. 위로 갈수록 DM이 자주 오고, 답장 후 쉬는 시간이 짧고, 휴대폰 글자 사이 간격이 좁다.
+# 화면에는 Level 1, 2로 나온다(level_index 0, 1). 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
     {
-        'title': '레벨 1: 거실',
-        'scene': 'res://scenes/top_view/levels/level_0.tscn',
-        'npc_count': 5,
+        'title': '레벨 1: 옆방',
+        'scene': 'res://scenes/top_view/levels/level_1.tscn',
+        'npc_count': 10,           # 플레이 피드백: 북적이는 파티처럼 2배 (5 → 10)
         'npc_kinds': {},           # 종류별 인원. 예: {'active': 1, 'tracker': 1, 'attention': 1, 'interactive': 1}. 나머지는 일반
         'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수 (일반 사람 중에서)
-        'dm_interval': 3.0,        # DM 도착 주기(초)
-        'reply_cooldown': 5.0,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
-        'letter_gap': 40.0,        # 휴대폰 글자 버튼 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
+        'dm_interval': 2.6,        # DM 도착 주기(초)
+        'reply_cooldown': 4.0,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
+        'letter_gap': 20.0,        # 휴대폰 글자 버튼 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
         'caught_radius': 80.0,
         'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
     {
-        'title': '레벨 2: 옆방',
-        'scene': 'res://scenes/top_view/levels/level_1.tscn',
-        'npc_count': 5,
-        'npc_kinds': {},
-        'follower_count': 1,
-        'dm_interval': 2.6,
-        'reply_cooldown': 4.0,
-        'letter_gap': 20.0,
-        'caught_radius': 80.0,
-        'decoy_count': 6,
-        'wrong_lock_time': 2.0,
-    },
-    {
-        'title': '레벨 3: 북적이는 파티',
+        'title': '레벨 2: 북적이는 파티',
         'scene': 'res://scenes/top_view/levels/level_2.tscn',
-        'npc_count': 6,
+        'npc_count': 12,           # 6 → 12
         'npc_kinds': {},
         'follower_count': 2,
         'dm_interval': 2.2,

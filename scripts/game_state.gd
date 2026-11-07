@@ -25,7 +25,8 @@ signal circle_scare_started()
 
 var state: State = State.INTRO
 var end_reason: EndReason = EndReason.NONE
-var level_index: int = 0           # 현재 레벨. R 재시작해도 유지되고, 승리 후 N으로 다음 레벨
+var level_index: int = 0           # 현재 레벨(GameConfig.LEVELS 번호). R 재시작해도 유지되고, 승리 후 N으로 다음 레벨
+var test_level: bool = false       # 테스트 맵(레벨 0, GameConfig.TEST_LEVEL)인지. 디버그로만 연다
 var cfg: Dictionary = GameConfig.LEVELS[0]
 var phone_on: bool = false
 var dm_stage: int = 0
@@ -54,7 +55,7 @@ func _ready() -> void:
 ## 모든 값을 초기화한다. Main._enter_tree()에서 호출한다(자식 씬의 _ready보다 먼저).
 func start_game() -> void:
     level_index = clampi(level_index, 0, GameConfig.LEVELS.size() - 1)
-    cfg = GameConfig.LEVELS[level_index]
+    cfg = GameConfig.TEST_LEVEL if test_level else GameConfig.LEVELS[level_index]
     end_reason = EndReason.NONE
     phone_on = false
     dm_stage = 0
@@ -75,12 +76,18 @@ func start_game() -> void:
 
 
 func has_next_level() -> bool:
-    return not endless_mode and level_index + 1 < GameConfig.LEVELS.size()
+    return not endless_mode and not test_level and level_index + 1 < GameConfig.LEVELS.size()
 
 
 ## 다음 start_game()부터 적용된다. 씬을 다시 불러야 맵이 바뀐다.
 func set_level(index: int) -> void:
+    test_level = false
     level_index = clampi(index, 0, GameConfig.LEVELS.size() - 1)
+
+
+## 디버그: 다음 start_game()부터 테스트 맵(레벨 0)으로 시작한다. set_level을 부르면 풀린다.
+func set_test_level() -> void:
+    test_level = true
 
 
 func set_endless(enabled: bool) -> void:
@@ -93,7 +100,9 @@ func get_level_title() -> String:
 
 ## 화면에 보이는 레벨 번호는 1부터 시작한다.
 func get_level_label() -> String:
-    return '무한 모드' if endless_mode else 'Level %d' % (level_index + 1)
+    if endless_mode:
+        return '무한 모드'
+    return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
 
 
 func is_playing() -> bool:
