@@ -12,6 +12,11 @@ const PHONE_HOME_SCALE: float = 3.9
 const PHONE_HOME_ROTATION: float = 0.5236      # 홈에서는 휴대폰이 30도 기울어 있다
 const PHONE_ZOOM_POSITION: Vector2 = Vector2(780.0, 604.0)
 const PHONE_ZOOM_SCALE: float = 3.4
+## 글자를 읽는 화면(How to Play, 설정, 업적)은 휴대폰을 더 크게 띄운다. 화면 위쪽을 제목 바로 아래에 맞춘 위치.
+## 이 화면들의 내용(menu.tscn의 Zoomed/HowTo, Settings, Achievements)도 4.4 / 3.4 = 1.294배로 키워 두었다.
+const PHONE_READ_POSITION: Vector2 = Vector2(780.0, 733.0)
+const PHONE_READ_SCALE: float = 4.4
+const READ_VIEWS: Array = [View.HOW_TO, View.SETTINGS, View.ACHIEVEMENTS]
 const ALERT_POP_SCALE: float = 1.3
 const ALERT_POP_SEC: float = 0.18
 const BURST_BASE_SCALE: float = 0.7
@@ -72,325 +77,327 @@ var _send_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
-    _icon_base = _icon.position
-    _alert_base = _alert.position
-    UiFx.fade_in($FadeCover)
-    UiFx.add_hover(self)
-    $Home/Buttons/MainMode.pressed.connect(_open.bind(View.LEVELS))
-    $Home/Buttons/Endless.pressed.connect(_on_endless_pressed)
-    $Home/Buttons/HowTo.pressed.connect(_open.bind(View.HOW_TO))
-    $Home/Buttons/Settings.pressed.connect(_open.bind(View.SETTINGS))
-    $Home/Buttons/Achievements.pressed.connect(_open.bind(View.ACHIEVEMENTS))
-    $Home/Buttons/Quit.pressed.connect(_on_quit_pressed)
-    _power.pressed.connect(_on_power_pressed)
-    _previous.pressed.connect(_change_level.bind(-1))
-    _next.pressed.connect(_change_level.bind(1))
-    _back.pressed.connect(_close)
-    _start.pressed.connect(_on_start_pressed)
-    _zoomed.visible = false
-    _credits.visible = false
-    _update_badge()
-    _play_music()
-    _vibrate_player = _make_sfx_player('vibrate')
-    _send_player = _make_sfx_player('send')
-    _show_screen_content()
-    if SceneFlow.menu_start_view == 'levels':
-        SceneFlow.menu_start_view = ''
-        _level = GameState.level_index
-        _snap_to_zoomed()
-        _show_view(View.LEVELS)
-        _zoomed.modulate.a = 1.0
+	_icon_base = _icon.position
+	_alert_base = _alert.position
+	UiFx.fade_in($FadeCover)
+	UiFx.add_hover(self)
+	$Home/Buttons/MainMode.pressed.connect(_open.bind(View.LEVELS))
+	$Home/Buttons/Endless.pressed.connect(_on_endless_pressed)
+	$Home/Buttons/HowTo.pressed.connect(_open.bind(View.HOW_TO))
+	$Home/Buttons/Settings.pressed.connect(_open.bind(View.SETTINGS))
+	$Home/Buttons/Achievements.pressed.connect(_open.bind(View.ACHIEVEMENTS))
+	$Home/Buttons/Quit.pressed.connect(_on_quit_pressed)
+	_power.pressed.connect(_on_power_pressed)
+	_previous.pressed.connect(_change_level.bind(-1))
+	_next.pressed.connect(_change_level.bind(1))
+	_back.pressed.connect(_close)
+	_start.pressed.connect(_on_start_pressed)
+	_zoomed.visible = false
+	_credits.visible = false
+	_update_badge()
+	_play_music()
+	_vibrate_player = _make_sfx_player('vibrate')
+	_send_player = _make_sfx_player('send')
+	_show_screen_content()
+	if SceneFlow.menu_start_view == 'levels':
+		SceneFlow.menu_start_view = ''
+		_level = GameState.level_index
+		_snap_to_zoomed()
+		_show_view(View.LEVELS)
+		_zoomed.modulate.a = 1.0
 
 
 func _process(delta: float) -> void:
-    _hint.modulate.a = 0.55 + 0.45 * sin(Time.get_ticks_msec() * 0.004)
-    if _view == View.LEVELS:
-        _update_messages(delta)
-    if _view != View.HOME:
-        return
-    _shake_time += delta
-    if _credits_left > 0.0:
-        _credits_left -= delta
-        if _credits_left <= 0.0:
-            _credits.visible = false
-            _icon.visible = true
-        return
-    _notify_time += delta
-    if _notify_time >= GameConfig.MENU_NOTIFY_INTERVAL:
-        _notify_time = 0.0
-        _stage = mini(_stage + 1, GameConfig.MAX_DM_STAGE)
-        _update_badge()
-        if String(GameConfig.DM_BADGE_TEXT[_stage]) == '99+':
-            Achievements.event('menu_99')
-        _pop_alert()
-    var shake: float = float(GameConfig.DM_ICON_SHAKE_PX[_stage])
-    var wobble := Vector2(sin(_shake_time * 70.0), cos(_shake_time * 83.0)) * shake
-    _icon.position = _icon_base + wobble
-    _alert.position = _alert_base + wobble
+	_hint.modulate.a = 0.55 + 0.45 * sin(Time.get_ticks_msec() * 0.004)
+	if _view == View.LEVELS:
+		_update_messages(delta)
+	if _view != View.HOME:
+		return
+	_shake_time += delta
+	if _credits_left > 0.0:
+		_credits_left -= delta
+		if _credits_left <= 0.0:
+			_credits.visible = false
+			_icon.visible = true
+		return
+	_notify_time += delta
+	if _notify_time >= GameConfig.MENU_NOTIFY_INTERVAL:
+		_notify_time = 0.0
+		_stage = mini(_stage + 1, GameConfig.MAX_DM_STAGE)
+		_update_badge()
+		if String(GameConfig.DM_BADGE_TEXT[_stage]) == '99+':
+			Achievements.event('menu_99')
+		_pop_alert()
+	var shake: float = float(GameConfig.DM_ICON_SHAKE_PX[_stage])
+	var wobble := Vector2(sin(_shake_time * 70.0), cos(_shake_time * 83.0)) * shake
+	_icon.position = _icon_base + wobble
+	_alert.position = _alert_base + wobble
 
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event.is_action_pressed('pause') and _view != View.HOME:
-        _close()
+	if event.is_action_pressed('pause') and _view != View.HOME:
+		_close()
 
 
 ## 느낌표와 빛살은 홈에 늘 있다. 알림이 쌓이면 빛살이 커지고 메시지 아이콘의 숫자가 오른다.
 func _update_badge() -> void:
-    _badge.visible = _stage > 0
-    _badge_label.text = String(GameConfig.DM_BADGE_TEXT[_stage])
-    _burst.scale = Vector2.ONE * _burst_scale()
+	_badge.visible = _stage > 0
+	_badge_label.text = String(GameConfig.DM_BADGE_TEXT[_stage])
+	_burst.scale = Vector2.ONE * _burst_scale()
 
 
 func _burst_scale() -> float:
-    return BURST_BASE_SCALE + BURST_STAGE_SCALE * float(_stage)
+	return BURST_BASE_SCALE + BURST_STAGE_SCALE * float(_stage)
 
 
 ## 메시지가 올 때마다 느낌표, 빛살, 숫자가 튀어 오른다.
 func _pop_alert() -> void:
-    AudioDirector.play_clip(_vibrate_player, GameConfig.VIBRATE_CLIP_SEC)
-    _alert.scale = Vector2.ONE * ALERT_POP_SCALE
-    _badge.scale = Vector2.ONE * ALERT_POP_SCALE
-    _burst.scale = Vector2.ONE * _burst_scale() * ALERT_POP_SCALE
-    var tween: Tween = create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-    tween.tween_property(_alert, 'scale', Vector2.ONE, ALERT_POP_SEC)
-    tween.tween_property(_badge, 'scale', Vector2.ONE, ALERT_POP_SEC)
-    tween.tween_property(_burst, 'scale', Vector2.ONE * _burst_scale(), ALERT_POP_SEC)
+	AudioDirector.play_clip(_vibrate_player, GameConfig.VIBRATE_CLIP_SEC)
+	_alert.scale = Vector2.ONE * ALERT_POP_SCALE
+	_badge.scale = Vector2.ONE * ALERT_POP_SCALE
+	_burst.scale = Vector2.ONE * _burst_scale() * ALERT_POP_SCALE
+	var tween: Tween = create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_alert, 'scale', Vector2.ONE, ALERT_POP_SEC)
+	tween.tween_property(_badge, 'scale', Vector2.ONE, ALERT_POP_SEC)
+	tween.tween_property(_burst, 'scale', Vector2.ONE * _burst_scale(), ALERT_POP_SEC)
 
 
 func _on_power_pressed() -> void:
-    if _busy:
-        return
-    _credits_left = GameConfig.MENU_CREDITS_SEC
-    Achievements.event('menu_power')
-    _credits.visible = true
-    _icon.visible = false
+	if _busy:
+		return
+	_credits_left = GameConfig.MENU_CREDITS_SEC
+	Achievements.event('menu_power')
+	_credits.visible = true
+	_icon.visible = false
 
 
 func _open(view: View) -> void:
-    if _busy:
-        return
-    _busy = true
-    _level = clampi(GameState.level_index, 0, GameConfig.LEVELS.size() - 1)
-    await _move_phone(true)
-    _show_view(view)
-    var tween: Tween = create_tween()
-    tween.tween_property(_zoomed, 'modulate:a', 1.0, FADE_SEC)
-    await tween.finished
-    _busy = false
+	if _busy:
+		return
+	_busy = true
+	_level = clampi(GameState.level_index, 0, GameConfig.LEVELS.size() - 1)
+	await _move_phone(true, view in READ_VIEWS)
+	_show_view(view)
+	var tween: Tween = create_tween()
+	tween.tween_property(_zoomed, 'modulate:a', 1.0, FADE_SEC)
+	await tween.finished
+	_busy = false
 
 
 func _close() -> void:
-    if _busy or _view == View.HOME:
-        return
-    _busy = true
-    var tween: Tween = create_tween()
-    tween.tween_property(_zoomed, 'modulate:a', 0.0, FADE_SEC)
-    await tween.finished
-    _zoomed.visible = false
-    _view = View.HOME
-    _screen_content.modulate.a = 0.0
-    await _move_phone(false)
-    _show_screen_content()
-    _busy = false
+	if _busy or _view == View.HOME:
+		return
+	_busy = true
+	var tween: Tween = create_tween()
+	tween.tween_property(_zoomed, 'modulate:a', 0.0, FADE_SEC)
+	await tween.finished
+	_zoomed.visible = false
+	_view = View.HOME
+	_screen_content.modulate.a = 0.0
+	await _move_phone(false)
+	_show_screen_content()
+	_busy = false
 
 
 ## 휴대폰이 자리 잡은 뒤 아이콘을 천천히 보여 준다.
 func _show_screen_content() -> void:
-    _stop_content_fade()
-    _screen_content.visible = true
-    _screen_content.modulate.a = 0.0
-    _content_tween = create_tween()
-    _content_tween.tween_interval(GameConfig.MENU_ICON_DELAY)
-    _content_tween.tween_property(_screen_content, 'modulate:a', 1.0, GameConfig.MENU_ICON_FADE_SEC)
+	_stop_content_fade()
+	_screen_content.visible = true
+	_screen_content.modulate.a = 0.0
+	_content_tween = create_tween()
+	_content_tween.tween_interval(GameConfig.MENU_ICON_DELAY)
+	_content_tween.tween_property(_screen_content, 'modulate:a', 1.0, GameConfig.MENU_ICON_FADE_SEC)
 
 
 func _stop_content_fade() -> void:
-    if _content_tween != null:
-        _content_tween.kill()
-        _content_tween = null
+	if _content_tween != null:
+		_content_tween.kill()
+		_content_tween = null
 
 
 func _on_quit_pressed() -> void:
-    get_tree().quit()
+	get_tree().quit()
 
 
 func _on_endless_pressed() -> void:
-    if _busy:
-        return
-    _busy = true
-    await _move_phone(true)
-    SceneFlow.start_endless()
+	if _busy:
+		return
+	_busy = true
+	await _move_phone(true)
+	SceneFlow.start_endless()
 
 
 func _on_start_pressed() -> void:
-    if not _busy:
-        _busy = true
-        SceneFlow.start_level(_level)
+	if not _busy:
+		_busy = true
+		SceneFlow.start_level(_level)
 
 
 ## 휴대폰을 가운데로 불러와 확대하거나 제자리로 돌려보낸다. 홈 화면 요소는 함께 사라지고 나타난다.
-func _move_phone(zoom_in: bool) -> void:
-    _power.visible = not zoom_in
-    if zoom_in:
-        _stop_content_fade()
-        _home.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    else:
-        _home.visible = true
-    var tween: Tween = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-    var seconds: float = GameConfig.MENU_PHONE_ZOOM_SEC
-    tween.tween_property(_phone, 'position', PHONE_ZOOM_POSITION if zoom_in else PHONE_HOME_POSITION, seconds)
-    tween.tween_property(_phone, 'rotation', 0.0 if zoom_in else PHONE_HOME_ROTATION, seconds)
-    tween.tween_property(_phone, 'scale', Vector2.ONE * (PHONE_ZOOM_SCALE if zoom_in else PHONE_HOME_SCALE), seconds)
-    if zoom_in:
-        tween.tween_property(_screen_content, 'modulate:a', 0.0, seconds * 0.5)
-    tween.tween_property(_home, 'modulate:a', 0.0 if zoom_in else 1.0, seconds * (0.5 if zoom_in else 1.0))
-    tween.tween_property(_background, 'modulate', Color.WHITE * (0.6 if zoom_in else 1.0) + Color(0, 0, 0, 1) * (0.4 if zoom_in else 0.0), seconds)
-    await tween.finished
-    if zoom_in:
-        _home.visible = false
-        _screen_content.visible = false
+func _move_phone(zoom_in: bool, read: bool = false) -> void:
+	_power.visible = not zoom_in
+	if zoom_in:
+		_stop_content_fade()
+		_home.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	else:
+		_home.visible = true
+	var tween: Tween = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	var seconds: float = GameConfig.MENU_PHONE_ZOOM_SEC
+	var zoom_position: Vector2 = PHONE_READ_POSITION if read else PHONE_ZOOM_POSITION
+	var zoom_scale: float = PHONE_READ_SCALE if read else PHONE_ZOOM_SCALE
+	tween.tween_property(_phone, 'position', zoom_position if zoom_in else PHONE_HOME_POSITION, seconds)
+	tween.tween_property(_phone, 'rotation', 0.0 if zoom_in else PHONE_HOME_ROTATION, seconds)
+	tween.tween_property(_phone, 'scale', Vector2.ONE * (zoom_scale if zoom_in else PHONE_HOME_SCALE), seconds)
+	if zoom_in:
+		tween.tween_property(_screen_content, 'modulate:a', 0.0, seconds * 0.5)
+	tween.tween_property(_home, 'modulate:a', 0.0 if zoom_in else 1.0, seconds * (0.5 if zoom_in else 1.0))
+	tween.tween_property(_background, 'modulate', Color.WHITE * (0.6 if zoom_in else 1.0) + Color(0, 0, 0, 1) * (0.4 if zoom_in else 0.0), seconds)
+	await tween.finished
+	if zoom_in:
+		_home.visible = false
+		_screen_content.visible = false
 
 
 func _snap_to_zoomed() -> void:
-    _phone.position = PHONE_ZOOM_POSITION
-    _phone.rotation = 0.0
-    _phone.scale = Vector2.ONE * PHONE_ZOOM_SCALE
-    _stop_content_fade()
-    _screen_content.visible = false
-    _power.visible = false
-    _home.visible = false
-    _home.modulate.a = 0.0
-    _background.modulate = Color(0.6, 0.6, 0.6, 1.0)
+	_phone.position = PHONE_ZOOM_POSITION
+	_phone.rotation = 0.0
+	_phone.scale = Vector2.ONE * PHONE_ZOOM_SCALE
+	_stop_content_fade()
+	_screen_content.visible = false
+	_power.visible = false
+	_home.visible = false
+	_home.modulate.a = 0.0
+	_background.modulate = Color(0.6, 0.6, 0.6, 1.0)
 
 
 func _show_view(view: View) -> void:
-    _view = view
-    _zoomed.visible = true
-    _zoomed.modulate.a = 0.0
-    _levels.visible = view == View.LEVELS
-    _how_to.visible = view == View.HOW_TO
-    _settings.visible = view == View.SETTINGS
-    _achievements.visible = view == View.ACHIEVEMENTS
-    if view == View.HOW_TO:
-        Achievements.event('how_to')
-    if view == View.ACHIEVEMENTS:
-        _refresh_achievements()
-    if view == View.LEVELS:
-        _refresh_level()
-    else:
-        _title.text = String(VIEW_TITLES[view])
-        _previous.visible = false
-        _next.visible = false
+	_view = view
+	_zoomed.visible = true
+	_zoomed.modulate.a = 0.0
+	_levels.visible = view == View.LEVELS
+	_how_to.visible = view == View.HOW_TO
+	_settings.visible = view == View.SETTINGS
+	_achievements.visible = view == View.ACHIEVEMENTS
+	if view == View.HOW_TO:
+		Achievements.event('how_to')
+	if view == View.ACHIEVEMENTS:
+		_refresh_achievements()
+	if view == View.LEVELS:
+		_refresh_level()
+	else:
+		_title.text = String(VIEW_TITLES[view])
+		_previous.visible = false
+		_next.visible = false
 
 
 ## 업적 목록. 달성한 업적은 검은 글씨, 아직이면 회색. 숨겨진 업적은 달성 전까지 이름과 설명을 가린다.
 func _refresh_achievements() -> void:
-    for child: Node in _achievement_list.get_children():
-        _achievement_list.remove_child(child)
-        child.queue_free()
-    var header := Label.new()
-    header.text = '%d / %d UNLOCKED' % [Achievements.unlocked_count(), AchievementList.ITEMS.size()]
-    header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    header.add_theme_font_size_override('font_size', 28)
-    _achievement_list.add_child(header)
-    for item: Dictionary in AchievementList.ITEMS:
-        var done: bool = Achievements.is_unlocked(String(item['id']))
-        var secret: bool = AchievementList.is_hidden(item) and not done
-        var color: Color = ACHIEVEMENT_DONE_COLOR if done else ACHIEVEMENT_LOCKED_COLOR
-        var entry := VBoxContainer.new()
-        entry.add_theme_constant_override('separation', 2)
-        var title := Label.new()
-        title.text = ('???' if secret else String(item['name'])) + ('' if done else '  (LOCKED)')
-        title.add_theme_font_size_override('font_size', 26)
-        title.add_theme_color_override('font_color', color)
-        entry.add_child(title)
-        var desc := Label.new()
-        desc.text = '숨겨진 업적입니다.' if secret else String(item['desc'])
-        desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-        desc.add_theme_font_override('font', KOREAN_FONT)
-        desc.add_theme_font_size_override('font_size', 19)
-        desc.add_theme_color_override('font_color', color)
-        entry.add_child(desc)
-        _achievement_list.add_child(entry)
-    (_achievements as ScrollContainer).scroll_vertical = 0
+	for child: Node in _achievement_list.get_children():
+		_achievement_list.remove_child(child)
+		child.queue_free()
+	var header := Label.new()
+	header.text = '%d / %d UNLOCKED' % [Achievements.unlocked_count(), AchievementList.ITEMS.size()]
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_font_size_override('font_size', 28)
+	_achievement_list.add_child(header)
+	for item: Dictionary in AchievementList.ITEMS:
+		var done: bool = Achievements.is_unlocked(String(item['id']))
+		var secret: bool = AchievementList.is_hidden(item) and not done
+		var color: Color = ACHIEVEMENT_DONE_COLOR if done else ACHIEVEMENT_LOCKED_COLOR
+		var entry := VBoxContainer.new()
+		entry.add_theme_constant_override('separation', 2)
+		var title := Label.new()
+		title.text = ('???' if secret else String(item['name'])) + ('' if done else '  (LOCKED)')
+		title.add_theme_font_size_override('font_size', 26)
+		title.add_theme_color_override('font_color', color)
+		entry.add_child(title)
+		var desc := Label.new()
+		desc.text = '숨겨진 업적입니다.' if secret else String(item['desc'])
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc.add_theme_font_override('font', KOREAN_FONT)
+		desc.add_theme_font_size_override('font_size', 19)
+		desc.add_theme_color_override('font_color', color)
+		entry.add_child(desc)
+		_achievement_list.add_child(entry)
+	(_achievements as ScrollContainer).scroll_vertical = 0
 
 
 func _change_level(step: int) -> void:
-    _level = clampi(_level + step, 0, GameConfig.LEVELS.size() - 1)
-    _refresh_level()
+	_level = clampi(_level + step, 0, GameConfig.LEVELS.size() - 1)
+	_refresh_level()
 
 
 ## 레벨이 오를수록 휴대폰 화면의 메시지가 늘어난다.
 func _refresh_level() -> void:
-    _title.text = 'Level %d' % (_level + 1)
-    _level_name.text = String(GameConfig.LEVELS[_level]['title']).get_slice(': ', 1)
-    var best: int = ScoreRecords.get_best(ScoreRecords.level_key(_level))
-    _best.text = 'Best %d' % best if best > 0 else 'Best -'
-    _previous.visible = _level > 0
-    _next.visible = _level < GameConfig.LEVELS.size() - 1
-    _clear_messages()
-    _message_wait = GameConfig.MENU_MESSAGE_FIRST_DELAY
+	_title.text = 'Level %d' % (_level + 1)
+	_level_name.text = String(GameConfig.LEVELS[_level]['title']).get_slice(': ', 1)
+	var best: int = ScoreRecords.get_best(ScoreRecords.level_key(_level))
+	_best.text = 'Best %d' % best if best > 0 else 'Best -'
+	_previous.visible = _level > 0
+	_next.visible = _level < GameConfig.LEVELS.size() - 1
+	_clear_messages()
+	_message_wait = GameConfig.MENU_MESSAGE_FIRST_DELAY
 
 
 ## 메시지가 실시간으로 하나씩 도착한다. 레벨 수만큼 도착하면 잠시 뒤 비우고 다시 시작한다.
 func _update_messages(delta: float) -> void:
-    _message_wait -= delta
-    if _message_wait > 0.0:
-        return
-    if _messages.get_child_count() >= _message_goal():
-        _clear_messages()
-        _message_wait = GameConfig.MENU_MESSAGE_FIRST_DELAY
-        return
-    _add_message()
-    var full: bool = _messages.get_child_count() >= _message_goal()
-    _message_wait = GameConfig.MENU_MESSAGE_HOLD if full else GameConfig.MENU_MESSAGE_INTERVAL
+	_message_wait -= delta
+	if _message_wait > 0.0:
+		return
+	if _messages.get_child_count() >= _message_goal():
+		_clear_messages()
+		_message_wait = GameConfig.MENU_MESSAGE_FIRST_DELAY
+		return
+	_add_message()
+	var full: bool = _messages.get_child_count() >= _message_goal()
+	_message_wait = GameConfig.MENU_MESSAGE_HOLD if full else GameConfig.MENU_MESSAGE_INTERVAL
 
 
 ## 레벨 수만큼, 휴대폰 화면에 들어가는 만큼까지
 func _message_goal() -> int:
-    return mini(_level + 1, GameConfig.MENU_MESSAGE_MAX)
+	return mini(_level + 1, GameConfig.MENU_MESSAGE_MAX)
 
 
 func _add_message() -> void:
-    var message: SpeechBubble = MESSAGE_SCENE.instantiate()
-    _messages.add_child(message)
-    AudioDirector.play_clip(_send_player, GameConfig.SEND_CLIP_SEC)
-    message.show_text(String(GameConfig.MENU_MESSAGES[(_messages.get_child_count() - 1) % GameConfig.MENU_MESSAGES.size()]), MESSAGE_FONT_SIZE)
-    message.modulate.a = 0.0
-    message.pivot_offset = Vector2(0.0, message.size.y)
-    message.scale = Vector2.ONE * MESSAGE_POP_SCALE
-    var tween: Tween = message.create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-    tween.tween_property(message, 'scale', Vector2.ONE, MESSAGE_POP_SEC)
-    tween.tween_property(message, 'modulate:a', 1.0, MESSAGE_POP_SEC * 0.6)
-    if not _busy:
-        _nudge_phone()
+	var message: SpeechBubble = MESSAGE_SCENE.instantiate()
+	_messages.add_child(message)
+	AudioDirector.play_clip(_send_player, GameConfig.SEND_CLIP_SEC)
+	message.show_text(String(GameConfig.MENU_MESSAGES[(_messages.get_child_count() - 1) % GameConfig.MENU_MESSAGES.size()]), MESSAGE_FONT_SIZE)
+	message.modulate.a = 0.0
+	message.pivot_offset = Vector2(0.0, message.size.y)
+	message.scale = Vector2.ONE * MESSAGE_POP_SCALE
+	var tween: Tween = message.create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(message, 'scale', Vector2.ONE, MESSAGE_POP_SEC)
+	tween.tween_property(message, 'modulate:a', 1.0, MESSAGE_POP_SEC * 0.6)
+	if not _busy:
+		_nudge_phone()
 
 
 ## 메시지가 오면 휴대폰이 살짝 진동한다.
 func _nudge_phone() -> void:
-    var tween: Tween = _phone.create_tween()
-    for offset: float in [NUDGE_PX, -NUDGE_PX, NUDGE_PX * 0.5, 0.0]:
-        tween.tween_property(_phone, 'position:x', PHONE_ZOOM_POSITION.x + offset, NUDGE_SEC)
+	var tween: Tween = _phone.create_tween()
+	for offset: float in [NUDGE_PX, -NUDGE_PX, NUDGE_PX * 0.5, 0.0]:
+		tween.tween_property(_phone, 'position:x', PHONE_ZOOM_POSITION.x + offset, NUDGE_SEC)
 
 
 func _clear_messages() -> void:
-    for child: Node in _messages.get_children():
-        _messages.remove_child(child)
-        child.queue_free()
+	for child: Node in _messages.get_children():
+		_messages.remove_child(child)
+		child.queue_free()
 
 
 func _make_sfx_player(sound: String) -> AudioStreamPlayer:
-    var player := AudioStreamPlayer.new()
-    player.stream = AudioDirector.load_sound(sound)
-    player.bus = GameSettings.BUS_SFX
-    add_child(player)
-    return player
+	var player := AudioStreamPlayer.new()
+	player.stream = AudioDirector.load_sound(sound)
+	player.bus = GameSettings.BUS_SFX
+	add_child(player)
+	return player
 
 
 func _play_music() -> void:
-    if ResourceLoader.exists(GameConfig.MENU_MUSIC_PATH):
-        var stream: AudioStream = load(GameConfig.MENU_MUSIC_PATH)
-        if stream is AudioStreamOggVorbis:
-            (stream as AudioStreamOggVorbis).loop = true
-        _music.stream = stream
-        _music.play()
+	if ResourceLoader.exists(GameConfig.MENU_MUSIC_PATH):
+		var stream: AudioStream = load(GameConfig.MENU_MUSIC_PATH)
+		if stream is AudioStreamOggVorbis:
+			(stream as AudioStreamOggVorbis).loop = true
+		_music.stream = stream
+		_music.play()

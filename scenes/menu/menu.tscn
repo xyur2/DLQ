@@ -451,10 +451,11 @@ layout_mode = 0
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 760.0
-offset_top = 330.0
-offset_right = 1160.0
-offset_bottom = 1070.0
+offset_left = 701.0
+offset_top = 325.0
+offset_right = 1101.0
+offset_bottom = 897.0
+scale = Vector2(1.294, 1.294)
 theme_override_font_sizes/font_size = 22
 
 [node name="Settings" parent="Zoomed" instance=ExtResource("7_settings")]
@@ -462,18 +463,20 @@ layout_mode = 0
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 770.0
-offset_top = 340.0
-offset_right = 1150.0
-offset_bottom = 1000.0
+offset_left = 714.0
+offset_top = 339.0
+offset_right = 1094.0
+offset_bottom = 899.0
+scale = Vector2(1.294, 1.294)
 
 [node name="Achievements" type="ScrollContainer" parent="Zoomed"]
 visible = false
 layout_mode = 0
-offset_left = 764.0
-offset_top = 330.0
-offset_right = 1158.0
-offset_bottom = 1070.0
+offset_left = 706.0
+offset_top = 325.0
+offset_right = 1100.0
+offset_bottom = 897.0
+scale = Vector2(1.294, 1.294)
 horizontal_scroll_mode = 0
 
 [node name="List" type="VBoxContainer" parent="Zoomed/Achievements"]

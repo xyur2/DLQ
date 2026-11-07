@@ -1,0 +1,83 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/intro_screen.gd" id="1_intro"]
+[ext_resource type="Theme" path="res://scenes/ui/menu_theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/halftone_background.png" id="3_halftone"]
+[ext_resource type="Texture2D" path="res://assets/story/intro_page.webp" id="4_intro"]
+
+[node name="IntroScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_intro")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.15, 0, 0.45, 1)
+
+[node name="Halftone" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("3_halftone")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Page" type="Node2D" parent="."]
+position = Vector2(281.6, 31.6)
+scale = Vector2(0.937, 0.937)
+
+[node name="Panel1" type="Polygon2D" parent="Page"]
+texture = ExtResource("4_intro")
+antialiased = true
+polygon = PackedVector2Array(9, 12, 560, 9, 347, 1073, 12, 1076)
+uv = PackedVector2Array(9, 12, 560, 9, 347, 1073, 12, 1076)
+
+[node name="Panel2" type="Polygon2D" parent="Page"]
+texture = ExtResource("4_intro")
+antialiased = true
+polygon = PackedVector2Array(585, 13, 853, 9, 690, 1073, 373, 1076)
+uv = PackedVector2Array(585, 13, 853, 9, 690, 1073, 373, 1076)
+
+[node name="Panel3" type="Polygon2D" parent="Page"]
+texture = ExtResource("4_intro")
+antialiased = true
+polygon = PackedVector2Array(877, 14, 1435, 9, 1439, 486, 803, 489)
+uv = PackedVector2Array(877, 14, 1435, 9, 1439, 486, 803, 489)
+
+[node name="Panel4" type="Polygon2D" parent="Page"]
+texture = ExtResource("4_intro")
+antialiased = true
+polygon = PackedVector2Array(796, 508, 1439, 508, 1439, 1073, 714, 1076)
+uv = PackedVector2Array(796, 508, 1439, 508, 1439, 1073, 714, 1076)
+
+[node name="Hint" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -76.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 2
+vertical_alignment = 1
+autowrap_mode = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
