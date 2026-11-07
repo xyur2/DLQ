@@ -1,9 +1,12 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://bnjw561snuesb"]
 
-[ext_resource type="Script" path="res://scripts/party_level.gd" id="1_vs675"]
-[ext_resource type="TileSet" path="res://scenes/top_view/map_tiles.tres" id="2_hmdn7"]
+[ext_resource type="Script" uid="uid://dvb3so4u0pd2l" path="res://scripts/party_level.gd" id="1_vs675"]
+[ext_resource type="TileSet" uid="uid://c8dmbuhmcsk3c" path="res://scenes/top_view/map_tiles.tres" id="2_hmdn7"]
 [ext_resource type="PackedScene" path="res://scenes/top_view/door.tscn" id="3_33g4o"]
 [ext_resource type="PackedScene" path="res://scenes/top_view/prop.tscn" id="5_og3e1"]
+[ext_resource type="PackedScene" path="res://scenes/top_view/obstacles/blue_box.tscn" id="obs_blue"]
+[ext_resource type="PackedScene" path="res://scenes/top_view/obstacles/white_box.tscn" id="obs_white"]
+[ext_resource type="PackedScene" path="res://scenes/top_view/obstacles/yellow_box.tscn" id="obs_yellow"]
 
 [node name="Level7" type="Node2D" unique_id=876856582]
 script = ExtResource("1_vs675")
@@ -25,27 +28,27 @@ position = Vector2(480, 360)
 
 [node name="Doors" type="Node2D" parent="." unique_id=1300284825]
 
-[node name="HallWestDoor" type="Area2D" parent="Doors" unique_id=2058410135 instance=ExtResource("3_33g4o")]
+[node name="HallWestDoor" parent="Doors" unique_id=2058410135 instance=ExtResource("3_33g4o")]
 position = Vector2(984, 384)
 
-[node name="HallEastDoor" type="Area2D" parent="Doors" unique_id=1471635361 instance=ExtResource("3_33g4o")]
+[node name="HallEastDoor" parent="Doors" unique_id=1471635361 instance=ExtResource("3_33g4o")]
 position = Vector2(2472, 384)
 room_a = 1
 room_b = 2
 
-[node name="UpperRoomDoor1" type="Area2D" parent="Doors" unique_id=1593825541 instance=ExtResource("3_33g4o")]
+[node name="UpperRoomDoor1" parent="Doors" unique_id=1593825541 instance=ExtResource("3_33g4o")]
 position = Vector2(1392, 264)
 room_a = 1
 room_b = 3
 vertical_wall = false
 
-[node name="LowerRoomDoor" type="Area2D" parent="Doors" unique_id=1688941561 instance=ExtResource("3_33g4o")]
+[node name="LowerRoomDoor" parent="Doors" unique_id=1688941561 instance=ExtResource("3_33g4o")]
 position = Vector2(1728, 504)
 room_a = 1
 room_b = 4
 vertical_wall = false
 
-[node name="UpperRoomDoor2" type="Area2D" parent="Doors" unique_id=2091503458 instance=ExtResource("3_33g4o")]
+[node name="UpperRoomDoor2" parent="Doors" unique_id=2091503458 instance=ExtResource("3_33g4o")]
 position = Vector2(2064, 264)
 room_a = 1
 room_b = 5
@@ -53,18 +56,52 @@ vertical_wall = false
 
 [node name="Props" type="Node2D" parent="." unique_id=615040279]
 
-[node name="Speaker" type="Area2D" parent="Props" unique_id=1061191578 instance=ExtResource("5_og3e1")]
+[node name="Speaker" parent="Props" unique_id=1061191578 instance=ExtResource("5_og3e1")]
 position = Vector2(160, 160)
 
-[node name="Playlist" type="Area2D" parent="Props" unique_id=1693293684 instance=ExtResource("5_og3e1")]
+[node name="Playlist" parent="Props" unique_id=1693293684 instance=ExtResource("5_og3e1")]
 position = Vector2(480, 660)
 prop_id = "playlist"
 aggro_offset = Vector2(0, -580)
 
-[node name="Light" type="Area2D" parent="Props" unique_id=1020921370 instance=ExtResource("5_og3e1")]
+[node name="Light" parent="Props" unique_id=1020921370 instance=ExtResource("5_og3e1")]
 position = Vector2(2976, 16)
 prop_id = "light"
 aggro_offset = Vector2(0, 544)
 
-[node name="Speaker2" type="Area2D" parent="Props" unique_id=1435839153 instance=ExtResource("5_og3e1")]
+[node name="Speaker2" parent="Props" unique_id=1435839153 instance=ExtResource("5_og3e1")]
 position = Vector2(3296, 160)
+
+[node name="Speaker3" parent="Props" unique_id=719679730 instance=ExtResource("5_og3e1")]
+position = Vector2(1377, 13)
+
+[node name="Light2" parent="Props" unique_id=2108857738 instance=ExtResource("5_og3e1")]
+position = Vector2(1969, -176)
+prop_id = "light"
+
+[node name="Playlist2" parent="Props" unique_id=1005659287 instance=ExtResource("5_og3e1")]
+position = Vector2(256, 660)
+prop_id = "playlist"
+
+[node name="Obstacles" type="Node2D" parent="." unique_id=1281172006]
+
+[node name="WhiteBox" parent="Obstacles" unique_id=1786224902 instance=ExtResource("obs_white")]
+position = Vector2(300, 440)
+
+[node name="YellowBox" parent="Obstacles" unique_id=1951584251 instance=ExtResource("obs_yellow")]
+position = Vector2(2653, 134)
+
+[node name="BlueBox" parent="Obstacles" unique_id=1622796006 instance=ExtResource("obs_blue")]
+position = Vector2(720, 520)
+
+[node name="WhiteBox2" parent="Obstacles" unique_id=565733069 instance=ExtResource("obs_white")]
+position = Vector2(1524, 872)
+
+[node name="YellowBox2" parent="Obstacles" unique_id=2077104648 instance=ExtResource("obs_yellow")]
+position = Vector2(1845, 636)
+
+[node name="BlueBox2" parent="Obstacles" unique_id=1990896536 instance=ExtResource("obs_blue")]
+position = Vector2(1905, 876)
+
+[node name="WhiteBox3" parent="Obstacles" unique_id=2017850124 instance=ExtResource("obs_white")]
+position = Vector2(2935, 595)

@@ -53,6 +53,11 @@ const PLAYLIST_COOLDOWN: float = 60.0
 const SPEAKER_RADIUS: float = 320.0          # 맵 절반에 맞춰 640 → 320
 const LIGHT_RADIUS: float = 360.0            # 720 → 360
 const PLAYLIST_RADIUS: float = 99999.0
+# 조명·플레이리스트는 놓인 방의 크기에 맞춰 작동한다(PartyProp.fit_to_room). 스피커는 소품 둘레에 모으므로 그대로.
+const PROP_REFERENCE_ROOM: Vector2 = Vector2(960, 720)   # 이 크기의 방에서 반경이 LIGHT_RADIUS 그대로
+const PROP_ROOM_SCALE_RANGE: Vector2 = Vector2(0.5, 1.5) # 방 크기에 따른 반경 배율의 최소·최대
+const PROP_TOWARD_CENTER: float = 0.75                   # 어그로 지점: 소품 위치에서 방 가운데 쪽으로 이 비율만큼
+const PROP_ROOM_MARGIN: float = 60.0                     # 어그로 지점이 벽에서 떨어지는 최소 거리
 
 # 사람 종류. 레벨의 npc_kinds로 종류별 인원을 정하고, 나머지는 일반(normal)이다.
 # 색은 임시 그림용. 정식 아트가 들어오면 종류별 그림으로 바꾼다.
@@ -133,7 +138,7 @@ const SLOW_DANCE_SPEED: float = 28.8
 const SLOW_DANCE_WANDER: float = 48.0         # 제자리에서 움직이는 범위(px)
 
 # 점수
-const SCORE_CLEAR_PER_LEVEL: int = 1000       # 레벨 클리어 보너스 = 이 값 × 레벨 번호 (레벨 1은 1000, 레벨 9는 9000). 무한 모드·테스트 맵은 없음
+const SCORE_CLEAR: int = 2000                 # 레벨 클리어 보너스. 모든 레벨 같음. 무한 모드·테스트 맵은 없음
 const SCORE_REPLY_BASE: int = 200             # 1단계에서 답장할 때
 const SCORE_REPLY_STAGE_PENALTY: int = 20     # 밀린 단계마다 깎임
 const SCORE_REPLY_MIN: int = 20
