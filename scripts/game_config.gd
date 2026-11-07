@@ -196,6 +196,35 @@ const LEVELS: Array = [
         'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
 ]
 
+# 무한 모드. 방과 벽 없이 상하좌우로 끝없이 이어진 바닥(ENDLESS_SCENE).
+# 사람과 소품은 플레이어 둘레 구역(ENDLESS_ZONE_HALF) 안, 화면 밖에서 생기고, 구역에서 멀어지고 화면 밖이면 사라진다.
+# 소품은 한 번 쓰면 사라진다. 게임 시간 1시간(ENDLESS_LEVEL_SEC, 시계 1시간)마다 무한 레벨이 오른다.
+# 무한 레벨 n의 값 = START + STEP × (n − 1)이고 상한(MAX, MIN)에서 멈춘다. 사람 수와 DM 주기는 레벨 11에서 상한.
+const ENDLESS_SCENE: String = 'res://scenes/top_view/levels/endless.tscn'
+const ENDLESS_LEVEL_SEC: float = 180.0          # 게임 시간 1시간 (SURVIVE_TIME과 같음)
+const ENDLESS_NPC_START: int = 10               # 구역 안 사람 수
+const ENDLESS_NPC_STEP: int = 2
+const ENDLESS_NPC_MAX: int = 30
+const ENDLESS_DM_START: float = 3.0             # DM 도착 주기(초)
+const ENDLESS_DM_STEP: float = 0.15
+const ENDLESS_DM_MIN: float = 1.5
+const ENDLESS_COOLDOWN_START: float = 5.0       # 답장 후 쉬는 시간(초)
+const ENDLESS_COOLDOWN_STEP: float = 0.25
+const ENDLESS_COOLDOWN_MIN: float = 2.5
+const ENDLESS_LETTER_GAP_START: float = 40.0    # 휴대폰 글자 간격. LETTER_MIN_GAP에서 멈춤
+const ENDLESS_LETTER_GAP_STEP: float = 5.0
+const ENDLESS_DECOY_START: int = 6              # 섞이는 글자 수. 3레벨마다 +1
+const ENDLESS_DECOY_MAX: int = 8
+const ENDLESS_FOLLOWER_MAX: int = 3             # 따라오는 사람. 1명에서 3레벨마다 +1
+const ENDLESS_ZONE_HALF: Vector2 = Vector2(960.0, 720.0)   # 플레이어 둘레 1920×1440 구역. 30명이면 레벨 9 맵과 비슷한 밀도
+const ENDLESS_DESPAWN_MARGIN: float = 240.0     # 구역에서 이만큼 더 멀어지고 화면 밖이면 사라진다
+const ENDLESS_VIEW_MARGIN: float = 96.0         # 화면 가장자리에서 이만큼 바깥이어야 생기거나 사라진다
+const ENDLESS_SPAWN_INTERVAL: float = 0.5       # 사람·소품 수를 맞추는 간격(초)
+const ENDLESS_WANDER_RADIUS: float = 360.0      # 사람이 한 번에 걸어가는 최대 거리
+const ENDLESS_PROP_COUNT: int = 3               # 구역 안에 늘 있는 (아직 안 쓴) 소품 수
+const ENDLESS_AGGRO_OFFSETS: Dictionary = {'speaker': 0.0, 'light': 400.0, 'playlist': 500.0}  # 소품에서 어그로 지점까지 거리(방향 무작위)
+const ENDLESS_LIGHT_WINDOW: Vector2 = Vector2(3200.0, 2400.0)  # 바닥 조명 무늬가 반복되는 크기
+
 # ===== B 구역 =====
 const VIEW_SIZE: Vector2 = Vector2(1920.0, 1080.0)
 const DM_BADGE_TEXT: Array = ['', '1', '4', '21', '34', '56', '73', '85', '99+', '99+', '99+']

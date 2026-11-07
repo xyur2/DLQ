@@ -22,6 +22,11 @@ const COOLDOWN_TINT: Color = Color(0.25, 0.25, 0.3)   # 재사용 대기 중 소
 @export var aggro_offset: Vector2 = Vector2.ZERO
 ## 이 소품만 효과 반경을 바꿀 때 쓴다. 0이면 GameConfig.PROPS의 값.
 @export var radius_override: float = 0.0
+## 무한 모드: 한 번 쓰면 재사용 대기 대신 사라진다. 어그로 효과가 끝나면 노드도 지운다.
+@export var single_use: bool = false
+
+## 한 번 쓰고 사라졌는지 (single_use일 때)
+var used_up: bool = false
 
 var display_name: String = ''
 var aggro_radius: float = 0.0
@@ -83,6 +88,13 @@ func get_aggro_point() -> Vector2:
 
 
 func _process(delta: float) -> void:
+    if used_up:
+        _active_left = maxf(0.0, _active_left - delta)
+        queue_redraw()
+        if _active_left <= 0.0:
+            _remove_effect()
+            queue_free()
+        return
     if _cooldown_left <= 0.0 and _active_left <= 0.0:
         return
     _cooldown_left = maxf(0.0, _cooldown_left - delta)
@@ -96,7 +108,7 @@ func _process(delta: float) -> void:
 
 ## 재사용 대기 중이 아니면 true (상호작용형 사람이 쓸 소품을 고를 때)
 func is_ready() -> bool:
-    return _cooldown_left <= 0.0
+    return _cooldown_left <= 0.0 and not used_up
 
 
 func get_hint() -> String:
@@ -106,14 +118,26 @@ func get_hint() -> String:
 
 
 func interact(_player: Node) -> void:
-    if _cooldown_left > 0.0:
+    if _cooldown_left > 0.0 or used_up:
         return
-    _cooldown_left = cooldown_total
     _active_left = GameConfig.AGGRO_DURATION
-    _icon.modulate = COOLDOWN_TINT
-    _update_cooldown_display()
+    if single_use:
+        _use_up()
+    else:
+        _cooldown_left = cooldown_total
+        _icon.modulate = COOLDOWN_TINT
+        _update_cooldown_display()
     _spawn_effect()
     GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION)
+
+
+## 한 번 쓴 소품: 그림과 판정을 없애고, 어그로 효과만 끝날 때까지 남긴다.
+func _use_up() -> void:
+    used_up = true
+    remove_from_group('interactable')
+    _icon.visible = false
+    _shape.set_deferred('disabled', true)
+    _body_shape.set_deferred('disabled', true)
 
 
 func _update_cooldown_display() -> void:

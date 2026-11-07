@@ -22,6 +22,7 @@ signal player_knocked_back(from_point: Vector2)
 signal slow_dance_changed(active: bool)
 signal circle_ending_started()
 signal circle_scare_started()
+signal endless_level_changed(level: int)
 
 var state: State = State.INTRO
 var end_reason: EndReason = EndReason.NONE
@@ -37,6 +38,8 @@ var tension: float = 0.0
 var tremor_closeness: float = 0.0   # 손 떨림용 근접도 0~1 (TREMOR_FAR_RADIUS → 발각 반경)
 var debug_enabled: bool = false
 var endless_mode: bool = false     # 무한 모드: 시간이 다 돼도 승리하지 않고 끝날 때까지 점수를 쌓는다
+var endless_level: int = 1         # 무한 모드 레벨. 게임 시간 1시간마다 오른다
+var level_title_left: float = 0.0  # 위쪽 알림에 레벨 이름을 보여 줄 남은 시간 (시작할 때, 무한 레벨이 오를 때)
 var score: int = 0
 var stun_left: float = 0.0
 var slow_dance_active: bool = false
@@ -56,7 +59,12 @@ func _ready() -> void:
 ## 모든 값을 초기화한다. Main._enter_tree()에서 호출한다(자식 씬의 _ready보다 먼저).
 func start_game() -> void:
     level_index = clampi(level_index, 0, GameConfig.LEVELS.size() - 1)
-    cfg = GameConfig.TEST_LEVEL if test_level else GameConfig.LEVELS[level_index]
+    endless_level = 1
+    if endless_mode:
+        cfg = endless_config(1)
+    else:
+        cfg = GameConfig.TEST_LEVEL if test_level else GameConfig.LEVELS[level_index]
+    level_title_left = GameConfig.LEVEL_TITLE_SEC
     end_reason = EndReason.NONE
     phone_on = false
     dm_stage = 0
@@ -96,14 +104,34 @@ func set_endless(enabled: bool) -> void:
 
 
 func get_level_title() -> String:
-    return '무한 모드' if endless_mode else String(cfg['title'])
+    return String(cfg['title'])
 
 
 ## 화면에 보이는 레벨 번호는 1부터 시작한다.
 func get_level_label() -> String:
     if endless_mode:
-        return '무한 모드'
+        return '무한 모드 %d' % endless_level
     return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
+
+
+## 무한 모드 레벨 level의 설정. 레벨이 오를수록 사람이 많고 DM이 자주 오며, 상한에서 멈춘다(GameConfig.ENDLESS_*).
+static func endless_config(level: int) -> Dictionary:
+    var step: int = maxi(level - 1, 0)
+    var every_three: int = floori(step / 3.0)
+    return {
+        'title': '무한 모드 레벨 %d' % level,
+        'scene': GameConfig.ENDLESS_SCENE,
+        'npc_target': mini(GameConfig.ENDLESS_NPC_START + GameConfig.ENDLESS_NPC_STEP * step, GameConfig.ENDLESS_NPC_MAX),
+        'npc_bonus': 0,
+        'npc_kinds': {},
+        'follower_count': mini(1 + every_three, GameConfig.ENDLESS_FOLLOWER_MAX),
+        'dm_interval': maxf(GameConfig.ENDLESS_DM_START - GameConfig.ENDLESS_DM_STEP * step, GameConfig.ENDLESS_DM_MIN),
+        'reply_cooldown': maxf(GameConfig.ENDLESS_COOLDOWN_START - GameConfig.ENDLESS_COOLDOWN_STEP * step, GameConfig.ENDLESS_COOLDOWN_MIN),
+        'letter_gap': maxf(GameConfig.ENDLESS_LETTER_GAP_START - GameConfig.ENDLESS_LETTER_GAP_STEP * step, GameConfig.LETTER_MIN_GAP),
+        'caught_radius': 80.0,
+        'decoy_count': mini(GameConfig.ENDLESS_DECOY_START + every_three, GameConfig.ENDLESS_DECOY_MAX),
+        'wrong_lock_time': 2.0,
+    }
 
 
 func is_playing() -> bool:
@@ -118,6 +146,9 @@ func tick(delta: float, nearest_px: float) -> void:
     if not is_playing():
         return
     elapsed_time += delta
+    level_title_left = maxf(0.0, level_title_left - delta)
+    if endless_mode:
+        _update_endless_level()
     stun_left = maxf(0.0, stun_left - delta)
     _update_slow_dance()
     nearest_npc_px = nearest_px
@@ -129,6 +160,17 @@ func tick(delta: float, nearest_px: float) -> void:
     _update_tension(delta)
     _update_tremor(delta)
     _check_end()
+
+
+## 무한 모드: 게임 시간 1시간마다 레벨을 올리고 설정(cfg)을 바꾼다. 다음 DM, 다음 단어부터 적용된다.
+func _update_endless_level() -> void:
+    var level: int = 1 + floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC)
+    if level <= endless_level:
+        return
+    endless_level = level
+    cfg = endless_config(level)
+    level_title_left = GameConfig.LEVEL_TITLE_SEC
+    endless_level_changed.emit(level)
 
 
 ## Q 또는 아이콘 클릭. 켜기 전용.
@@ -231,6 +273,10 @@ func get_dm_badge_text() -> String:
 
 ## 왼쪽 위 시각. 180초 동안 11h 00 → 12h 00.
 func get_clock_text() -> String:
+    if endless_mode:
+        # 무한 모드는 12시에서 멈추지 않고 계속 흐른다 (1시간 = ENDLESS_LEVEL_SEC).
+        var total_minutes: int = floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC * 60.0)
+        return '%02dh %02d' % [(11 + floori(total_minutes / 60.0)) % 24, total_minutes % 60]
     var ratio: float = clampf(elapsed_time / GameConfig.SURVIVE_TIME, 0.0, 1.0)
     var minutes: int = int(ratio * 60.0)
     if minutes >= 60:

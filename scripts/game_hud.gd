@@ -19,7 +19,7 @@ func _process(_delta: float) -> void:
         _notice.text = '밀려났다... %d초' % ceili(GameState.stun_left)
     elif GameState.slow_dance_active:
         _notice.text = '슬로우 댄스 타임'
-    elif GameState.is_playing() and GameState.elapsed_time < GameConfig.LEVEL_TITLE_SEC:
+    elif GameState.is_playing() and GameState.level_title_left > 0.0:
         _notice.text = GameState.get_level_title()
     else:
         _notice.text = ''

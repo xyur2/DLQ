@@ -5,8 +5,12 @@ extends Node2D
 const NPC_SCENE: PackedScene = preload('res://scenes/top_view/npc.tscn')
 const SPAWN_MAX_ATTEMPTS: int = 50
 
+## 사람을 새로 만들 때마다 (처음 배치, 무한 모드에서 새로 생길 때). Main이 소리를 붙인다.
+signal npc_added(npc: PartyNpc)
+
 var level: PartyLevel = null
-var balancer: CrowdBalancer = null
+var balancer: CrowdBalancer = null    # 일반 레벨: 방마다 인원 나누기
+var spawner: EndlessSpawner = null    # 무한 모드: 사람·소품 생성과 삭제
 
 @onready var player: PartyPlayer = $Player
 @onready var _npcs: Node2D = $NPCs
@@ -20,16 +24,26 @@ func _ready() -> void:
     add_child(level)
     move_child(level, 0)
     player.position = level.get_player_start()
-    ($Lighting as PartyLighting).setup(level.rooms, player)
-    balancer = CrowdBalancer.new()
-    balancer.name = 'CrowdBalancer'
-    add_child(balancer)
-    balancer.setup(level, _npcs)
+    if level is EndlessLevel:
+        (level as EndlessLevel).follow_node = player
+        ($Lighting as PartyLighting).setup_wrapped(GameConfig.ENDLESS_LIGHT_WINDOW, player)
+        spawner = EndlessSpawner.new()
+        spawner.name = 'EndlessSpawner'
+        add_child(spawner)
+        spawner.setup(self, level as EndlessLevel, player, _npcs)
+    else:
+        ($Lighting as PartyLighting).setup(level.rooms, player)
+        balancer = CrowdBalancer.new()
+        balancer.name = 'CrowdBalancer'
+        add_child(balancer)
+        balancer.setup(level, _npcs)
     GameState.circle_ending_started.connect(_on_circle_ending_started)
 
 
-## 이 판의 사람 수: 방 넓이로 정한 기본 인원의 합 + 레벨 추가 인원(npc_bonus)
+## 이 판의 처음 사람 수: 방 넓이로 정한 기본 인원의 합 + 레벨 추가 인원(npc_bonus). 무한 모드는 레벨의 목표 인원.
 func npc_count() -> int:
+    if level is EndlessLevel:
+        return int(GameState.cfg['npc_target'])
     return level.total_quota() + int(GameState.cfg['npc_bonus'])
 
 
@@ -57,22 +71,29 @@ func spawn_npcs(count: int) -> Array[PartyNpc]:
     looks.shuffle()
     var result: Array[PartyNpc] = []
     for i: int in count:
-        var npc: PartyNpc = NPC_SCENE.instantiate()
         var room: int = spawn_rooms[i] if i < spawn_rooms.size() else 0
         var point: Vector2 = level.random_free_point_in_room(room)
         for _attempt: int in SPAWN_MAX_ATTEMPTS:
             if _is_free_spawn_point(point, result):
                 break
             point = level.random_free_point_in_room(room)
-        npc.position = point
-        npc.level = level
-        npc.follow_target = player
-        npc.kind = kinds[i]
-        npc.look = looks[i % looks.size()]
-        npc.follower_option = kinds[i] == 'normal' and i < int(GameState.cfg['follower_count'])
-        _npcs.add_child(npc)
-        result.append(npc)
+        var follower: bool = kinds[i] == 'normal' and i < int(GameState.cfg['follower_count'])
+        result.append(create_npc(point, kinds[i], follower, looks[i % looks.size()]))
     return result
+
+
+## 사람 하나를 point에 만든다. look이 0이면 생김새를 무작위로 고른다.
+func create_npc(point: Vector2, kind: String, follower: bool, look: int = 0) -> PartyNpc:
+    var npc: PartyNpc = NPC_SCENE.instantiate()
+    npc.position = point
+    npc.level = level
+    npc.follow_target = player
+    npc.kind = kind
+    npc.look = look if look > 0 else randi_range(1, GameAssets.NPC_LOOK_COUNT)
+    npc.follower_option = follower
+    _npcs.add_child(npc)
+    npc_added.emit(npc)
+    return npc
 
 
 func _is_free_spawn_point(point: Vector2, placed: Array[PartyNpc]) -> bool:
