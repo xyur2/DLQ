@@ -124,6 +124,19 @@ func receive_reaction(positive: bool) -> bool:
     return true
 
 
+## 조명 아래에서 플레이어와 춤춘다: duration초 동안 제자리에서 플레이어를 보고 돈다.
+func start_dance(duration: float, look_point: Vector2) -> void:
+    _cancel_errand()
+    _relocating = false
+    _mode = Mode.IDLE
+    _idle_left = duration
+    velocity = Vector2.ZERO
+    _sprite.face(look_point - global_position)
+    var tween: Tween = _sprite.create_tween()
+    tween.tween_property(_sprite, 'rotation', _sprite.rotation + TAU * 2.0, duration)
+    _show_text('♥', Color(1.0, 0.5, 0.75))
+
+
 ## 히든 엔딩: 지정된 자리로 옮겨 플레이어를 바라본다.
 func surround(point: Vector2, look_at_point: Vector2) -> void:
     _errand_prop = null
@@ -455,8 +468,11 @@ func _show_text(text_value: String, color: Color) -> void:
     tween.chain().tween_callback(emote.queue_free)
 
 
-func _on_aggro(point: Vector2, radius: float, duration: float) -> void:
+func _on_aggro(point: Vector2, radius: float, duration: float, area: Rect2) -> void:
     if global_position.distance_to(point) > radius or not level.can_reach(global_position, point):
+        return
+    # 방 전체를 모으는 소품: 그 방(무한 모드는 소품 둘레 큰 방 크기) 안의 사람만 모인다.
+    if area.has_area() and not area.has_point(global_position):
         return
     _cancel_errand()
     _relocating = false

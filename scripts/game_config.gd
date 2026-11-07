@@ -106,6 +106,13 @@ const CIRCLE_RADIUS: float = 96.0
 const CIRCLE_STARE_SEC: float = 3.0           # 둘러싸고 째려보는 시간
 const CIRCLE_SCARE_SEC: float = 1.5           # 이후 공포 효과 시간, 끝나면 게임 종료
 
+# 춤추기: 조명(light 소품)이 비추는 바닥(어그로 지점) 안에서 E를 누르면 가까운 사람 한 명과 춤춘다. 조명 하나에 한 번.
+const DANCE_SEC: float = 2.0                  # 춤추는 동안 아무것도 할 수 없는 시간(초)
+const DANCE_SCORE: int = 150                  # 춤 한 번 점수 (답장 최고 100, 반응 처음 10)
+const DANCE_SPOT_RADIUS: float = 110.0        # 조명이 비추는 바닥 반경. 플레이어 중심이 이 안이어야 춤출 수 있음
+const DANCE_PARTNER_RANGE: float = 160.0      # 플레이어에게서 이 거리 안의 가장 가까운 사람과 춤춘다
+const DANCE_SPOT_COLOR: Color = Color(1.0, 0.85, 0.55, 0.3)
+
 # 슬로우 댄스 타임
 const SLOW_DANCE_START_RANGE: Vector2 = Vector2(60.0, 100.0)  # 시작 시각(초). 판마다 무작위
 const SLOW_DANCE_DURATION: float = 25.0
@@ -122,11 +129,12 @@ const SCORE_REACTION_RESET_SEC: float = 20.0  # 같은 사람에게 마지막으
 const SCORE_BLOCK: int = 10
 const SCORE_WRONG_LETTER: int = 10          # 틀린 글자를 누르면 깎임. 0 아래로는 내려가지 않음
 
-# 소품 종류별 값. 위치와 어그로 지점은 top_view.tscn에서 배치한다.
+# 소품 종류별 값. 위치와 어그로 지점은 레벨 씬에서 배치한다.
+# whole_room: 반경 대신 소품이 있는 방 전체의 사람을 모은다(무한 모드는 소품 가운데의 ENDLESS_GATHER_SIZE 범위).
 const PROPS: Dictionary = {
     'speaker': {'name': '스피커', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25), 'icon_size': 110.0},
     'light': {'name': '조명', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35), 'icon_size': 96.0},
-    'playlist': {'name': '플레이리스트', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0},
+    'playlist': {'name': '플레이리스트', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0, 'whole_room': true},
 }
 
 const SURVIVE_TIME: float = 180.0
@@ -156,8 +164,9 @@ const TEST_LEVEL: Dictionary = {
 
 # 플레이할 수 있는 레벨 9개. 화면에는 Level 1~9로 나온다(level_index 0~8).
 # 맵은 3레벨마다 바뀐다: 1~3 level_1(큰 방 + 작은 방), 4~6 level_4(큰 방 + 작은 방 4개), 7~9 level_7(큰 방 - 긴 복도 - 큰 방, 복도 옆 작은 방 3개).
-# DM 주기(3초)와 답장 후 쉬는 시간(5초)은 모든 레벨이 같다. 레벨이 오를수록 답장이 길어지고(4글자 단어 → 긴 단어 → 2~4단어 문장),
-# 휴대폰 글자 풍선이 촘촘해지고(letter_gap, letter_spread), 섞이는 글자가 늘고, 사람이 많아진다.
+# DM 주기와 답장 후 쉬는 시간은 레벨 5까지 짧아지고(3.0 → 2.4초, 5 → 4초) 그 뒤로는 그대로다(레벨 6부터 문장이라 충분히 어려움).
+# 레벨이 오를수록 답장이 길어지고(4글자 단어 → 긴 단어 → 2~4단어 문장), 휴대폰 글자 풍선이 촘촘해지고(letter_gap, letter_spread),
+# 섞이는 글자가 늘고, 사람이 많아진다.
 # 사람 수 = 맵의 방 기본 인원 합(8, 14, 20) + npc_bonus(맵 안에서 1번째 레벨 2, 2번째 4, 3번째 6).
 # 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
@@ -177,45 +186,44 @@ const LEVELS: Array = [
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
     {'title': '레벨 2: 손님이 늘었다', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 1, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'word5',
+        'follower_count': 1, 'dm_interval': 2.85, 'reply_cooldown': 4.75, 'reply_pool': 'word5',
         'letter_gap': 34.0, 'letter_spread': 1.85, 'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
     {'title': '레벨 3: 북적이는 옆방', 'scene': 'res://scenes/top_view/levels/level_1.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 1, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'word6',
+        'follower_count': 1, 'dm_interval': 2.7, 'reply_cooldown': 4.5, 'reply_pool': 'word6',
         'letter_gap': 28.0, 'letter_spread': 1.7, 'caught_radius': 80.0, 'decoy_count': 6, 'wrong_lock_time': 2.0},
     {'title': '레벨 4: 작은 방들', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 2, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'two',
+        'follower_count': 2, 'dm_interval': 2.55, 'reply_cooldown': 4.25, 'reply_pool': 'two',
         'letter_gap': 23.0, 'letter_spread': 1.55, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
     {'title': '레벨 5: 방마다 손님', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'two_long',
+        'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'two_long',
         'letter_gap': 18.0, 'letter_spread': 1.4, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
     {'title': '레벨 6: 빈방이 없다', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'three',
+        'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'three',
         'letter_gap': 14.0, 'letter_spread': 1.3, 'caught_radius': 80.0, 'decoy_count': 7, 'wrong_lock_time': 2.0},
     {'title': '레벨 7: 긴 복도', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 2, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'three_long',
+        'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'three_long',
         'letter_gap': 10.0, 'letter_spread': 1.2, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
     {'title': '레벨 8: 복도의 손님들', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'four',
+        'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'four',
         'letter_gap': 8.0, 'letter_spread': 1.1, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
     {'title': '레벨 9: 파티의 끝', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 3.0, 'reply_cooldown': 5.0, 'reply_pool': 'four_long',
+        'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0, 'reply_pool': 'four_long',
         'letter_gap': 6.0, 'letter_spread': 1.0, 'caught_radius': 80.0, 'decoy_count': 8, 'wrong_lock_time': 2.0},
 ]
 
 # 무한 모드. 방과 벽 없이 상하좌우로 끝없이 이어진 바닥(ENDLESS_SCENE).
 # 사람과 소품은 플레이어 둘레 구역(ENDLESS_ZONE_HALF) 안, 화면 밖에서 생기고, 구역에서 멀어지고 화면 밖이면 사라진다.
 # 소품은 한 번 쓰면 사라진다. 게임 시간 1시간(ENDLESS_LEVEL_SEC, 시계 1시간)마다 무한 레벨이 오른다.
-# 무한 레벨 n의 사람 수 = START + STEP × (n − 1), 레벨 11에서 상한(30명). DM 주기와 쉬는 시간은 바뀌지 않는다.
-# 답장 문구, 글자 풍선 간격, 섞이는 글자는 일반 레벨 n(9 이상이면 레벨 9)과 같다.
+# 무한 레벨 n의 사람 수 = START + STEP × (n − 1), 레벨 11에서 상한(40명).
+# DM 주기·쉬는 시간, 답장 문구, 글자 풍선 간격, 섞이는 글자는 일반 레벨 n(9 이상이면 레벨 9)과 같다. DM 주기는 레벨 5에서 상한.
 const ENDLESS_SCENE: String = 'res://scenes/top_view/levels/endless.tscn'
 const ENDLESS_LEVEL_SEC: float = 180.0          # 게임 시간 1시간 (SURVIVE_TIME과 같음)
-const ENDLESS_NPC_START: int = 10               # 구역 안 사람 수
-const ENDLESS_NPC_STEP: int = 2
-const ENDLESS_NPC_MAX: int = 30
-const ENDLESS_DM_INTERVAL: float = 3.0          # DM 도착 주기(초). 레벨과 상관없이 같음
-const ENDLESS_REPLY_COOLDOWN: float = 5.0       # 답장 후 쉬는 시간(초)
+const ENDLESS_NPC_START: int = 12               # 구역 안 사람 수
+const ENDLESS_NPC_STEP: int = 3
+const ENDLESS_NPC_MAX: int = 40
 const ENDLESS_FOLLOWER_MAX: int = 3             # 따라오는 사람. 1명에서 3레벨마다 +1
-const ENDLESS_ZONE_HALF: Vector2 = Vector2(960.0, 720.0)   # 플레이어 둘레 1920×1440 구역. 30명이면 레벨 9 맵과 비슷한 밀도
+const ENDLESS_ZONE_HALF: Vector2 = Vector2(960.0, 720.0)   # 플레이어 둘레 1920×1440 구역. 40명이면 큰 방(960×720)에 10명꼴
+const ENDLESS_GATHER_SIZE: Vector2 = Vector2(960.0, 720.0)  # 방 전체를 모으는 소품(플레이리스트)이 모으는 범위: 소품 가운데의 큰 방 크기
 const ENDLESS_DESPAWN_MARGIN: float = 240.0     # 구역에서 이만큼 더 멀어지고 화면 밖이면 사라진다
 const ENDLESS_VIEW_MARGIN: float = 96.0         # 화면 가장자리에서 이만큼 바깥이어야 생기거나 사라진다
 const ENDLESS_SPAWN_INTERVAL: float = 0.5       # 사람·소품 수를 맞추는 간격(초)

@@ -15,7 +15,9 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
     _score.text = '%s · 점수 %d' % [GameState.get_level_label(), GameState.score]
-    if GameState.is_stunned():
+    if GameState.is_dancing():
+        _notice.text = '함께 춤추는 중! +%d' % GameConfig.DANCE_SCORE
+    elif GameState.is_stunned():
         _notice.text = '밀려났다... %d초' % ceili(GameState.stun_left)
     elif GameState.slow_dance_active:
         _notice.text = '슬로우 댄스 타임'

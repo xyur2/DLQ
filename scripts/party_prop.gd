@@ -1,7 +1,9 @@
 class_name PartyProp
 extends Area2D
 ## 상호작용 소품(스피커·조명·플레이리스트). E를 누르면 어그로 지점으로 사람을 모은다.
-## 종류별 이름·반경·재사용 대기·색은 GameConfig.PROPS, 위치와 어그로 지점은 top_view.tscn에서 정한다.
+## 종류별 이름·반경·재사용 대기·색은 GameConfig.PROPS, 위치와 어그로 지점은 레벨 씬에서 정한다.
+## whole_room 소품(플레이리스트)은 반경 대신 소품이 있는 방 전체의 사람을 모은다(PartyLevel.gather_area).
+## 조명(light)은 어그로 지점에 춤추는 자리(DanceSpot)를 만든다.
 ## 모양은 소품 이미지, 작동 효과는 효과 씬(GameAssets.PROP_EFFECTS). 효과 씬이 없으면 원으로 대신 표시한다.
 ## 재사용 대기 중에는 소품이 어두워지고, 그림 아래에 줄어드는 막대와 남은 초가 나온다.
 ## 막대와 남은 초는 prop.tscn에서 z_index 10이라 소품으로 모인 사람에게 가려지지 않는다.
@@ -29,6 +31,7 @@ const COOLDOWN_TINT: Color = Color(0.25, 0.25, 0.3)   # 재사용 대기 중 소
 var used_up: bool = false
 
 var display_name: String = ''
+var whole_room: bool = false
 var aggro_radius: float = 0.0
 var cooldown_total: float = 0.0
 var base_color: Color = Color.WHITE
@@ -48,6 +51,12 @@ func _ready() -> void:
     var spec: Dictionary = GameConfig.PROPS[prop_id]
     display_name = String(spec['name'])
     aggro_radius = radius_override if radius_override > 0.0 else float(spec['radius'])
+    whole_room = bool(spec.get('whole_room', false))
+    if prop_id == 'light':
+        var spot := DanceSpot.new()
+        spot.name = 'DanceSpot'
+        spot.position = aggro_offset
+        add_child(spot)
     cooldown_total = float(spec['cooldown'])
     base_color = spec['color']
     _icon.texture = GameAssets.prop_icon(prop_id, base_color)
@@ -128,7 +137,17 @@ func interact(_player: Node) -> void:
         _icon.modulate = COOLDOWN_TINT
         _update_cooldown_display()
     _spawn_effect()
-    GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION)
+    GameState.emit_aggro(get_aggro_point(), aggro_radius, GameConfig.AGGRO_DURATION, _gather_area())
+
+
+## whole_room이면 소품이 있는 방(무한 모드는 소품 둘레 큰 방 크기), 아니면 빈 영역(반경만 씀)
+func _gather_area() -> Rect2:
+    if not whole_room:
+        return Rect2()
+    var node: Node = get_parent()
+    while node != null and not node is PartyLevel:
+        node = node.get_parent()
+    return (node as PartyLevel).gather_area(global_position) if node != null else Rect2()
 
 
 ## 한 번 쓴 소품: 그림과 판정을 없애고, 어그로 효과만 끝날 때까지 남긴다.

@@ -99,6 +99,12 @@ func random_point_in_room(index: int) -> Vector2:
     ))
 
 
+## 방 전체를 모으는 소품이 모으는 범위: point가 있는 방(월드 좌표)
+func gather_area(point: Vector2) -> Rect2:
+    var room: Rect2 = rooms[room_or_nearest(point)]
+    return Rect2(to_global(room.position), room.size)
+
+
 ## 점이 들어 있는 방, 문틀 안이면 가장 가까운 방
 func room_or_nearest(point: Vector2) -> int:
     var index: int = room_at(point)

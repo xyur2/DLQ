@@ -69,6 +69,12 @@ func set_allocation(total: int) -> void:
     room_load.append(0)
 
 
+## 방이 없으므로 소품 가운데의 큰 방 크기(ENDLESS_GATHER_SIZE)
+func gather_area(point: Vector2) -> Rect2:
+    var size: Vector2 = GameConfig.ENDLESS_GATHER_SIZE
+    return Rect2(point - size * 0.5, size)
+
+
 func room_at(_point: Vector2) -> int:
     return 0
 

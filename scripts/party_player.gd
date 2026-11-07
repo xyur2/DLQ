@@ -1,6 +1,6 @@
 class_name PartyPlayer
 extends CharacterBody2D
-## 플레이어. WASD 이동, 근처 소품·문에 E. 휴대폰이 켜져 있거나 밀려난 상태면 이동·상호작용 불가.
+## 플레이어. WASD 이동, 근처 소품·문·춤추는 자리에 E. 휴대폰이 켜져 있거나 밀려났거나 춤추는 중이면 이동·상호작용 불가.
 
 const LAYER_PLAYER: int = 2
 const MASK_WALL_AND_NPC: int = 1 | 4
@@ -22,6 +22,7 @@ func _ready() -> void:
     collision_layer = LAYER_PLAYER
     collision_mask = MASK_WALL_AND_NPC
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+    add_to_group('player')
     _sprite.setup(GameConfig.PLAYER_COLOR, GameConfig.PLAYER_RADIUS)
 
     # 크기는 GameConfig 기준으로 맞춘다.
@@ -43,6 +44,7 @@ func _ready() -> void:
 
     GameState.debug_changed.connect(_on_debug_changed)
     GameState.player_knocked_back.connect(_on_knocked_back)
+    GameState.dance_started.connect(_on_dance_started)
 
 
 func _physics_process(delta: float) -> void:
@@ -100,6 +102,12 @@ func _update_hint(can_move: bool) -> void:
 func _on_knocked_back(from_point: Vector2) -> void:
     _knockback_left = GameConfig.KNOCKBACK_DURATION
     _knockback_velocity = from_point.direction_to(global_position) * GameConfig.KNOCKBACK_SPEED
+
+
+## 춤: 제자리에서 두 바퀴 돈다.
+func _on_dance_started(duration: float) -> void:
+    var tween: Tween = _sprite.create_tween()
+    tween.tween_property(_sprite, 'rotation', _sprite.rotation + TAU * 2.0, duration)
 
 
 func _on_debug_changed(_enabled: bool) -> void:
