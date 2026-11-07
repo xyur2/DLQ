@@ -18,6 +18,18 @@ corner_radius_bottom_left = 44
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hitbox"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dm_badge"]
+bg_color = Color(0.9, 0.1, 0.18, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
 [node name="Phone" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -157,6 +169,28 @@ offset_top = 300.0
 offset_right = 420.0
 offset_bottom = 940.0
 mouse_filter = 2
+
+[node name="DmBadge" type="Panel" parent="PhoneRoot/Screen"]
+visible = false
+offset_left = 318.0
+offset_top = 10.0
+offset_right = 420.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dm_badge")
+
+[node name="Count" type="Label" parent="PhoneRoot/Screen/DmBadge"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_bold")
+theme_override_font_sizes/font_size = 28
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="GirlfriendBanner" parent="PhoneRoot/Screen" instance=ExtResource("21_bubble")]
 visible = false

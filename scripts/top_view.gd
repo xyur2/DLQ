@@ -36,7 +36,7 @@ func _ready() -> void:
         balancer = CrowdBalancer.new()
         balancer.name = 'CrowdBalancer'
         add_child(balancer)
-        balancer.setup(level, _npcs)
+        balancer.setup(level, _npcs, player)
     GameState.circle_ending_started.connect(_on_circle_ending_started)
 
 

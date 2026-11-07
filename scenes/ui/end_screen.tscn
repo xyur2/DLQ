@@ -176,9 +176,9 @@ uv = PackedVector2Array(1062, 528, 1964, 525, 1967, 1362, 905, 1364)
 [node name="Info" type="Label" parent="."]
 layout_mode = 0
 offset_left = 1420.0
-offset_top = 460.0
+offset_top = 440.0
 offset_right = 1892.0
-offset_bottom = 670.0
+offset_bottom = 760.0
 theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
 vertical_alignment = 1

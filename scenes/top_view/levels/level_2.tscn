@@ -40,8 +40,7 @@ prop_id = "speaker"
 [node name="Light" parent="Props" instance=ExtResource("2_prop")]
 position = Vector2(800, 16)
 prop_id = "light"
-aggro_offset = Vector2(448, 344)
-radius_override = 800.0
+aggro_offset = Vector2(0, 544)
 
 [node name="Playlist" parent="Props" instance=ExtResource("2_prop")]
 position = Vector2(480, 660)
