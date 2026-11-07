@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/end_screen.gd" id="1_end"]
 [ext_resource type="Theme" path="res://scenes/ui/menu_theme.tres" id="2_theme"]
 [ext_resource type="SystemFont" path="res://scenes/ui/display_font.tres" id="3_display"]
+[ext_resource type="Texture2D" path="res://assets/story/clear_page.webp" id="4_clear"]
+[ext_resource type="Texture2D" path="res://assets/story/caught_page.webp" id="5_caught"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_stamp"]
 bg_color = Color(0.05, 0.03, 0.12, 0.9)
@@ -31,8 +33,78 @@ theme = ExtResource("2_theme")
 color = Color(0.03, 0.02, 0.09, 0)
 script = ExtResource("1_end")
 
+[node name="Pages" type="Node2D" parent="."]
+position = Vector2(28, 28)
+scale = Vector2(0.943, 0.943)
+
+[node name="clear" type="Node2D" parent="Pages"]
+visible = false
+
+[node name="Panel1" type="Polygon2D" parent="Pages/clear"]
+texture = ExtResource("4_clear")
+antialiased = true
+polygon = PackedVector2Array(11, 13, 565, 10, 384, 1073, 11, 1073)
+uv = PackedVector2Array(11, 13, 565, 10, 384, 1073, 11, 1073)
+
+[node name="Panel2" type="Polygon2D" parent="Pages/clear"]
+texture = ExtResource("4_clear")
+antialiased = true
+polygon = PackedVector2Array(597, 12, 846, 10, 660, 1072, 416, 1074)
+uv = PackedVector2Array(597, 12, 846, 10, 660, 1072, 416, 1074)
+
+[node name="Panel3" type="Polygon2D" parent="Pages/clear"]
+texture = ExtResource("4_clear")
+antialiased = true
+polygon = PackedVector2Array(881, 12, 1251, 10, 1087, 474, 787, 475)
+uv = PackedVector2Array(881, 12, 1251, 10, 1087, 474, 787, 475)
+
+[node name="Panel4" type="Polygon2D" parent="Pages/clear"]
+texture = ExtResource("4_clear")
+antialiased = true
+polygon = PackedVector2Array(1270, 12, 1436, 10, 1438, 473, 1109, 475)
+uv = PackedVector2Array(1270, 12, 1436, 10, 1438, 473, 1109, 475)
+
+[node name="Panel5" type="Polygon2D" parent="Pages/clear"]
+texture = ExtResource("4_clear")
+antialiased = true
+polygon = PackedVector2Array(779, 494, 1436, 491, 1438, 1073, 696, 1075)
+uv = PackedVector2Array(779, 494, 1436, 491, 1438, 1073, 696, 1075)
+
+[node name="caught" type="Node2D" parent="Pages"]
+visible = false
+
+[node name="Panel1" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("5_caught")
+antialiased = true
+polygon = PackedVector2Array(7, 9, 553, 7, 387, 1074, 11, 1076)
+uv = PackedVector2Array(7, 9, 553, 7, 387, 1074, 11, 1076)
+
+[node name="Panel2" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("5_caught")
+antialiased = true
+polygon = PackedVector2Array(583, 9, 872, 9, 724, 1074, 418, 1076)
+uv = PackedVector2Array(583, 9, 872, 9, 724, 1074, 418, 1076)
+
+[node name="Panel3" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("5_caught")
+antialiased = true
+polygon = PackedVector2Array(902, 9, 1438, 7, 1440, 484, 826, 487)
+uv = PackedVector2Array(902, 9, 1438, 7, 1440, 484, 826, 487)
+
+[node name="Panel4" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("5_caught")
+antialiased = true
+polygon = PackedVector2Array(822, 507, 1438, 505, 1440, 1074, 758, 1076)
+uv = PackedVector2Array(822, 507, 1438, 505, 1440, 1074, 758, 1076)
+
 [node name="Panels" type="Control" parent="."]
+visible = false
 anchors_preset = 0
+offset_left = 28.0
+offset_top = 240.0
+offset_right = 28.0
+offset_bottom = 240.0
+scale = Vector2(0.72, 0.72)
 mouse_filter = 2
 
 [node name="Panel1" type="Polygon2D" parent="Panels"]
@@ -105,11 +177,14 @@ horizontal_alignment = 1
 
 [node name="Info" type="Label" parent="."]
 layout_mode = 0
-offset_left = 89.0
-offset_top = 846.0
-offset_right = 1246.0
-offset_bottom = 886.0
+offset_left = 1420.0
+offset_top = 500.0
+offset_right = 1892.0
+offset_bottom = 660.0
 theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="Buttons" type="Control" parent="."]
 anchors_preset = 0
@@ -117,29 +192,29 @@ mouse_filter = 2
 
 [node name="LevelSelect" type="Button" parent="Buttons"]
 layout_mode = 0
-offset_left = 89.0
-offset_top = 896.0
-offset_right = 650.0
-offset_bottom = 1006.0
+offset_left = 1420.0
+offset_top = 810.0
+offset_right = 1892.0
+offset_bottom = 910.0
 focus_mode = 0
 text = "레벨 선택"
 
 [node name="Right" type="Button" parent="Buttons"]
 layout_mode = 0
-offset_left = 684.0
-offset_top = 896.0
-offset_right = 1246.0
-offset_bottom = 1006.0
+offset_left = 1420.0
+offset_top = 680.0
+offset_right = 1892.0
+offset_bottom = 790.0
 focus_mode = 0
 text = "Retry"
 
 [node name="Stamp" type="Control" parent="."]
 layout_mode = 0
-offset_left = 1340.0
-offset_top = 760.0
-offset_right = 1840.0
-offset_bottom = 1020.0
-pivot_offset = Vector2(250, 130)
+offset_left = 1436.0
+offset_top = 200.0
+offset_right = 1876.0
+offset_bottom = 430.0
+pivot_offset = Vector2(220, 115)
 mouse_filter = 2
 
 [node name="Image" type="TextureRect" parent="Stamp"]

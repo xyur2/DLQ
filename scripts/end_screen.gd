@@ -2,7 +2,8 @@ class_name EndScreen
 extends ColorRect
 ## 클리어, 게임 오버, 히든 엔딩 화면. 스토리 컷이 만화처럼 하나씩 나온 뒤 도장이 찍히고 버튼이 나타난다.
 ## process_mode = ALWAYS (씬에서 설정)라서 일시정지 중에도 재생된다. 배치는 scenes/ui/end_screen.tscn에서 편집한다.
-## 컷 이미지: assets/story/<이름>_1~4.png. 없으면 번호만 있는 빈 컷으로 표시한다.
+## 씬의 Pages/<이름>이 있으면 만화 한 장을 칸(Polygon2D)별로 잘라 순서대로 보여 준다(칸 수는 자유).
+## 없으면 Panels의 4칸에 assets/story/<이름>_1~4.png를 넣고, 그것도 없으면 번호만 있는 빈 컷으로 표시한다.
 
 const STORY_NAMES: Dictionary = {
     GameState.EndReason.CAUGHT: 'caught',
@@ -27,7 +28,8 @@ const STAMP_CLEAR_COLOR: Color = Color(0.3, 1.0, 0.75)
 ## 다 나왔는지. 버튼과 키 입력은 이때부터 받는다.
 var finished: bool = false
 
-@onready var _panels: Array[Polygon2D] = [$Panels/Panel1, $Panels/Panel2, $Panels/Panel3, $Panels/Panel4]
+var _panels: Array[Polygon2D] = []
+
 @onready var _info: Label = $Info
 @onready var _left: Button = $Buttons/LevelSelect
 @onready var _right: Button = $Buttons/Right
@@ -67,6 +69,17 @@ func _on_game_ended(reason: int) -> void:
 
 
 func _setup_panels(story: String) -> void:
+    var page: Node = get_node_or_null('Pages/' + story)
+    if page == null:
+        page = $Panels
+    page.visible = true
+    _panels.clear()
+    for child: Node in page.get_children():
+        var cut: Polygon2D = child as Polygon2D
+        cut.visible = false
+        _panels.append(cut)
+    if page != $Panels:
+        return
     for i: int in _panels.size():
         var panel: Polygon2D = _panels[i]
         panel.visible = false

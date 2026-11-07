@@ -112,7 +112,6 @@ func _level() -> PartyLevel:
 func _draw() -> void:
     var size: Vector2 = _size()
     var rect := Rect2(-size * 0.5, size)
-    draw_rect(rect, GameConfig.FLOOR_COLOR)
     if is_open:
         # 열린 문: 문짝이 벽 쪽으로 젖혀진 모습
         var panel_rect: Rect2

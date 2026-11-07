@@ -1,38 +1,27 @@
 class_name PartyLevel
 extends Node2D
 ## 레벨 하나의 맵. scenes/top_view/levels/level_N.tscn의 루트에 붙는다.
-## - rooms: 방 바닥(사람이 다닐 수 있는 곳). 벽 안쪽 좌표.
-## - walls: 충돌 벽. 문이 들어갈 자리는 비워 둔다.
+## - rooms: 방 바닥(사람이 다닐 수 있는 곳). 벽 안쪽 좌표. 사람의 이동 계산에 쓰므로 타일을 바꾸면 함께 맞춘다.
+## - 자식 Floor, Walls(TileMapLayer): 바닥과 벽 타일. 칸은 48px이고, 벽 충돌은 TileSet의 물리 레이어가 맡는다.
 ## - 자식 Props: 소품, Doors: 문(PartyDoor), PlayerStart: 플레이어 시작 위치.
 ## 사람(NPC)은 이 노드의 random_point / next_step으로 방 사이를 문을 거쳐 이동한다.
 
-const WALL_LAYER: int = 1
 const FREE_POINT_ATTEMPTS: int = 12
 
 ## 방 바닥 영역 (벽 안쪽)
 @export var rooms: Array[Rect2] = []
-## 충돌 벽 영역. 문 자리는 비워 둔다.
-@export var walls: Array[Rect2] = []
-## 배경 이미지. rooms[0]에 맞춰 늘이거나 줄인다. 비우면 바닥과 격자를 그린다.
-@export_file('*.png', '*.webp') var background_path: String = ''
 
 var _doors: Array[PartyDoor] = []
-var _background: Texture2D = null
 
 @onready var _player_start: Marker2D = $PlayerStart
 
 
 func _ready() -> void:
-    for rect: Rect2 in walls:
-        _add_wall(rect)
     var doors_node: Node = get_node_or_null('Doors')
     if doors_node != null:
         for node: Node in doors_node.get_children():
             if node is PartyDoor:
                 _doors.append(node as PartyDoor)
-    if background_path != '':
-        _background = GameAssets.load_texture(background_path)
-    queue_redraw()
 
 
 func get_player_start() -> Vector2:
@@ -188,36 +177,3 @@ func _nearest_room(point: Vector2) -> int:
             best_distance = distance
             best = i
     return best
-
-
-func _add_wall(rect: Rect2) -> void:
-    var body := StaticBody2D.new()
-    body.collision_layer = WALL_LAYER
-    body.collision_mask = 0
-    body.position = rect.get_center()
-    var shape := CollisionShape2D.new()
-    var box := RectangleShape2D.new()
-    box.size = rect.size
-    shape.shape = box
-    body.add_child(shape)
-    add_child(body)
-
-
-func _draw() -> void:
-    for rect: Rect2 in walls:
-        draw_rect(rect, GameConfig.WALL_COLOR)
-    for i: int in rooms.size():
-        var room: Rect2 = rooms[i]
-        if i == 0 and _background != null:
-            draw_texture_rect(_background, room, false)
-            continue
-        draw_rect(room, GameConfig.FLOOR_COLOR)
-        # 격자: 카메라가 플레이어를 따라가므로 이동감을 준다.
-        var x: float = room.position.x
-        while x <= room.end.x:
-            draw_line(Vector2(x, room.position.y), Vector2(x, room.end.y), GameConfig.GRID_COLOR)
-            x += GameConfig.GRID_STEP
-        var y: float = room.position.y
-        while y <= room.end.y:
-            draw_line(Vector2(room.position.x, y), Vector2(room.end.x, y), GameConfig.GRID_COLOR)
-            y += GameConfig.GRID_STEP

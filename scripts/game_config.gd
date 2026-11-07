@@ -8,11 +8,7 @@ extends RefCounted
 # 맵(방·벽·문·소품 배치)은 레벨마다 scenes/top_view/levels/level_N.tscn에서 편집한다.
 const CAMERA_ZOOM: float = 2.0                # 2 = 카메라 뷰 가로·세로 절반 (1920×1080 화면에 960×540이 보임)
 const WALL_THICKNESS: float = 48.0
-const GRID_STEP: float = 48.0
-const BACKGROUND_COLOR: Color = Color(0.03, 0.02, 0.09)
-const FLOOR_COLOR: Color = Color(0.13, 0.13, 0.15)
-const GRID_COLOR: Color = Color(1.0, 1.0, 1.0, 0.04)
-const WALL_COLOR: Color = Color(0.09, 0.06, 0.2)
+const BACKGROUND_COLOR: Color = Color(0.0, 0.0, 0.0)   # 맵 바깥. 벽 타일의 검정과 같게 한다
 
 const PLAYER_RADIUS: float = 19.2
 const PLAYER_SPEED: float = 144.0
@@ -228,7 +224,7 @@ const MENU_ICON_DELAY: float = 0.25           # 홈으로 돌아와 휴대폰이
 const MENU_ICON_FADE_SEC: float = 0.7         # 아이콘이 나타나는 시간
 const MENU_MUSIC_PATH: String = 'res://audio/menu_music.ogg'
 const STAMP_SOUND_PATH: String = 'res://audio/stamp.ogg'
-const END_PANEL_SEC: float = 0.7              # 스토리 컷이 하나씩 나오는 간격
+const END_PANEL_SEC: float = 1.0              # 스토리 컷이 하나씩 나오는 간격
 const END_STAMP_SEC: float = 0.18             # 도장이 내려찍히는 시간
 const MUSIC_VOLUME_DB: float = -8.0
 const MUSIC_PHONE_DUCK_DB: float = -8.0

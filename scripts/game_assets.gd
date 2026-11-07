@@ -4,7 +4,6 @@ extends RefCounted
 ## 파일이 없으면 임시 그림으로 대체하므로 에셋이 없어도 게임이 실행된다.
 ## 휴대폰, 손, 버블, 로딩 바, DM 아이콘, 시계, 주인공은 각 씬이 직접 불러온다.
 
-const PARTY_MAP: String = 'res://assets/party_map.webp'
 const SCARE_IMAGE: String = 'res://assets/scare.png'
 const PROP_ICONS: Dictionary = {
     'speaker': 'res://assets/prop_speaker.webp',
