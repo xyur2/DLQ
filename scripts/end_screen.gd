@@ -11,10 +11,10 @@ const STORY_NAMES: Dictionary = {
     GameState.EndReason.HIDDEN: 'hidden',
 }
 const LINES: Dictionary = {
-    GameState.EndReason.CAUGHT: '누군가 화면을 봤다.',
-    GameState.EndReason.TOO_MANY_DMS: '답장이 너무 늦었다. 그녀가 나를 차단했다.',
-    GameState.EndReason.SURVIVED: '끝까지 들키지 않았다.',
-    GameState.EndReason.HIDDEN: '모두가 나를 보고 있었다. (히든 엔딩)',
+    GameState.EndReason.CAUGHT: 'Someone saw your screen.',
+    GameState.EndReason.TOO_MANY_DMS: 'You replied too late. She blocked you.',
+    GameState.EndReason.SURVIVED: 'You never got caught.',
+    GameState.EndReason.HIDDEN: 'Everyone was watching you. (Hidden ending)',
 }
 const FADE_SEC: float = 0.4
 const PANEL_FADE_SEC: float = 0.3
@@ -22,7 +22,7 @@ const PANEL_SLIDE_PX: float = 24.0
 const STAMP_START_SCALE: float = 3.0
 const STAMP_ANGLE_GAME_OVER: float = -4.0
 const STAMP_ANGLE_CLEAR: float = -14.0
-const STAMP_CLEAR_COLOR: Color = Color(0.3, 1.0, 0.75)
+const STAMP_CLEAR_COLOR: Color = Color(0.05, 0.6, 0.3)
 
 ## 다 나왔는지. 버튼과 키 입력은 이때부터 받는다.
 var finished: bool = false
@@ -42,7 +42,7 @@ var _panels: Array[Polygon2D] = []
 
 func _ready() -> void:
     visible = false
-    color.a = 0.0
+    modulate.a = 0.0
     _buttons.visible = false
     _stamp.visible = false
     UiFx.add_hover(_buttons)
@@ -55,10 +55,10 @@ func _on_game_ended(reason: int) -> void:
     _setup_panels(String(STORY_NAMES[reason]))
     _setup_buttons(reason)
     _setup_stamp(reason)
-    _info.text = '%s\n%s · 점수 %d' % [LINES[reason], GameState.get_level_label(), GameState.score]
+    _info.text = '%s\n%s - Score %d' % [LINES[reason], GameState.get_level_label(), GameState.score]
     _info.visible = false
     var tween: Tween = create_tween()
-    tween.tween_property(self, 'color:a', 1.0, FADE_SEC)
+    tween.tween_property(self, 'modulate:a', 1.0, FADE_SEC)
     for panel: Polygon2D in _panels:
         tween.tween_callback(_show_panel.bind(panel))
         tween.tween_interval(GameConfig.END_PANEL_SEC)
@@ -80,13 +80,13 @@ func _setup_panels(story: String) -> void:
 func _setup_buttons(reason: int) -> void:
     var cleared: bool = reason == GameState.EndReason.SURVIVED
     if cleared and GameState.has_next_level():
-        _right.text = 'Next Level'
+        _right.text = 'NEXT LEVEL'
         _right.pressed.connect(SceneFlow.next_level)
     elif cleared:
-        _right.text = '홈으로'
+        _right.text = 'HOME'
         _right.pressed.connect(SceneFlow.go_home)
     else:
-        _right.text = 'Retry'
+        _right.text = 'RETRY'
         _right.pressed.connect(SceneFlow.restart)
 
 
@@ -97,7 +97,6 @@ func _setup_stamp(reason: int) -> void:
     if cleared:
         var style: StyleBoxFlat = _stamp_box.get_theme_stylebox('panel').duplicate()
         style.border_color = STAMP_CLEAR_COLOR
-        style.shadow_color = Color(STAMP_CLEAR_COLOR, 0.45)
         _stamp_box.add_theme_stylebox_override('panel', style)
         _stamp_label.add_theme_color_override('font_color', STAMP_CLEAR_COLOR)
     var path: String = 'res://assets/stamp_clear.png' if cleared else 'res://assets/stamp_game_over.png'

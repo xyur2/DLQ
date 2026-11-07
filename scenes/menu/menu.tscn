@@ -1,70 +1,73 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/menu_screen.gd" id="1_menu"]
-[ext_resource type="Script" path="res://scripts/party_background.gd" id="2_background"]
 [ext_resource type="Theme" path="res://scenes/ui/menu_theme.tres" id="3_theme"]
 [ext_resource type="Texture2D" path="res://assets/phone.png" id="4_phone"]
-[ext_resource type="Texture2D" path="res://assets/dm_icon.png" id="5_icon"]
-[ext_resource type="Texture2D" path="res://assets/bubble_transparent.png" id="6_bubble"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_message.png" id="5_icon"]
+[ext_resource type="Texture2D" path="res://assets/ui/speech_bubble.png" id="6_bubble"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="7_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/how_to_panel.tscn" id="8_how_to"]
-[ext_resource type="Texture2D" path="res://assets/prop_light.webp" id="9_ball"]
-[ext_resource type="FontVariation" path="res://scenes/ui/display_font.tres" id="11_display"]
+[ext_resource type="Texture2D" path="res://assets/ui/halftone_background.png" id="9_halftone"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_alert.png" id="10_alert"]
+[ext_resource type="Texture2D" path="res://assets/ui/alert_burst.png" id="11_burst"]
+[ext_resource type="Texture2D" path="res://assets/ui/ribbon_602.png" id="12_ribbon_602"]
+[ext_resource type="Texture2D" path="res://assets/ui/ribbon_680.png" id="13_ribbon_680"]
+[ext_resource type="Texture2D" path="res://assets/ui/ribbon_524.png" id="14_ribbon_524"]
+[ext_resource type="Texture2D" path="res://assets/ui/ribbon_328.png" id="15_ribbon_328"]
 [ext_resource type="Shader" path="res://scenes/ui/comic_text.gdshader" id="20_comic"]
 [ext_resource type="FontVariation" path="res://scenes/ui/title_font.tres" id="21_title"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_message"]
-atlas = ExtResource("6_bubble")
-region = Rect2(23, 244, 216, 78)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
-atlas = ExtResource("5_icon")
-region = Rect2(840, 0, 2160, 2160)
-
-[sub_resource type="Gradient" id="Gradient_glow"]
-colors = PackedColorArray(1, 0.2, 0.65, 0.14, 1, 0.2, 0.65, 0)
-
-[sub_resource type="GradientTexture2D" id="Texture_glow"]
-gradient = SubResource("Gradient_glow")
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ball"]
-atlas = ExtResource("9_ball")
-region = Rect2(436, 263, 1203, 1374)
-
-[sub_resource type="StyleBoxFlat" id="StyleBox_glow"]
+[sub_resource type="StyleBoxFlat" id="StyleBox_body"]
 bg_color = Color(0.03, 0.02, 0.08, 1)
 corner_radius_top_left = 26
 corner_radius_top_right = 26
 corner_radius_bottom_right = 26
 corner_radius_bottom_left = 26
-shadow_color = Color(0.55, 0.3, 1, 0.22)
-shadow_size = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_screen"]
-bg_color = Color(0.08, 0.055, 0.2, 1)
+bg_color = Color(1, 1, 1, 1)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
 
-[sub_resource type="StyleBoxFlat" id="StyleBox_badge"]
-bg_color = Color(0.85, 0.1, 0.1, 1)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_right = 32
-corner_radius_bottom_left = 32
-
 [sub_resource type="StyleBoxEmpty" id="StyleBox_empty"]
 
-[sub_resource type="ShaderMaterial" id="Material_comic_logo"]
-shader = ExtResource("20_comic")
-shader_parameter/dot_spacing = 11.0
-shader_parameter/gradient_top = 40.0
-shader_parameter/gradient_bottom = 210.0
-shader_parameter/max_radius = 0.42
+[sub_resource type="StyleBoxTexture" id="StyleBox_ribbon_602"]
+content_margin_left = 34.0
+content_margin_right = 50.0
+texture = ExtResource("12_ribbon_602")
+texture_margin_left = 34.0
+texture_margin_top = 14.0
+texture_margin_right = 50.0
+texture_margin_bottom = 18.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_ribbon_680"]
+content_margin_left = 34.0
+content_margin_right = 50.0
+texture = ExtResource("13_ribbon_680")
+texture_margin_left = 34.0
+texture_margin_top = 14.0
+texture_margin_right = 50.0
+texture_margin_bottom = 18.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_ribbon_524"]
+content_margin_left = 34.0
+content_margin_right = 50.0
+texture = ExtResource("14_ribbon_524")
+texture_margin_left = 34.0
+texture_margin_top = 14.0
+texture_margin_right = 50.0
+texture_margin_bottom = 18.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_ribbon_328"]
+content_margin_left = 34.0
+content_margin_right = 50.0
+texture = ExtResource("15_ribbon_328")
+texture_margin_left = 34.0
+texture_margin_top = 14.0
+texture_margin_right = 50.0
+texture_margin_bottom = 18.0
 
 [sub_resource type="ShaderMaterial" id="Material_comic_title"]
 shader = ExtResource("20_comic")
@@ -82,52 +85,37 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("3_theme")
 script = ExtResource("1_menu")
-message_texture = SubResource("AtlasTexture_message")
+message_texture = ExtResource("6_bubble")
 
-[node name="Background" type="Control" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-script = ExtResource("2_background")
-
-[node name="BallRope" type="ColorRect" parent="."]
-layout_mode = 0
-offset_left = 1619.0
-offset_right = 1621.0
-offset_bottom = 40.0
-mouse_filter = 2
-color = Color(0.6, 0.6, 0.75, 0.8)
-
-[node name="Ball" type="TextureRect" parent="."]
-layout_mode = 0
-offset_left = 1540.0
-offset_top = 26.0
-offset_right = 1700.0
-offset_bottom = 208.0
-mouse_filter = 2
-texture_filter = 3
-texture = SubResource("AtlasTexture_ball")
+texture = ExtResource("9_halftone")
 expand_mode = 1
+stretch_mode = 6
 
 [node name="Phone" type="Control" parent="."]
 anchors_preset = 0
-offset_left = 168.0
-offset_top = 423.0
-offset_right = 528.0
-offset_bottom = 783.0
-scale = Vector2(2.4, 2.4)
+offset_left = 93.0
+offset_top = 852.0
+offset_right = 453.0
+offset_bottom = 1212.0
+rotation = 0.5236
+scale = Vector2(3.4, 3.4)
+pivot_offset = Vector2(180, 180)
 mouse_filter = 2
 
-[node name="BodyGlow" type="Panel" parent="Phone"]
+[node name="Body" type="Panel" parent="Phone"]
 layout_mode = 0
 offset_left = 110.0
 offset_top = 23.0
 offset_right = 250.0
 offset_bottom = 316.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBox_glow")
+theme_override_styles/panel = SubResource("StyleBox_body")
 
 [node name="ScreenBackground" type="Panel" parent="Phone"]
 layout_mode = 0
@@ -146,123 +134,56 @@ mouse_filter = 2
 texture = ExtResource("4_phone")
 expand_mode = 1
 
-[node name="Home" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-
-[node name="TitleGlow" type="TextureRect" parent="Home"]
-layout_mode = 0
-offset_left = -60.0
-offset_top = -60.0
-offset_right = 660.0
-offset_bottom = 340.0
-mouse_filter = 2
-texture = SubResource("Texture_glow")
-expand_mode = 1
-
-[node name="Title" type="Label" parent="Home"]
-material = SubResource("Material_comic_logo")
-theme_override_colors/font_color = Color(1, 0.97, 0.98, 1)
-theme_override_colors/font_outline_color = Color(0.07, 0.03, 0.16, 1)
-theme_override_colors/font_shadow_color = Color(0.95, 0.2, 0.6, 1)
-theme_override_constants/shadow_offset_x = 8
-theme_override_constants/shadow_offset_y = 10
-theme_override_constants/outline_size = 16
-theme_override_constants/shadow_outline_size = 16
-layout_mode = 0
-offset_left = 110.0
-offset_top = 50.0
-offset_right = 900.0
-offset_bottom = 270.0
-theme_override_fonts/font = ExtResource("21_title")
-theme_override_font_sizes/font_size = 180
-text = "DLQ"
-
-[node name="Subtitle" type="Label" parent="Home"]
-layout_mode = 0
-offset_left = 120.0
-offset_top = 262.0
-offset_right = 1100.0
-offset_bottom = 330.0
-theme_override_colors/font_color = Color(0.8, 0.84, 0.95, 1)
-theme_override_colors/font_shadow_color = Color(0.2, 0.8, 1, 0)
-theme_override_constants/shadow_offset_x = 0
-theme_override_constants/shadow_offset_y = 0
-theme_override_constants/shadow_outline_size = 8
-theme_override_fonts/font = ExtResource("21_title")
-theme_override_font_sizes/font_size = 44
-text = "D E A D   L E T T E R   Q U E U E"
-
-[node name="ScreenContent" type="Control" parent="Home"]
+[node name="ScreenContent" type="Control" parent="Phone"]
 anchors_preset = 0
-offset_left = 446.0
-offset_top = 493.0
-offset_right = 754.0
-offset_bottom = 1080.0
+offset_left = 114.0
+offset_top = 27.0
+offset_right = 563.0
+offset_bottom = 1003.0
+scale = Vector2(0.2941, 0.2941)
 mouse_filter = 2
 
-[node name="NotifyIcon" type="TextureRect" parent="Home/ScreenContent"]
+[node name="NotifyIcon" type="TextureRect" parent="Phone/ScreenContent"]
 layout_mode = 0
-offset_left = 58.0
-offset_top = 200.0
-offset_right = 250.0
-offset_bottom = 392.0
+offset_left = 99.0
+offset_top = 156.0
+offset_right = 329.0
+offset_bottom = 401.0
+rotation = -0.5236
+pivot_offset = Vector2(115, 122)
 mouse_filter = 2
-texture_filter = 3
-texture = SubResource("AtlasTexture_icon")
+texture = ExtResource("5_icon")
 expand_mode = 1
+stretch_mode = 5
 
-[node name="BadgeCircle" type="Panel" parent="Home/ScreenContent/NotifyIcon"]
+[node name="Credits" type="Label" parent="Phone/ScreenContent"]
 layout_mode = 0
-offset_left = 140.0
-offset_top = -24.0
-offset_right = 204.0
-offset_bottom = 40.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBox_badge")
+offset_left = 16.0
+offset_top = 50.0
+offset_right = 433.0
+offset_bottom = 440.0
+theme_override_font_sizes/font_size = 28
+text = "Team Market O Brownie
 
-[node name="BadgeLabel" type="Label" parent="Home/ScreenContent/NotifyIcon"]
-layout_mode = 0
-offset_left = 140.0
-offset_top = -24.0
-offset_right = 204.0
-offset_bottom = 40.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
-vertical_alignment = 1
+Seo Yuri
+Dev, Sound, Design
 
-[node name="Credits" type="Label" parent="Home/ScreenContent"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 70.0
-offset_right = 298.0
-offset_bottom = 500.0
-theme_override_font_sizes/font_size = 22
-text = "Team 마켓오브라우니
+Kim Sumin
+Dev, Design
 
-서유리
-개발, 사운드, 기획
-
-김수민
-개발, 기획
-
-김혜원
-아트, 기획"
+Kim Hyewon
+Art, Design"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="PowerHitbox" type="Button" parent="Home"]
+[node name="PowerHitbox" type="Button" parent="Phone"]
 layout_mode = 0
-offset_left = 756.0
-offset_top = 735.0
-offset_right = 796.0
-offset_bottom = 800.0
-tooltip_text = "전원"
+offset_left = 245.0
+offset_top = 130.0
+offset_right = 262.0
+offset_bottom = 157.0
+tooltip_text = "Power"
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBox_empty")
@@ -270,43 +191,125 @@ theme_override_styles/hover = SubResource("StyleBox_empty")
 theme_override_styles/pressed = SubResource("StyleBox_empty")
 theme_override_styles/focus = SubResource("StyleBox_empty")
 
+[node name="Home" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="TitleBubble" type="TextureRect" parent="Home"]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 24.0
+offset_right = 730.0
+offset_bottom = 514.0
+mouse_filter = 2
+texture = ExtResource("6_bubble")
+expand_mode = 1
+
+[node name="Title" type="Label" parent="Home"]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 34.0
+offset_right = 700.0
+offset_bottom = 234.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("21_title")
+theme_override_font_sizes/font_size = 170
+text = "DLQ"
+
+[node name="Subtitle" type="Label" parent="Home"]
+layout_mode = 0
+offset_left = 122.0
+offset_top = 226.0
+offset_right = 700.0
+offset_bottom = 290.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 44
+text = "DEAD LETTER QUEUE"
+
+[node name="Burst" type="TextureRect" parent="Home"]
+visible = false
+layout_mode = 0
+offset_left = 730.0
+offset_top = 370.0
+offset_right = 1060.0
+offset_bottom = 700.0
+pivot_offset = Vector2(60, 270)
+mouse_filter = 2
+texture = ExtResource("11_burst")
+expand_mode = 1
+
+[node name="Alert" type="TextureRect" parent="Home"]
+visible = false
+layout_mode = 0
+offset_left = 630.0
+offset_top = 585.0
+offset_right = 860.0
+offset_bottom = 799.0
+pivot_offset = Vector2(115, 107)
+mouse_filter = 2
+texture = ExtResource("10_alert")
+expand_mode = 1
+
 [node name="Buttons" type="VBoxContainer" parent="Home"]
 layout_mode = 0
-offset_left = 1170.0
-offset_top = 420.0
-offset_right = 1735.0
-offset_bottom = 1000.0
-theme_override_constants/separation = 22
+offset_left = 1100.0
+offset_top = 200.0
+offset_right = 1860.0
+offset_bottom = 920.0
+theme_override_constants/separation = 24
 
 [node name="MainMode" type="Button" parent="Home/Buttons"]
-custom_minimum_size = Vector2(0, 96)
+custom_minimum_size = Vector2(602, 122)
 layout_mode = 2
+size_flags_horizontal = 8
 focus_mode = 0
-text = "메인 모드"
+theme_override_styles/normal = SubResource("StyleBox_ribbon_602")
+theme_override_styles/hover = SubResource("StyleBox_ribbon_602")
+theme_override_styles/pressed = SubResource("StyleBox_ribbon_602")
+text = "MAIN MODE"
 
 [node name="Endless" type="Button" parent="Home/Buttons"]
-custom_minimum_size = Vector2(0, 96)
+custom_minimum_size = Vector2(602, 122)
 layout_mode = 2
+size_flags_horizontal = 8
 focus_mode = 0
-text = "무한 모드"
+theme_override_styles/normal = SubResource("StyleBox_ribbon_602")
+theme_override_styles/hover = SubResource("StyleBox_ribbon_602")
+theme_override_styles/pressed = SubResource("StyleBox_ribbon_602")
+text = "ENDLESS MODE"
 
 [node name="HowTo" type="Button" parent="Home/Buttons"]
-custom_minimum_size = Vector2(0, 96)
+custom_minimum_size = Vector2(680, 122)
 layout_mode = 2
+size_flags_horizontal = 8
 focus_mode = 0
-text = "How to Play"
+theme_override_styles/normal = SubResource("StyleBox_ribbon_680")
+theme_override_styles/hover = SubResource("StyleBox_ribbon_680")
+theme_override_styles/pressed = SubResource("StyleBox_ribbon_680")
+text = "HOW TO PLAY"
 
 [node name="Settings" type="Button" parent="Home/Buttons"]
-custom_minimum_size = Vector2(0, 96)
+custom_minimum_size = Vector2(524, 122)
 layout_mode = 2
+size_flags_horizontal = 8
 focus_mode = 0
-text = "설정"
+theme_override_styles/normal = SubResource("StyleBox_ribbon_524")
+theme_override_styles/hover = SubResource("StyleBox_ribbon_524")
+theme_override_styles/pressed = SubResource("StyleBox_ribbon_524")
+text = "SETTINGS"
 
 [node name="Quit" type="Button" parent="Home/Buttons"]
-custom_minimum_size = Vector2(0, 96)
+custom_minimum_size = Vector2(328, 122)
 layout_mode = 2
+size_flags_horizontal = 8
 focus_mode = 0
-text = "게임 종료"
+theme_override_styles/normal = SubResource("StyleBox_ribbon_328")
+theme_override_styles/hover = SubResource("StyleBox_ribbon_328")
+theme_override_styles/pressed = SubResource("StyleBox_ribbon_328")
+text = "QUIT"
 
 [node name="Zoomed" type="Control" parent="."]
 visible = false
@@ -318,18 +321,18 @@ mouse_filter = 2
 
 [node name="Title" type="Label" parent="Zoomed"]
 material = SubResource("Material_comic_title")
-theme_override_colors/font_color = Color(1, 0.97, 0.98, 1)
-theme_override_colors/font_outline_color = Color(0.07, 0.03, 0.16, 1)
-theme_override_colors/font_shadow_color = Color(0.95, 0.2, 0.6, 1)
-theme_override_constants/shadow_offset_x = 5
-theme_override_constants/shadow_offset_y = 7
-theme_override_constants/outline_size = 12
-theme_override_constants/shadow_outline_size = 12
 layout_mode = 0
 offset_left = 460.0
 offset_top = 80.0
 offset_right = 1460.0
 offset_bottom = 230.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 7
+theme_override_constants/outline_size = 12
+theme_override_constants/shadow_outline_size = 12
 theme_override_fonts/font = ExtResource("21_title")
 theme_override_font_sizes/font_size = 120
 horizontal_alignment = 1
@@ -342,36 +345,30 @@ offset_right = 1170.0
 offset_bottom = 1070.0
 
 [node name="LevelName" type="Label" parent="Zoomed/Levels"]
-theme_override_colors/font_color = Color(1, 0.97, 0.98, 1)
-theme_override_colors/font_outline_color = Color(0.07, 0.03, 0.16, 1)
-theme_override_colors/font_shadow_color = Color(0.95, 0.2, 0.6, 1)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 3
-theme_override_constants/outline_size = 6
-theme_override_constants/shadow_outline_size = 6
 layout_mode = 0
 offset_right = 420.0
 offset_bottom = 60.0
-theme_override_font_sizes/font_size = 34
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("21_title")
+theme_override_font_sizes/font_size = 44
+horizontal_alignment = 1
 
 [node name="Messages" type="VBoxContainer" parent="Zoomed/Levels"]
 layout_mode = 0
-offset_left = 30.0
-offset_top = 80.0
-offset_right = 390.0
+offset_left = 40.0
+offset_top = 70.0
+offset_right = 380.0
 offset_bottom = 620.0
 mouse_filter = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 16
 
 [node name="Hint" type="Label" parent="Zoomed/Levels"]
 layout_mode = 0
-offset_top = 660.0
+offset_top = 650.0
 offset_right = 420.0
-offset_bottom = 710.0
-theme_override_font_sizes/font_size = 26
-text = "화면을 눌러 시작"
+offset_bottom = 700.0
+theme_override_font_sizes/font_size = 30
+text = "TAP TO START"
 horizontal_alignment = 1
 
 [node name="Start" type="Button" parent="Zoomed/Levels"]
@@ -394,7 +391,7 @@ offset_left = 760.0
 offset_top = 330.0
 offset_right = 1160.0
 offset_bottom = 1070.0
-theme_override_font_sizes/font_size = 19
+theme_override_font_sizes/font_size = 22
 
 [node name="Settings" parent="Zoomed" instance=ExtResource("7_settings")]
 layout_mode = 0
@@ -408,33 +405,33 @@ offset_bottom = 1000.0
 
 [node name="Previous" type="Button" parent="Zoomed"]
 layout_mode = 0
-offset_left = 172.0
-offset_top = 510.0
-offset_right = 316.0
-offset_bottom = 663.0
+offset_left = 400.0
+offset_top = 540.0
+offset_right = 600.0
+offset_bottom = 660.0
 focus_mode = 0
 theme_override_font_sizes/font_size = 72
-text = "◀"
+text = "<"
 
 [node name="Next" type="Button" parent="Zoomed"]
 layout_mode = 0
-offset_left = 1630.0
-offset_top = 510.0
-offset_right = 1774.0
-offset_bottom = 663.0
+offset_left = 1320.0
+offset_top = 540.0
+offset_right = 1520.0
+offset_bottom = 660.0
 focus_mode = 0
 theme_override_font_sizes/font_size = 72
-text = "▶"
+text = ">"
 
 [node name="Back" type="Button" parent="Zoomed"]
 layout_mode = 0
 offset_left = 40.0
 offset_top = 36.0
-offset_right = 190.0
-offset_bottom = 104.0
+offset_right = 280.0
+offset_bottom = 126.0
 focus_mode = 0
-theme_override_font_sizes/font_size = 28
-text = "‹ 뒤로"
+theme_override_font_sizes/font_size = 34
+text = "< BACK"
 
 [node name="FadeCover" type="ColorRect" parent="."]
 layout_mode = 1

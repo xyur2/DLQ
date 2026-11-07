@@ -17,7 +17,7 @@ func _ready() -> void:
     $List/Resume.pressed.connect(_resume)
     $List/Retry.pressed.connect(SceneFlow.restart)
     $List/Home.pressed.connect(SceneFlow.go_home)
-    $List/Settings.pressed.connect(_open_sub.bind('설정', true))
+    $List/Settings.pressed.connect(_open_sub.bind('Settings', true))
     $List/HowTo.pressed.connect(_open_sub.bind('How to Play', false))
     $SubPanel/Back.pressed.connect(_close_sub)
 

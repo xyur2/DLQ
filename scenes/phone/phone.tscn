@@ -5,26 +5,26 @@
 [ext_resource type="Texture2D" path="res://assets/phone_hands.png" id="3_hands"]
 [ext_resource type="Texture2D" path="res://assets/loading_bar_back.png" id="4_bar_back"]
 [ext_resource type="Texture2D" path="res://assets/loading_bar_fill.png" id="5_bar_fill"]
-[ext_resource type="FontVariation" path="res://scenes/ui/ui_font_bold.tres" id="7_bold"]
+[ext_resource type="FontVariation" path="res://scenes/ui/ui_font.tres" id="7_bold"]
+[ext_resource type="Texture2D" path="res://assets/ui/halftone_background.png" id="20_halftone"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_screen"]
-bg_color = Color(0.08, 0.055, 0.2, 1)
+bg_color = Color(1, 1, 1, 1)
 corner_radius_top_left = 44
 corner_radius_top_right = 44
 corner_radius_bottom_right = 44
 corner_radius_bottom_left = 44
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_banner"]
-bg_color = Color(0.2, 0.15, 0.36, 0.97)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.5, 0.72, 0.9)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 1
+shadow_offset = Vector2(6, 6)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hitbox"]
 
@@ -42,6 +42,15 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.03, 0.02, 0.09, 1)
+
+[node name="Halftone" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("20_halftone")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Hands" type="TextureRect" parent="."]
 offset_left = 141.0
@@ -94,7 +103,7 @@ offset_left = 24.0
 offset_top = 16.0
 offset_right = 124.0
 offset_bottom = 56.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_bold")
 theme_override_font_sizes/font_size = 28
 text = "J"
@@ -104,8 +113,8 @@ offset_left = 24.0
 offset_top = 56.0
 offset_right = 412.0
 offset_bottom = 86.0
-theme_override_colors/font_color = Color(0.72, 0.68, 0.92, 1)
-text = "새 메시지 없음"
+theme_override_colors/font_color = Color(0.2, 0.15, 0.35, 1)
+text = "No new messages"
 
 [node name="TimerBar" type="TextureProgressBar" parent="PhoneRoot/Screen"]
 visible = false
@@ -125,7 +134,7 @@ offset_left = 18.0
 offset_top = 128.0
 offset_right = 418.0
 offset_bottom = 208.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_bold")
 theme_override_font_sizes/font_size = 56
 horizontal_alignment = 1
@@ -136,7 +145,7 @@ offset_left = 18.0
 offset_top = 208.0
 offset_right = 418.0
 offset_bottom = 258.0
-theme_override_colors/font_color = Color(0.5, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.15, 0, 0.45, 1)
 theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -147,10 +156,10 @@ offset_left = 18.0
 offset_top = 258.0
 offset_right = 418.0
 offset_bottom = 292.0
-theme_override_colors/font_color = Color(1, 0.75, 0.8, 1)
+theme_override_colors/font_color = Color(0.8, 0.05, 0.1, 1)
 theme_override_fonts/font = ExtResource("7_bold")
 theme_override_font_sizes/font_size = 22
-text = "손이 미끄러졌다... 잠시 터치 불가"
+text = "Your hand slipped... can't tap!"
 horizontal_alignment = 1
 
 [node name="LetterArea" type="Control" parent="PhoneRoot/Screen"]
@@ -174,10 +183,10 @@ offset_left = 16.0
 offset_top = 6.0
 offset_right = 400.0
 offset_bottom = 36.0
-theme_override_colors/font_color = Color(1, 0.65, 0.8, 1)
+theme_override_colors/font_color = Color(0.85, 0.05, 0.4, 1)
 theme_override_fonts/font = ExtResource("7_bold")
 theme_override_font_sizes/font_size = 20
-text = "♥ 여자친구"
+text = "GIRLFRIEND"
 
 [node name="Text" type="Label" parent="PhoneRoot/Screen/GirlfriendBanner"]
 offset_left = 16.0
@@ -191,7 +200,7 @@ offset_left = 548.0
 offset_top = 376.0
 offset_right = 592.0
 offset_bottom = 447.0
-tooltip_text = "전원"
+tooltip_text = "Power"
 focus_mode = 0
 mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxEmpty_hitbox")
@@ -209,4 +218,4 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 24
-text = "전원"
+text = "POWER"

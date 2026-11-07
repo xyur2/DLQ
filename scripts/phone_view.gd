@@ -132,9 +132,9 @@ func _shake_mouse(offset: Vector2) -> void:
 
 func _update_status() -> void:
     if GameState.dm_stage > 0:
-        _status.text = '새 메시지 %s개' % GameState.get_dm_badge_text()
+        _status.text = 'New messages: %s' % GameState.get_dm_badge_text()
     else:
-        _status.text = '새 메시지 없음'
+        _status.text = 'No new messages'
 
 
 ## 휴대폰을 켠 동안 여자친구 메시지가 위에 떴다 사라진다. 누르면 바로 사라진다.

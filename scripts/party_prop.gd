@@ -110,7 +110,7 @@ func is_ready() -> bool:
 
 func get_hint() -> String:
     if _cooldown_left > 0.0:
-        return '%s 대기 중 %d초' % [display_name, ceili(_cooldown_left)]
+        return '%s: wait %ds' % [display_name, ceili(_cooldown_left)]
     return '[E] %s' % display_name
 
 
@@ -131,7 +131,7 @@ func _update_cooldown_display() -> void:
     _cooldown_label.visible = waiting
     _timer.visible = waiting
     if waiting:
-        _cooldown_label.text = '%d초' % ceili(_cooldown_left)
+        _cooldown_label.text = '%ds' % ceili(_cooldown_left)
         _bar.queue_redraw()
         _timer.queue_redraw()
 

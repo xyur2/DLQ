@@ -95,13 +95,13 @@ func set_endless(enabled: bool) -> void:
 
 
 func get_level_title() -> String:
-    return '무한 모드' if endless_mode else String(cfg['title'])
+    return 'Endless Mode' if endless_mode else String(cfg['title'])
 
 
 ## 화면에 보이는 레벨 번호는 1부터 시작한다.
 func get_level_label() -> String:
     if endless_mode:
-        return '무한 모드'
+        return 'Endless Mode'
     return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
 
 

@@ -28,4 +28,4 @@ func _on_sfx_changed(value: float) -> void:
 
 func _refresh() -> void:
     _bgm_label.text = 'BGM  %d%%' % roundi(GameSettings.bgm_volume * 100.0)
-    _sfx_label.text = '효과음  %d%%' % roundi(GameSettings.sfx_volume * 100.0)
+    _sfx_label.text = 'SFX  %d%%' % roundi(GameSettings.sfx_volume * 100.0)

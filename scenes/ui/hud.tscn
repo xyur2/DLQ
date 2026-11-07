@@ -2,70 +2,66 @@
 
 [ext_resource type="Script" path="res://scripts/game_hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/dm_icon.gd" id="2_icon"]
-[ext_resource type="Texture2D" path="res://assets/dm_icon.png" id="3_icon_image"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_message.png" id="3_icon_image"]
 [ext_resource type="Script" path="res://scripts/digital_clock.gd" id="4_clock"]
 [ext_resource type="Texture2D" path="res://assets/digital_clock.png" id="5_clock_sheet"]
-[ext_resource type="FontVariation" path="res://scenes/ui/display_font.tres" id="9_display"]
 [ext_resource type="FontVariation" path="res://scenes/ui/title_font.tres" id="21_title"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
-atlas = ExtResource("3_icon_image")
-region = Rect2(840, 0, 2160, 2160)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
-bg_color = Color(0.85, 0.1, 0.1, 1)
+bg_color = Color(0.9, 0.08, 0.12, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 0
+shadow_offset = Vector2(6, 6)
 corner_radius_top_left = 22
 corner_radius_top_right = 22
 corner_radius_bottom_right = 22
 corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_chip"]
-content_margin_left = 0.0
-content_margin_top = 0.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
-bg_color = Color(0.05, 0.03, 0.16, 0.8)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.85, 1, 0.45)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+bg_color = Color(0.1, 0, 0.3, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 1
+shadow_offset = Vector2(6, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_notice"]
-content_margin_left = 28.0
+content_margin_left = 24.0
 content_margin_top = 8.0
-content_margin_right = 28.0
+content_margin_right = 24.0
 content_margin_bottom = 10.0
-bg_color = Color(0.05, 0.03, 0.16, 0.8)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.3, 0.68, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 1
+shadow_offset = Vector2(6, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_hint"]
-content_margin_left = 22.0
-content_margin_top = 6.0
-content_margin_right = 22.0
-content_margin_bottom = 8.0
-bg_color = Color(0.05, 0.03, 0.16, 0.8)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.85, 1, 0.7)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+content_margin_left = 24.0
+content_margin_top = 8.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 1
+shadow_offset = Vector2(6, 6)
 
 [node name="Hud" type="Control"]
 layout_mode = 3
@@ -141,6 +137,7 @@ offset_top = 72.0
 offset_right = 330.0
 offset_bottom = 112.0
 theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 
 [node name="Notice" type="Label" parent="."]
 anchors_preset = 5
@@ -177,8 +174,9 @@ offset_right = 96.0
 offset_bottom = 96.0
 mouse_filter = 2
 texture_filter = 3
-texture = SubResource("AtlasTexture_icon")
+texture = ExtResource("3_icon_image")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="BadgeCircle" type="Panel" parent="DmIcon"]
 visible = false
@@ -196,3 +194,5 @@ offset_right = 106.0
 offset_bottom = 26.0
 horizontal_alignment = 1
 vertical_alignment = 1
+
+theme_override_colors/font_color = Color(1, 1, 1, 1)

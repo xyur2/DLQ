@@ -67,8 +67,8 @@ func approach_point(room: int) -> Vector2:
 
 func get_hint() -> String:
     if _blocked_hint_left > 0.0:
-        return '문 앞에 누가 있다'
-    return '[E] 문 닫기' if is_open else '[E] 문 열기'
+        return 'Someone is in the doorway'
+    return '[E] Close door' if is_open else '[E] Open door'
 
 
 func interact(_player: Node) -> void:
