@@ -5,28 +5,46 @@ extends Node2D
 const NPC_SCENE: PackedScene = preload('res://scenes/top_view/npc.tscn')
 const SPAWN_MAX_ATTEMPTS: int = 50
 
+var level: PartyLevel = null
+
 @onready var player: PartyPlayer = $Player
 @onready var _npcs: Node2D = $NPCs
 
 
+## 현재 레벨(GameState.cfg['scene'])의 맵 씬을 맨 아래에 깔고 플레이어를 시작 위치에 놓는다.
 func _ready() -> void:
-    player.position = GameConfig.MAP_SIZE * 0.5
+    var scene: PackedScene = load(String(GameState.cfg['scene']))
+    level = scene.instantiate()
+    level.name = 'Level'
+    add_child(level)
+    move_child(level, 0)
+    player.position = level.get_player_start()
     GameState.circle_ending_started.connect(_on_circle_ending_started)
 
 
 ## 플레이어에게서 NPC_SPAWN_MIN_DIST 이상 떨어진 곳에 NPC를 만든다.
+## 종류는 레벨의 npc_kinds를 따르고 나머지는 일반. follower_option은 일반 사람 앞에서부터 켠다.
 func spawn_npcs(count: int) -> Array[PartyNpc]:
+    var kinds: Array[String] = []
+    var special: Dictionary = GameState.cfg['npc_kinds']
+    for kind_name: String in special.keys():
+        for _n: int in int(special[kind_name]):
+            kinds.append(kind_name)
+    while kinds.size() < count:
+        kinds.push_front('normal')
     var result: Array[PartyNpc] = []
     for i: int in count:
         var npc: PartyNpc = NPC_SCENE.instantiate()
-        var point: Vector2 = GameConfig.random_map_point()
+        var point: Vector2 = level.random_point()
         for _attempt: int in SPAWN_MAX_ATTEMPTS:
             if point.distance_to(player.position) >= GameConfig.NPC_SPAWN_MIN_DIST:
                 break
-            point = GameConfig.random_map_point()
+            point = level.random_point()
         npc.position = point
+        npc.level = level
         npc.follow_target = player
-        npc.follower_option = i < int(GameState.cfg['follower_count'])
+        npc.kind = kinds[i]
+        npc.follower_option = kinds[i] == 'normal' and i < int(GameState.cfg['follower_count'])
         _npcs.add_child(npc)
         result.append(npc)
     return result

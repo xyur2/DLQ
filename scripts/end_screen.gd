@@ -25,13 +25,21 @@ func _on_game_ended(reason: int) -> void:
         line = '끝까지 들키지 않았다.'
     elif reason == GameState.EndReason.HIDDEN:
         line = '모두가 나를 보고 있었다.\n\n히든 엔딩: 둥글게 둥글게'
-    _message.text = '%s\n\n점수 %d\n\nR 키를 눌러 다시 시작' % [line, GameState.score]
+    var keys: String = 'R 키를 눌러 다시 시작'
+    if reason == GameState.EndReason.SURVIVED and GameState.has_next_level():
+        keys = 'N 키: 다음 레벨    R 키: 다시 하기'
+    _message.text = '%s\n\n%s  점수 %d\n\n%s' % [line, GameState.get_level_title(), GameState.score, keys]
     visible = true
     var tween: Tween = create_tween()
     tween.tween_property(self, 'color:a', FADE_ALPHA, FADE_SEC)
 
 
 func _input(event: InputEvent) -> void:
-    if visible and event.is_action_pressed('restart'):
+    if visible and event.is_action_pressed('next_level') \
+            and GameState.end_reason == GameState.EndReason.SURVIVED and GameState.has_next_level():
+        GameState.set_level(GameState.level_index + 1)
+        get_tree().paused = false
+        get_tree().reload_current_scene()
+    elif visible and event.is_action_pressed('restart'):
         get_tree().paused = false
         get_tree().reload_current_scene()

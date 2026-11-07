@@ -167,21 +167,40 @@ func _spawn_letters() -> void:
             cells.append(Vector2i(col, row))
     cells.shuffle()
 
-    var cell_size := Vector2(
-        _letter_area.size.x / float(GameConfig.LETTER_GRID.x),
-        _letter_area.size.y / float(GameConfig.LETTER_GRID.y)
-    )
     for i: int in mini(chars.size(), cells.size()):
         var button: LetterButton = LETTER_SCENE.instantiate()
         _letter_area.add_child(button)
         button.setup(chars[i])
-        var jitter := Vector2(
-            randf_range(-GameConfig.LETTER_JITTER, GameConfig.LETTER_JITTER),
-            randf_range(-GameConfig.LETTER_JITTER, GameConfig.LETTER_JITTER)
-        )
-        button.position = (Vector2(cells[i]) + Vector2(0.5, 0.5)) * cell_size - button.size * 0.5 + jitter
         button.picked.connect(_on_letter_picked)
         _letters.append(button)
+    if _letters.is_empty():
+        return
+
+    # 칸 = 버튼 + 레벨의 글자 간격(letter_gap). 레벨이 오를수록 간격이 좁아져 버튼이 모인다.
+    # 영역보다 커지면 영역에 맞춘다. 격자는 영역 가운데에 놓는다.
+    var button_size: Vector2 = _letters[0].size
+    var grid := Vector2(GameConfig.LETTER_GRID)
+    var gap: float = maxf(float(GameState.cfg['letter_gap']), GameConfig.LETTER_MIN_GAP)
+    var cell := Vector2(
+        minf(button_size.x + gap, (_letter_area.size.x - button_size.x) / maxf(grid.x - 1.0, 1.0)),
+        minf(button_size.y + gap, (_letter_area.size.y - button_size.y) / maxf(grid.y - 1.0, 1.0))
+    )
+    var origin: Vector2 = (_letter_area.size - (cell * (grid - Vector2.ONE) + button_size)) * 0.5
+    # 남는 간격에서 최소 간격을 뺀 만큼만 어긋나게 해서, 이웃 버튼과 붙지 않게 한다.
+    var spare: Vector2 = (cell - button_size - Vector2.ONE * GameConfig.LETTER_MIN_GAP) * 0.5
+    var jitter_max := Vector2(
+        clampf(spare.x, 0.0, GameConfig.LETTER_JITTER),
+        clampf(spare.y, 0.0, GameConfig.LETTER_JITTER)
+    )
+    var max_pos: Vector2 = _letter_area.size - button_size
+    for i: int in _letters.size():
+        var jitter := Vector2(
+            randf_range(-jitter_max.x, jitter_max.x),
+            randf_range(-jitter_max.y, jitter_max.y)
+        )
+        var pos: Vector2 = origin + Vector2(cells[i]) * cell + jitter
+        # 영역 밖으로 나가지 않게
+        _letters[i].position = Vector2(clampf(pos.x, 0.0, max_pos.x), clampf(pos.y, 0.0, max_pos.y))
 
 
 ## 키보드 글자는 답장에 쓰지 않고 숨은 입력으로만 받는다. 한글 자판에서도 동작하도록 물리 키를 쓴다.

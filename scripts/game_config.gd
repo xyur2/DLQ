@@ -5,7 +5,8 @@ extends RefCounted
 ## A와 B는 각자 표시된 구역의 값만 수정한다.
 
 # ===== A 구역 =====
-const MAP_SIZE: Vector2 = Vector2(1920.0, 1440.0)
+# 맵(방·벽·문·소품 배치)은 레벨마다 scenes/top_view/levels/level_N.tscn에서 편집한다.
+const CAMERA_ZOOM: float = 2.0                # 2 = 카메라 뷰 가로·세로 절반 (1920×1080 화면에 960×540이 보임)
 const WALL_THICKNESS: float = 48.0
 const GRID_STEP: float = 48.0
 const BACKGROUND_COLOR: Color = Color(0.03, 0.03, 0.04)
@@ -26,17 +27,50 @@ const NPC_IDLE_TIME_RANGE: Vector2 = Vector2(1.0, 3.0)
 const NPC_MAP_MARGIN: float = 72.0
 const NPC_ARRIVE_DISTANCE: float = 9.6
 const NPC_STUCK_TIMEOUT: float = 1.5
-const NPC_SPAWN_MIN_DIST: float = 480.0
-const NPC_AGGRO_SPREAD: float = 140.0
+const NPC_SPAWN_MIN_DIST: float = 240.0      # 맵 절반에 맞춰 480 → 240
+const NPC_AGGRO_SPREAD: float = 70.0         # 140 → 70
 const NPC_COLOR: Color = Color(0.55, 0.5, 0.5)
 
 const AGGRO_DURATION: float = 12.0
 const SPEAKER_COOLDOWN: float = 30.0
 const LIGHT_COOLDOWN: float = 30.0
 const PLAYLIST_COOLDOWN: float = 60.0
-const SPEAKER_RADIUS: float = 640.0
-const LIGHT_RADIUS: float = 720.0
+const SPEAKER_RADIUS: float = 320.0          # 맵 절반에 맞춰 640 → 320
+const LIGHT_RADIUS: float = 360.0            # 720 → 360
 const PLAYLIST_RADIUS: float = 99999.0
+
+# 사람 종류. 레벨의 npc_kinds로 종류별 인원을 정하고, 나머지는 일반(normal)이다.
+# 색은 임시 그림용. 정식 아트가 들어오면 종류별 그림으로 바꾼다.
+const NPC_KIND_COLORS: Dictionary = {
+    'normal': Color(0.55, 0.5, 0.5),
+    'active': Color(0.9, 0.6, 0.25),       # 활발형
+    'tracker': Color(0.8, 0.25, 0.25),     # 추적형
+    'attention': Color(0.65, 0.4, 0.9),    # 주의 집중형
+    'interactive': Color(0.3, 0.7, 0.6),   # 상호작용형
+}
+# 활발형: 일반보다 1.5배 빠르고, 걷는 중에도 자주 방향을 바꾼다.
+const ACTIVE_SPEED_MULTIPLIER: float = 1.5
+const ACTIVE_IDLE_TIME_RANGE: Vector2 = Vector2(0.3, 1.0)   # 일반은 NPC_IDLE_TIME_RANGE (1~3초)
+const ACTIVE_TURN_TIME_RANGE: Vector2 = Vector2(0.8, 2.0)   # 걷는 중 이 간격마다 새 목적지로 방향 전환
+# 추적형: 일정 간격마다 정해진 시간 동안 플레이어 쪽으로 온다.
+const TRACKER_INTERVAL_RANGE: Vector2 = Vector2(10.0, 30.0)
+const TRACKER_DURATION: float = 6.0
+# 주의 집중형: 일정 간격마다 주변 사람들을 자기 주위로 부른다. 부르는 동안 자신은 제자리에 선다.
+const ATTENTION_INTERVAL_RANGE: Vector2 = Vector2(30.0, 45.0)
+const ATTENTION_RADIUS: float = 480.0          # 이 거리 안의 사람만 온다 (문이 닫힌 방은 제외)
+const ATTENTION_DURATION: float = 8.0
+# 상호작용형: 일정 간격마다 사용할 수 있는 소품으로 걸어가 작동시킨다.
+const INTERACTIVE_INTERVAL_RANGE: Vector2 = Vector2(50.0, 70.0)
+const INTERACTIVE_REACH: float = 48.0          # 소품 중심에서 이 거리 안에 오면 작동
+const INTERACTIVE_GIVE_UP_SEC: float = 15.0    # 이 시간 안에 못 가면 포기
+const INTERACTIVE_RETRY_SEC: float = 5.0       # 쓸 수 있는 소품이 없거나 포기했을 때 다시 시도하기까지
+
+# 문 (레벨 1부터). E로 열고 닫는다. 닫혀 있으면 사람도 플레이어도 지나갈 수 없다.
+const DOOR_WIDTH: float = 96.0
+const DOOR_COLOR: Color = Color(0.45, 0.3, 0.2)
+const DOOR_OPEN_COLOR: Color = Color(0.45, 0.3, 0.2, 0.35)
+const DOOR_APPROACH_GAP: float = 12.0         # 사람이 문을 지날 때 문 양쪽에서 멈추는 지점의 여유
+const LEVEL_TITLE_SEC: float = 3.0            # 레벨 시작 때 위쪽에 레벨 이름을 보여 주는 시간
 
 # 따라오는 사람
 const FOLLOW_SPEED: float = 108.0             # 플레이어(144)보다 느려서 따돌릴 수 있음
@@ -93,14 +127,47 @@ const TENSION_WEIGHT_DM: float = 0.3
 const TENSION_RISE_PER_SEC: float = 3.0
 const TENSION_FALL_PER_SEC: float = 0.5
 
+# 레벨. 위로 갈수록 DM이 자주 오고, 답장 후 쉬는 시간이 짧고, 휴대폰 글자 사이 간격이 좁다.
+# 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
     {
+        'title': '레벨 0: 거실',
+        'scene': 'res://scenes/top_view/levels/level_0.tscn',
         'npc_count': 5,
-        'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수
-        'dm_interval': 12.0,
+        'npc_kinds': {},           # 종류별 인원. 예: {'active': 1, 'tracker': 1, 'attention': 1, 'interactive': 1}. 나머지는 일반
+        'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수 (일반 사람 중에서)
+        'dm_interval': 3.0,        # DM 도착 주기(초)
+        'reply_cooldown': 5.0,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
+        'letter_gap': 40.0,        # 휴대폰 글자 버튼 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
         'caught_radius': 80.0,
         'decoy_count': 6,          # 단어 글자 외에 섞이는 알파벳 수
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
+    },
+    {
+        'title': '레벨 1: 옆방',
+        'scene': 'res://scenes/top_view/levels/level_1.tscn',
+        'npc_count': 5,
+        'npc_kinds': {},
+        'follower_count': 1,
+        'dm_interval': 2.6,
+        'reply_cooldown': 4.0,
+        'letter_gap': 20.0,
+        'caught_radius': 80.0,
+        'decoy_count': 6,
+        'wrong_lock_time': 2.0,
+    },
+    {
+        'title': '레벨 2: 북적이는 파티',
+        'scene': 'res://scenes/top_view/levels/level_2.tscn',
+        'npc_count': 6,
+        'npc_kinds': {},
+        'follower_count': 2,
+        'dm_interval': 2.2,
+        'reply_cooldown': 3.0,
+        'letter_gap': 8.0,
+        'caught_radius': 80.0,
+        'decoy_count': 8,
+        'wrong_lock_time': 2.0,
     },
 ]
 
@@ -128,23 +195,11 @@ const PHONE_SLIDE_SEC: float = 0.45           # 휴대폰이 올라오고 내려
 const PHONE_SLIDE_DISTANCE: float = 1100.0    # 내려가 있을 때의 거리(px). 화면 밖으로 완전히 나가는 값
 # 답장 단어. 대문자 알파벳만.
 const REPLY_WORDS: Array = ['LOVE', 'MISS', 'SOON', 'WAIT', 'CALL', 'LATER', 'HUSH', 'KISS', 'BABY', 'SORRY']
-const LETTER_GRID: Vector2i = Vector2i(4, 6)  # 알파벳 버튼을 놓는 칸 (열, 행)
-const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어긋나는 정도(px)
+const LETTER_GRID: Vector2i = Vector2i(4, 6)  # 알파벳 버튼을 놓는 칸 (열, 행). 칸 간격은 레벨의 letter_gap
+const LETTER_JITTER: float = 8.0              # 칸 안에서 무작위로 어긋나는 최대 정도(px). 간격이 좁으면 자동으로 줄어듦
+const LETTER_MIN_GAP: float = 6.0             # 어긋나도 버튼 사이에 남기는 최소 간격(px). 서로 붙지 않게
 # 휴대폰에서 연속으로 입력하면 음향 효과가 나오는 글자
 const LETTER_COMBOS: Dictionary = {'LLL': 'take_l', 'BAJI': 'baji'}
 const MUSIC_VOLUME_DB: float = -8.0
 const MUSIC_PHONE_DUCK_DB: float = -8.0
 const NPC_SOUND_MAX_DISTANCE: float = 700.0
-
-static func random_map_point() -> Vector2:
-    return Vector2(
-        randf_range(NPC_MAP_MARGIN, MAP_SIZE.x - NPC_MAP_MARGIN),
-        randf_range(NPC_MAP_MARGIN, MAP_SIZE.y - NPC_MAP_MARGIN)
-    )
-
-## 맵 안쪽(벽에서 NPC_MAP_MARGIN 떨어진 곳)으로 좌표를 제한한다.
-static func clamp_to_map(point: Vector2) -> Vector2:
-    return Vector2(
-        clampf(point.x, NPC_MAP_MARGIN, MAP_SIZE.x - NPC_MAP_MARGIN),
-        clampf(point.y, NPC_MAP_MARGIN, MAP_SIZE.y - NPC_MAP_MARGIN)
-    )

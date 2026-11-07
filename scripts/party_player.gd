@@ -1,6 +1,6 @@
 class_name PartyPlayer
 extends CharacterBody2D
-## 플레이어. WASD 이동, 근처 소품에 E. 휴대폰이 켜져 있거나 밀려난 상태면 이동·상호작용 불가.
+## 플레이어. WASD 이동, 근처 소품·문에 E. 휴대폰이 켜져 있거나 밀려난 상태면 이동·상호작용 불가.
 
 const LAYER_PLAYER: int = 2
 const MASK_WALL_AND_NPC: int = 1 | 4
@@ -35,8 +35,9 @@ func _ready() -> void:
     area_circle.radius = GameConfig.INTERACT_RANGE
     _area_shape.shape = area_circle
 
-    # 중앙 고정 카메라: 스무딩과 리밋 없음
+    # 중앙 고정 카메라: 스무딩과 리밋 없음. 확대해서 보이는 범위를 줄인다.
     _camera.position_smoothing_enabled = false
+    _camera.zoom = Vector2.ONE * GameConfig.CAMERA_ZOOM
     _camera.make_current()
     _listener.make_current()
 
@@ -63,23 +64,24 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     if not GameState.is_playing() or GameState.phone_on or GameState.is_stunned():
         return
-    var prop: PartyProp = _nearest_prop()
-    if prop != null:
-        prop.interact(self)
+    var target: Area2D = _nearest_interactable()
+    if target != null:
+        target.call('interact', self)
     elif GameState.debug_enabled:
         print('상호작용 대상 없음')
 
 
-func _nearest_prop() -> PartyProp:
-    var best: PartyProp = null
+## 상호작용 대상 규약: Area2D, 그룹 'interactable', 메서드 interact(player)와 get_hint(). (소품, 문)
+func _nearest_interactable() -> Area2D:
+    var best: Area2D = null
     var best_distance: float = INF
     for area: Area2D in _area.get_overlapping_areas():
-        if not area.is_in_group('interactable') or not (area is PartyProp):
+        if not area.is_in_group('interactable') or not area.has_method('interact') or not area.has_method('get_hint'):
             continue
         var distance: float = global_position.distance_to(area.global_position)
         if distance < best_distance:
             best_distance = distance
-            best = area as PartyProp
+            best = area
     return best
 
 
@@ -87,9 +89,9 @@ func _nearest_prop() -> PartyProp:
 func _update_hint(can_move: bool) -> void:
     var hint: String = ''
     if can_move:
-        var prop: PartyProp = _nearest_prop()
-        if prop != null:
-            hint = prop.get_hint()
+        var target: Area2D = _nearest_interactable()
+        if target != null:
+            hint = String(target.call('get_hint'))
     if hint != _last_hint:
         _last_hint = hint
         GameState.interact_hint_changed.emit(hint)

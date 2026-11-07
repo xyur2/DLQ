@@ -1,22 +1,22 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bdqh3nbqtayjo"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://bivgrho4lnsdl" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/top_view/top_view.tscn" id="2_top"]
-[ext_resource type="Script" path="res://scripts/audio_director.gd" id="3_audio"]
+[ext_resource type="Script" uid="uid://birll1wrrupde" path="res://scripts/audio_director.gd" id="3_audio"]
 [ext_resource type="PackedScene" path="res://scenes/phone/phone.tscn" id="4_phone"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ui.tscn" id="5_ui"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=1872520934]
 script = ExtResource("1_main")
 
-[node name="TopView" parent="." instance=ExtResource("2_top")]
+[node name="TopView" parent="." unique_id=1841252771 instance=ExtResource("2_top")]
 
-[node name="AudioDirector" type="Node" parent="."]
+[node name="AudioDirector" type="Node" parent="." unique_id=434084689]
 script = ExtResource("3_audio")
 
-[node name="PhoneLayer" type="CanvasLayer" parent="."]
+[node name="PhoneLayer" type="CanvasLayer" parent="." unique_id=1256197118]
 layer = 20
 
-[node name="Phone" parent="PhoneLayer" instance=ExtResource("4_phone")]
+[node name="Phone" parent="PhoneLayer" unique_id=1297140008 instance=ExtResource("4_phone")]
 
-[node name="UI" parent="." instance=ExtResource("5_ui")]
+[node name="UI" parent="." unique_id=804501351 instance=ExtResource("5_ui")]
