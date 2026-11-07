@@ -1,4 +1,6 @@
-[gd_resource type="SystemFont" format=3]
+[gd_resource type="FontVariation" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/Paperlogy-3Light.ttf" id="1_paperlogy"]
 
 [resource]
-font_names = PackedStringArray("Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR", "NanumGothic", "sans-serif")
+base_font = ExtResource("1_paperlogy")

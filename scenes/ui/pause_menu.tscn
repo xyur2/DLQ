@@ -5,7 +5,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="3_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/how_to_panel.tscn" id="4_how_to"]
 [ext_resource type="Shader" path="res://scenes/ui/blur_dim.gdshader" id="5_blur"]
-[ext_resource type="SystemFont" path="res://scenes/ui/display_font.tres" id="6_display"]
+[ext_resource type="FontVariation" path="res://scenes/ui/display_font.tres" id="6_display"]
+[ext_resource type="Shader" path="res://scenes/ui/comic_text.gdshader" id="20_comic"]
+[ext_resource type="FontVariation" path="res://scenes/ui/title_font.tres" id="21_title"]
 
 [sub_resource type="ShaderMaterial" id="Material_blur"]
 shader = ExtResource("5_blur")
@@ -23,6 +25,20 @@ corner_radius_top_left = 24
 corner_radius_top_right = 24
 corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
+
+[sub_resource type="ShaderMaterial" id="Material_comic_title"]
+shader = ExtResource("20_comic")
+shader_parameter/dot_spacing = 8.0
+shader_parameter/gradient_top = 15.0
+shader_parameter/gradient_bottom = 130.0
+shader_parameter/max_radius = 0.4
+
+[sub_resource type="ShaderMaterial" id="Material_comic_sub"]
+shader = ExtResource("20_comic")
+shader_parameter/dot_spacing = 6.0
+shader_parameter/gradient_top = 5.0
+shader_parameter/gradient_bottom = 70.0
+shader_parameter/max_radius = 0.38
 
 [node name="PauseMenu" type="Control"]
 process_mode = 3
@@ -44,20 +60,21 @@ anchor_bottom = 1.0
 material = SubResource("Material_blur")
 
 [node name="Title" type="Label" parent="."]
+material = SubResource("Material_comic_title")
+theme_override_colors/font_color = Color(1, 0.97, 0.98, 1)
+theme_override_colors/font_outline_color = Color(0.07, 0.03, 0.16, 1)
+theme_override_colors/font_shadow_color = Color(0.95, 0.2, 0.6, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 7
+theme_override_constants/outline_size = 12
+theme_override_constants/shadow_outline_size = 12
 layout_mode = 0
 offset_left = 460.0
 offset_top = 90.0
 offset_right = 1460.0
 offset_bottom = 230.0
-theme_override_colors/font_color = Color(1, 0.86, 0.96, 1)
-theme_override_colors/font_outline_color = Color(1, 0.22, 0.62, 1)
-theme_override_colors/font_shadow_color = Color(1, 0.15, 0.6, 0.6)
-theme_override_constants/shadow_offset_x = 0
-theme_override_constants/shadow_offset_y = 0
-theme_override_constants/outline_size = 6
-theme_override_constants/shadow_outline_size = 30
-theme_override_fonts/font = ExtResource("6_display")
-theme_override_font_sizes/font_size = 88
+theme_override_fonts/font = ExtResource("21_title")
+theme_override_font_sizes/font_size = 112
 text = "PAUSED"
 horizontal_alignment = 1
 
@@ -109,12 +126,21 @@ offset_bottom = 990.0
 theme_override_styles/panel = SubResource("StyleBox_sheet")
 
 [node name="Title" type="Label" parent="SubPanel"]
+material = SubResource("Material_comic_sub")
+theme_override_colors/font_color = Color(1, 0.97, 0.98, 1)
+theme_override_colors/font_outline_color = Color(0.07, 0.03, 0.16, 1)
+theme_override_colors/font_shadow_color = Color(0.95, 0.2, 0.6, 1)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 8
+theme_override_constants/shadow_outline_size = 8
 layout_mode = 0
 offset_left = 40.0
 offset_top = 24.0
 offset_right = 660.0
 offset_bottom = 100.0
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 60
+theme_override_fonts/font = ExtResource("21_title")
 
 [node name="Settings" parent="SubPanel" instance=ExtResource("3_settings")]
 layout_mode = 0

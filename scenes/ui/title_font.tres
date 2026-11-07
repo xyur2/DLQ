@@ -1,0 +1,9 @@
+[gd_resource type="FontVariation" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/BadaBoomBB.ttf" id="1_badaboom"]
+[ext_resource type="FontFile" path="res://assets/fonts/WILDgag-BOLD.ttf" id="2_wild"]
+[ext_resource type="FontFile" path="res://assets/fonts/Paperlogy-3Light.ttf" id="3_paperlogy"]
+
+[resource]
+fallbacks = Array[Font]([ExtResource("2_wild"), ExtResource("3_paperlogy")])
+base_font = ExtResource("1_badaboom")

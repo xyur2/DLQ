@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/letter_button.gd" id="1_letter"]
 [ext_resource type="Texture2D" path="res://assets/bubble_transparent.png" id="2_bubble"]
+[ext_resource type="FontVariation" path="res://scenes/ui/ui_font_bold.tres" id="9_chat"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_active"]
 atlas = ExtResource("2_bubble")
@@ -68,6 +69,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_colors/font_disabled_color = Color(0.32, 0.34, 0.42, 1)
+theme_override_fonts/font = ExtResource("9_chat")
 theme_override_font_sizes/font_size = 34
 theme_override_styles/normal = SubResource("StyleBox_normal")
 theme_override_styles/hover = SubResource("StyleBox_hover")

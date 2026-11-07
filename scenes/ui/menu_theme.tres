@@ -1,7 +1,7 @@
 [gd_resource type="Theme" format=3]
 
-[ext_resource type="SystemFont" path="res://scenes/ui/ui_font.tres" id="1_font"]
-[ext_resource type="SystemFont" path="res://scenes/ui/ui_font_bold.tres" id="2_bold"]
+[ext_resource type="FontVariation" path="res://scenes/ui/ui_font.tres" id="1_font"]
+[ext_resource type="FontVariation" path="res://scenes/ui/display_font.tres" id="2_display"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_normal"]
 content_margin_left = 24.0
@@ -74,7 +74,7 @@ Button/colors/font_color = Color(0.96, 0.94, 1, 1)
 Button/colors/font_hover_color = Color(1, 1, 1, 1)
 Button/colors/font_pressed_color = Color(1, 1, 1, 1)
 Button/font_sizes/font_size = 34
-Button/fonts/font = ExtResource("2_bold")
+Button/fonts/font = ExtResource("2_display")
 Button/styles/focus = SubResource("StyleBox_focus")
 Button/styles/hover = SubResource("StyleBox_hover")
 Button/styles/normal = SubResource("StyleBox_normal")

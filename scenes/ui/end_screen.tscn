@@ -2,9 +2,13 @@
 
 [ext_resource type="Script" path="res://scripts/end_screen.gd" id="1_end"]
 [ext_resource type="Theme" path="res://scenes/ui/menu_theme.tres" id="2_theme"]
-[ext_resource type="SystemFont" path="res://scenes/ui/display_font.tres" id="3_display"]
+[ext_resource type="FontVariation" path="res://scenes/ui/display_font.tres" id="3_display"]
 [ext_resource type="Texture2D" path="res://assets/story/clear_page.webp" id="4_clear"]
-[ext_resource type="Texture2D" path="res://assets/story/caught_page.webp" id="5_caught"]
+[ext_resource type="Texture2D" path="res://assets/story/hidden_page.webp" id="5_hidden"]
+[ext_resource type="Texture2D" path="res://assets/story/girlfriend_page.webp" id="6_girlfriend"]
+[ext_resource type="Texture2D" path="res://assets/story/caught_page.webp" id="7_caught"]
+[ext_resource type="Shader" path="res://scenes/ui/comic_text.gdshader" id="20_comic"]
+[ext_resource type="FontVariation" path="res://scenes/ui/title_font.tres" id="21_title"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_stamp"]
 bg_color = Color(0.05, 0.03, 0.12, 0.9)
@@ -19,6 +23,13 @@ corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
 shadow_color = Color(1, 0.1, 0.2, 0.45)
 shadow_size = 24
+
+[sub_resource type="ShaderMaterial" id="Material_comic_stamp"]
+shader = ExtResource("20_comic")
+shader_parameter/dot_spacing = 8.0
+shader_parameter/gradient_top = 70.0
+shader_parameter/gradient_bottom = 180.0
+shader_parameter/max_radius = 0.34
 
 [node name="EndScreen" type="ColorRect"]
 process_mode = 3
@@ -70,110 +81,90 @@ antialiased = true
 polygon = PackedVector2Array(779, 494, 1436, 491, 1438, 1073, 696, 1075)
 uv = PackedVector2Array(779, 494, 1436, 491, 1438, 1073, 696, 1075)
 
-[node name="caught" type="Node2D" parent="Pages"]
+[node name="hidden" type="Node2D" parent="Pages"]
 visible = false
 
-[node name="Panel1" type="Polygon2D" parent="Pages/caught"]
-texture = ExtResource("5_caught")
+[node name="Panel1" type="Polygon2D" parent="Pages/hidden"]
+texture = ExtResource("5_hidden")
 antialiased = true
 polygon = PackedVector2Array(7, 9, 553, 7, 387, 1074, 11, 1076)
 uv = PackedVector2Array(7, 9, 553, 7, 387, 1074, 11, 1076)
 
-[node name="Panel2" type="Polygon2D" parent="Pages/caught"]
-texture = ExtResource("5_caught")
+[node name="Panel2" type="Polygon2D" parent="Pages/hidden"]
+texture = ExtResource("5_hidden")
 antialiased = true
 polygon = PackedVector2Array(583, 9, 872, 9, 724, 1074, 418, 1076)
 uv = PackedVector2Array(583, 9, 872, 9, 724, 1074, 418, 1076)
 
-[node name="Panel3" type="Polygon2D" parent="Pages/caught"]
-texture = ExtResource("5_caught")
+[node name="Panel3" type="Polygon2D" parent="Pages/hidden"]
+texture = ExtResource("5_hidden")
 antialiased = true
 polygon = PackedVector2Array(902, 9, 1438, 7, 1440, 484, 826, 487)
 uv = PackedVector2Array(902, 9, 1438, 7, 1440, 484, 826, 487)
 
-[node name="Panel4" type="Polygon2D" parent="Pages/caught"]
-texture = ExtResource("5_caught")
+[node name="Panel4" type="Polygon2D" parent="Pages/hidden"]
+texture = ExtResource("5_hidden")
 antialiased = true
 polygon = PackedVector2Array(822, 507, 1438, 505, 1440, 1074, 758, 1076)
 uv = PackedVector2Array(822, 507, 1438, 505, 1440, 1074, 758, 1076)
 
-[node name="Panels" type="Control" parent="."]
+[node name="girlfriend" type="Node2D" parent="Pages"]
 visible = false
-anchors_preset = 0
-offset_left = 28.0
-offset_top = 240.0
-offset_right = 28.0
-offset_bottom = 240.0
-scale = Vector2(0.72, 0.72)
-mouse_filter = 2
+position = Vector2(-23.1, -9.8)
+scale = Vector2(0.7454, 0.7454)
 
-[node name="Panel1" type="Polygon2D" parent="Panels"]
-color = Color(0.09, 0.06, 0.24, 1)
-polygon = PackedVector2Array(53, 33, 427, 33, 715, 830, 53, 830)
+[node name="Panel1" type="Polygon2D" parent="Pages/girlfriend"]
+texture = ExtResource("6_girlfriend")
+antialiased = true
+polygon = PackedVector2Array(31, 101, 820, 97, 570, 1382, 35, 1385)
+uv = PackedVector2Array(31, 101, 820, 97, 570, 1382, 35, 1385)
 
-[node name="Outline" type="Line2D" parent="Panels/Panel1"]
-points = PackedVector2Array(53, 33, 427, 33, 715, 830, 53, 830)
-closed = true
-width = 5.0
-default_color = Color(0.45, 0.8, 1, 0.9)
+[node name="Panel2" type="Polygon2D" parent="Pages/girlfriend"]
+texture = ExtResource("6_girlfriend")
+antialiased = true
+polygon = PackedVector2Array(862, 101, 1214, 98, 947, 1383, 611, 1386)
+uv = PackedVector2Array(862, 101, 1214, 98, 947, 1383, 611, 1386)
 
-[node name="Number" type="Label" parent="Panels/Panel1"]
-offset_right = 120.0
-offset_bottom = 60.0
-theme_override_colors/font_color = Color(0.5, 0.45, 0.75, 1)
-theme_override_font_sizes/font_size = 36
-horizontal_alignment = 1
+[node name="Panel3" type="Polygon2D" parent="Pages/girlfriend"]
+texture = ExtResource("6_girlfriend")
+antialiased = true
+polygon = PackedVector2Array(1267, 101, 1970, 98, 1973, 561, 1152, 564)
+uv = PackedVector2Array(1267, 101, 1970, 98, 1973, 561, 1152, 564)
 
-[node name="Panel2" type="Polygon2D" parent="Panels"]
-color = Color(0.09, 0.06, 0.24, 1)
-polygon = PackedVector2Array(453, 32, 1114, 33, 950, 832, 744, 832)
+[node name="Panel4" type="Polygon2D" parent="Pages/girlfriend"]
+texture = ExtResource("6_girlfriend")
+antialiased = true
+polygon = PackedVector2Array(1142, 592, 1970, 588, 1973, 1383, 997, 1386)
+uv = PackedVector2Array(1142, 592, 1970, 588, 1973, 1383, 997, 1386)
 
-[node name="Outline" type="Line2D" parent="Panels/Panel2"]
-points = PackedVector2Array(453, 32, 1114, 33, 950, 832, 744, 832)
-closed = true
-width = 5.0
-default_color = Color(0.45, 0.8, 1, 0.9)
+[node name="caught" type="Node2D" parent="Pages"]
+visible = false
+position = Vector2(-41.6, -11.3)
+scale = Vector2(0.7571, 0.7571)
 
-[node name="Number" type="Label" parent="Panels/Panel2"]
-offset_right = 120.0
-offset_bottom = 60.0
-theme_override_colors/font_color = Color(0.5, 0.45, 0.75, 1)
-theme_override_font_sizes/font_size = 36
-horizontal_alignment = 1
+[node name="Panel1" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("7_caught")
+antialiased = true
+polygon = PackedVector2Array(55, 105, 784, 101, 507, 1362, 59, 1364)
+uv = PackedVector2Array(55, 105, 784, 101, 507, 1362, 59, 1364)
 
-[node name="Panel3" type="Polygon2D" parent="Panels"]
-color = Color(0.09, 0.06, 0.24, 1)
-polygon = PackedVector2Array(1142, 36, 1894, 38, 1894, 514, 1051, 449)
+[node name="Panel2" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("7_caught")
+antialiased = true
+polygon = PackedVector2Array(809, 104, 1119, 100, 874, 1361, 534, 1364)
+uv = PackedVector2Array(809, 104, 1119, 100, 874, 1361, 534, 1364)
 
-[node name="Outline" type="Line2D" parent="Panels/Panel3"]
-points = PackedVector2Array(1142, 36, 1894, 38, 1894, 514, 1051, 449)
-closed = true
-width = 5.0
-default_color = Color(0.45, 0.8, 1, 0.9)
+[node name="Panel3" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("7_caught")
+antialiased = true
+polygon = PackedVector2Array(1148, 105, 1964, 101, 1967, 503, 1071, 506)
+uv = PackedVector2Array(1148, 105, 1964, 101, 1967, 503, 1071, 506)
 
-[node name="Number" type="Label" parent="Panels/Panel3"]
-offset_right = 120.0
-offset_bottom = 60.0
-theme_override_colors/font_color = Color(0.5, 0.45, 0.75, 1)
-theme_override_font_sizes/font_size = 36
-horizontal_alignment = 1
-
-[node name="Panel4" type="Polygon2D" parent="Panels"]
-color = Color(0.09, 0.06, 0.24, 1)
-polygon = PackedVector2Array(1053, 466, 1841, 516, 1841, 832, 972, 832)
-
-[node name="Outline" type="Line2D" parent="Panels/Panel4"]
-points = PackedVector2Array(1053, 466, 1841, 516, 1841, 832, 972, 832)
-closed = true
-width = 5.0
-default_color = Color(0.45, 0.8, 1, 0.9)
-
-[node name="Number" type="Label" parent="Panels/Panel4"]
-offset_right = 120.0
-offset_bottom = 60.0
-theme_override_colors/font_color = Color(0.5, 0.45, 0.75, 1)
-theme_override_font_sizes/font_size = 36
-horizontal_alignment = 1
+[node name="Panel4" type="Polygon2D" parent="Pages/caught"]
+texture = ExtResource("7_caught")
+antialiased = true
+polygon = PackedVector2Array(1062, 528, 1964, 525, 1967, 1362, 905, 1364)
+uv = PackedVector2Array(1062, 528, 1964, 525, 1967, 1362, 905, 1364)
 
 [node name="Info" type="Label" parent="."]
 layout_mode = 0
@@ -181,7 +172,7 @@ offset_left = 1420.0
 offset_top = 500.0
 offset_right = 1892.0
 offset_bottom = 660.0
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
@@ -235,13 +226,20 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBox_stamp")
 
 [node name="Label" type="Label" parent="Stamp/Box"]
+material = SubResource("Material_comic_stamp")
+theme_override_colors/font_outline_color = Color(0.07, 0.03, 0.16, 1)
+theme_override_colors/font_shadow_color = Color(0.07, 0.03, 0.16, 1)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 8
+theme_override_constants/shadow_outline_size = 8
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_colors/font_color = Color(1, 0.2, 0.28, 1)
-theme_override_fonts/font = ExtResource("3_display")
-theme_override_font_sizes/font_size = 76
+theme_override_fonts/font = ExtResource("21_title")
+theme_override_font_sizes/font_size = 96
 horizontal_alignment = 1
 vertical_alignment = 1
 

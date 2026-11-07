@@ -2,8 +2,7 @@ class_name EndScreen
 extends ColorRect
 ## 클리어, 게임 오버, 히든 엔딩 화면. 스토리 컷이 만화처럼 하나씩 나온 뒤 도장이 찍히고 버튼이 나타난다.
 ## process_mode = ALWAYS (씬에서 설정)라서 일시정지 중에도 재생된다. 배치는 scenes/ui/end_screen.tscn에서 편집한다.
-## 씬의 Pages/<이름>이 있으면 만화 한 장을 칸(Polygon2D)별로 잘라 순서대로 보여 준다(칸 수는 자유).
-## 없으면 Panels의 4칸에 assets/story/<이름>_1~4.png를 넣고, 그것도 없으면 번호만 있는 빈 컷으로 표시한다.
+## 씬의 Pages/<이름>에 있는 칸(Polygon2D)을 순서대로 보여 준다. 칸은 만화 한 장(assets/story/<이름>_page.webp)을 잘라 쓴다.
 
 const STORY_NAMES: Dictionary = {
     GameState.EndReason.CAUGHT: 'caught',
@@ -13,9 +12,9 @@ const STORY_NAMES: Dictionary = {
 }
 const LINES: Dictionary = {
     GameState.EndReason.CAUGHT: '누군가 화면을 봤다.',
-    GameState.EndReason.TOO_MANY_DMS: '메시지가 너무 많이 쌓였다. 그녀가 찾아왔다.',
+    GameState.EndReason.TOO_MANY_DMS: '답장이 너무 늦었다. 그녀가 나를 차단했다.',
     GameState.EndReason.SURVIVED: '끝까지 들키지 않았다.',
-    GameState.EndReason.HIDDEN: '모두가 나를 보고 있었다. (히든 엔딩: 둥글게 둥글게)',
+    GameState.EndReason.HIDDEN: '모두가 나를 보고 있었다. (히든 엔딩)',
 }
 const FADE_SEC: float = 0.4
 const PANEL_FADE_SEC: float = 0.3
@@ -56,7 +55,7 @@ func _on_game_ended(reason: int) -> void:
     _setup_panels(String(STORY_NAMES[reason]))
     _setup_buttons(reason)
     _setup_stamp(reason)
-    _info.text = '%s   %s · 점수 %d' % [LINES[reason], GameState.get_level_label(), GameState.score]
+    _info.text = '%s\n%s · 점수 %d' % [LINES[reason], GameState.get_level_label(), GameState.score]
     _info.visible = false
     var tween: Tween = create_tween()
     tween.tween_property(self, 'color:a', 1.0, FADE_SEC)
@@ -69,35 +68,13 @@ func _on_game_ended(reason: int) -> void:
 
 
 func _setup_panels(story: String) -> void:
-    var page: Node = get_node_or_null('Pages/' + story)
-    if page == null:
-        page = $Panels
+    var page: Node = $Pages.get_node(story)
     page.visible = true
     _panels.clear()
     for child: Node in page.get_children():
         var cut: Polygon2D = child as Polygon2D
         cut.visible = false
         _panels.append(cut)
-    if page != $Panels:
-        return
-    for i: int in _panels.size():
-        var panel: Polygon2D = _panels[i]
-        panel.visible = false
-        var path: String = 'res://assets/story/%s_%d.png' % [story, i + 1]
-        var number: Label = panel.get_node('Number')
-        if not ResourceLoader.exists(path):
-            number.text = '컷 %d' % (i + 1)
-            number.position = _bounds(panel.polygon).get_center() - number.size * 0.5
-            continue
-        number.visible = false
-        var texture: Texture2D = load(path)
-        var box: Rect2 = _bounds(panel.polygon)
-        var uvs := PackedVector2Array()
-        for point: Vector2 in panel.polygon:
-            uvs.append((point - box.position) / box.size * texture.get_size())
-        panel.texture = texture
-        panel.uv = uvs
-        panel.color = Color.WHITE
 
 
 func _setup_buttons(reason: int) -> void:
@@ -163,13 +140,6 @@ func _finish() -> void:
     finished = true
     _buttons.visible = true
     _info.visible = true
-
-
-func _bounds(points: PackedVector2Array) -> Rect2:
-    var box := Rect2(points[0], Vector2.ZERO)
-    for point: Vector2 in points:
-        box = box.expand(point)
-    return box
 
 
 func _input(event: InputEvent) -> void:

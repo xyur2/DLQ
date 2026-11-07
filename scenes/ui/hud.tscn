@@ -5,6 +5,8 @@
 [ext_resource type="Texture2D" path="res://assets/dm_icon.png" id="3_icon_image"]
 [ext_resource type="Script" path="res://scripts/digital_clock.gd" id="4_clock"]
 [ext_resource type="Texture2D" path="res://assets/digital_clock.png" id="5_clock_sheet"]
+[ext_resource type="FontVariation" path="res://scenes/ui/display_font.tres" id="9_display"]
+[ext_resource type="FontVariation" path="res://scenes/ui/title_font.tres" id="21_title"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
 atlas = ExtResource("3_icon_image")
@@ -149,6 +151,7 @@ grow_horizontal = 2
 theme_override_font_sizes/font_size = 30
 theme_override_styles/normal = SubResource("StyleBox_notice")
 horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("21_title")
 
 [node name="Hint" type="Label" parent="."]
 anchors_preset = 5
