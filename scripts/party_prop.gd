@@ -4,6 +4,7 @@ extends Area2D
 ## 종류별 이름·반경·재사용 대기·색은 GameConfig.PROPS, 위치와 어그로 지점은 top_view.tscn에서 정한다.
 ## 모양은 소품 이미지, 작동 효과는 효과 씬(GameAssets.PROP_EFFECTS). 효과 씬이 없으면 원으로 대신 표시한다.
 ## 재사용 대기 중에는 소품이 어두워지고, 위에 흰색 원형 타이머(CooldownTimer), 아래에 막대와 남은 초가 나온다.
+## 셋 다 prop.tscn에서 z_index 10이라 소품으로 모인 사람에게 가려지지 않는다.
 
 const LAYER_PROP: int = 8
 const BODY_RATIO: float = 0.85            # 충돌 크기 = 그림 크기 × 이 비율
