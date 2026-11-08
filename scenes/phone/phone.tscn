@@ -56,8 +56,8 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="Hands" type="TextureRect" parent="." unique_id=1699388809]
-layout_mode = 0
 z_index = 1
+layout_mode = 0
 offset_left = 44.0
 offset_top = -497.0
 offset_right = 2438.0

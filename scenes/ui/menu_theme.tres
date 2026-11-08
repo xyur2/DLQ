@@ -1,7 +1,9 @@
-[gd_resource type="Theme" format=3]
+[gd_resource type="Theme" format=3 uid="uid://bxccfyomstnug"]
 
 [ext_resource type="FontVariation" path="res://scenes/ui/ui_font.tres" id="1_font"]
-[ext_resource type="Texture2D" path="res://assets/ui/ribbon_602.png" id="2_ribbon"]
+[ext_resource type="Texture2D" uid="uid://830wwebdwb43" path="res://assets/ui/ribbon_602.png" id="2_ribbon"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBox_focus"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBox_ribbon"]
 content_margin_left = 34.0
@@ -12,22 +14,20 @@ texture_margin_top = 14.0
 texture_margin_right = 50.0
 texture_margin_bottom = 18.0
 
-[sub_resource type="StyleBoxEmpty" id="StyleBox_focus"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBox_slider"]
+[sub_resource type="StyleBoxFlat" id="StyleBox_slider_fill"]
 content_margin_top = 8.0
 content_margin_bottom = 8.0
-bg_color = Color(1, 1, 1, 1)
+bg_color = Color(1, 0.75, 0.1, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 border_color = Color(0, 0, 0, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBox_slider_fill"]
+[sub_resource type="StyleBoxFlat" id="StyleBox_slider"]
 content_margin_top = 8.0
 content_margin_bottom = 8.0
-bg_color = Color(1, 0.75, 0.1, 1)
+bg_color = Color(1, 1, 1, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
