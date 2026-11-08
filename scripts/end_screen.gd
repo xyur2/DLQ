@@ -78,6 +78,8 @@ func _best_text() -> String:
     var bonus: String = ''
     if GameState.end_reason == GameState.EndReason.SURVIVED and GameState.get_clear_bonus() > 0:
         bonus = 'Clear bonus +%d\n' % GameState.get_clear_bonus()
+    elif GameState.end_reason == GameState.EndReason.HIDDEN:
+        bonus = 'Hidden ending +%d\n' % GameConfig.SCORE_HIDDEN_ENDING
     if GameState.get_record_key() == '':
         return bonus
     if GameState.new_record:
