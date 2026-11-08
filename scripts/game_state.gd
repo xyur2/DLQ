@@ -129,22 +129,64 @@ func get_level_label() -> String:
 	return 'Level 0' if test_level else 'Level %d' % (level_index + 1)
 
 
-## 무한 모드 레벨 level의 설정. 사람 수는 1분마다 늘어나고(endless_npc_target, 상한 ENDLESS_NPC_MAX), DM 주기·쉬는 시간,
-## 답장 문구, 글자 풍선은 일반 레벨 level(9 이상이면 레벨 9)과 같다. DM 주기는 레벨 5에서 상한.
+## 무한 모드 레벨 level(게임 시간 1시간마다 +1)의 설정. 일반 레벨 표와 따로 오른다.
+## - DM 주기·답장 후 쉬는 시간: 일반 레벨 ENDLESS_START_DIFFICULTY부터 한 레벨씩(레벨 9에서 상한)
+## - 따라오는 사람: ENDLESS_FOLLOWER_START명에서 1시간마다 ENDLESS_FOLLOWER_PER_HOUR명씩, 최대 ENDLESS_FOLLOWER_MAX
+## - 가짜 글자: 1시간마다 ENDLESS_DECOY_PER_HOUR개씩. 가장 긴 단어와 합쳐 칸(LETTER_GRID)을 넘으면 칸 가득(-1)
+## - 풍선 간격·흩어짐·어긋남: 일반 레벨 표에서 가짜 글자 수가 같거나 바로 아래인 레벨의 값 (endless_letter_layout)
+## - 답장 문구 비율: endless_reply_weights
+## - 사람 수: 실제 시간 1분마다 늘어난다 (endless_npc_target, _update_endless_level이 바꾼다)
 static func endless_config(level: int) -> Dictionary:
-	var step: int = maxi(level - 1, 0)
-	var every_three: int = floori(step / 3.0)
-	# DM·휴대폰 답장 관련 값(dm_interval, reply_weights, decoy_count, letter_* 등)은 일반 레벨에서 그대로 가져온다.
-	var result: Dictionary = (GameConfig.LEVELS[mini(step, GameConfig.LEVELS.size() - 1)] as Dictionary).duplicate()
+	var hours: int = maxi(level - 1, 0)
+	var dm_index: int = mini(hours + GameConfig.ENDLESS_START_DIFFICULTY - 1, GameConfig.LEVELS.size() - 1)
+	var result: Dictionary = (GameConfig.LEVELS[dm_index] as Dictionary).duplicate()
 	result['title'] = 'Endless Mode Level %d' % level
 	result['scene'] = GameConfig.ENDLESS_SCENE
-	result['npc_target'] = endless_npc_target(GameConfig.ENDLESS_LEVEL_SEC * step)   # 이후로는 1분마다 _update_endless_level이 바꾼다
+	result['npc_target'] = endless_npc_target(GameConfig.ENDLESS_LEVEL_SEC * hours)
 	result['npc_bonus'] = 0
 	result['npc_kinds'] = {}
-	result['follower_count'] = mini(1 + every_three, GameConfig.ENDLESS_FOLLOWER_MAX)
+	result['follower_count'] = mini(GameConfig.ENDLESS_FOLLOWER_START + GameConfig.ENDLESS_FOLLOWER_PER_HOUR * hours,
+		GameConfig.ENDLESS_FOLLOWER_MAX)
+	var decoys: int = GameConfig.ENDLESS_DECOY_PER_HOUR * hours
+	if decoys + _longest_reply_word() >= GameConfig.LETTER_GRID.x * GameConfig.LETTER_GRID.y:
+		decoys = -1
+	result['decoy_count'] = decoys
+	var layout: Dictionary = endless_letter_layout(decoys)
+	for key: String in ['letter_gap', 'letter_spread', 'letter_jitter']:
+		result[key] = layout[key]
+	result['reply_weights'] = endless_reply_weights(level)
 	result['caught_radius'] = 80.0
 	result['wrong_lock_time'] = 2.0
 	return result
+
+
+## 가짜 글자 decoys개일 때 쓸 일반 레벨 설정: 가짜 글자 수가 decoys 이하인 레벨 중 가장 많은 것. -1(칸 가득)은 칸 가득 레벨.
+static func endless_letter_layout(decoys: int) -> Dictionary:
+	var best: Dictionary = GameConfig.LEVELS[0]
+	for entry: Dictionary in GameConfig.LEVELS:
+		var count: int = int(entry['decoy_count'])
+		if decoys < 0:
+			if count < 0:
+				return entry
+		elif count >= 0 and count <= decoys and count >= int(best['decoy_count']):
+			best = entry
+	return best
+
+
+## 무한 모드 답장 문구 비율: ENDLESS_REPLY_STEPS를 ENDLESS_REPLY_STEP_HOURS시간마다 한 계단씩 오른다. 마지막 계단에서 멈춘다.
+static func endless_reply_weights(level: int) -> Array:
+	var steps: Array = GameConfig.ENDLESS_REPLY_STEPS
+	var index: int = floori(float(maxi(level - 1, 0)) / maxf(GameConfig.ENDLESS_REPLY_STEP_HOURS, 1.0))
+	return steps[mini(index, steps.size() - 1)]
+
+
+static func _longest_reply_word() -> int:
+	var longest: int = 0
+	for group: Array in GameConfig.REPLY_PHRASE_GROUPS:
+		for phrase: String in group:
+			for word: String in phrase.split(' ', false):
+				longest = maxi(longest, word.length())
+	return longest
 
 
 func is_playing() -> bool:
@@ -178,7 +220,7 @@ func tick(delta: float, nearest_px: float) -> void:
 	_check_end()
 
 
-## 무한 모드: 게임 시간 1시간마다 레벨을 올리고 설정(cfg)을 바꾼다. 다음 DM, 다음 단어부터 적용된다.
+## 무한 모드: 게임 시간 1시간마다 레벨을 올리고 설정(cfg)을 바꾸고 SCORE_ENDLESS_HOUR점을 준다. 다음 DM, 다음 단어부터 적용된다.
 ## 사람 수는 레벨과 따로 실제 시간 1분마다 늘어난다(endless_npc_target).
 func _update_endless_level() -> void:
 	var level: int = 1 + floori(elapsed_time / GameConfig.ENDLESS_LEVEL_SEC)
@@ -186,6 +228,7 @@ func _update_endless_level() -> void:
 		endless_level = level
 		cfg = endless_config(level)
 		level_title_left = GameConfig.LEVEL_TITLE_SEC
+		_add_score(GameConfig.SCORE_ENDLESS_HOUR)
 		endless_level_changed.emit(level)
 	cfg['npc_target'] = endless_npc_target(elapsed_time)
 

@@ -139,6 +139,7 @@ const SLOW_DANCE_WANDER: float = 48.0         # 제자리에서 움직이는 범
 
 # 점수
 const SCORE_CLEAR: int = 2000                 # 레벨 클리어 보너스. 모든 레벨 같음. 무한 모드·테스트 맵은 없음
+const SCORE_ENDLESS_HOUR: int = 1000          # 무한 모드: 시계가 1시간 지날 때마다 (10시 → 11시 …)
 const SCORE_REPLY_BASE: int = 200             # 1단계에서 답장할 때
 const SCORE_REPLY_STAGE_PENALTY: int = 20     # 밀린 단계마다 깎임
 const SCORE_REPLY_MIN: int = 20
@@ -186,20 +187,19 @@ const TEST_LEVEL: Dictionary = {
 # 플레이할 수 있는 레벨 9개. 화면에는 Level 1~9로 나온다(level_index 0~8).
 # 레벨마다 맵 파일이 따로 있다(level_N.tscn). 소품·문 배치는 레벨마다 따로 고칠 수 있다.
 # 방 구조는 3레벨마다 바뀐다: 1~3 큰 방 + 작은 방, 4~6 큰 방 + 작은 방 4개, 7~9 큰 방 - 긴 복도 - 큰 방, 복도 옆 작은 방 3개.
-# DM 주기와 답장 후 쉬는 시간은 레벨 5까지 짧아지고(3.0 → 2.4초, 5 → 4초) 그 뒤로는 그대로다.
-# 휴대폰 답장 난이도 (기획 표):
-#   레벨 | 답장 문구 묶음 비율 (reply_weights) | 글자 풍선               | 풍선 간격
-#   1    | 1                                    | 필요한 글자만            | 서로 떨어져 (가지런히)
-#   2    | 6:4 (+ 한 단어 길게)                 | 필요한 글자만            | 서로 떨어져 (가지런히)
-#   3    | 4:3:3 (+ 두 단어 짧게)               | 필요한 글자만            | 불규칙하게 떨어져
-#   4    | 3:3:4                                | 필요한 글자만            | 불규칙하게 떨어져
-#   5    | 2:3:5                                | 가짜 글자 3개            | 불규칙하게 붙어
-#   6    | 2:2:3:3 (+ 두 단어 길게)             | 가짜 글자 3개            | 불규칙하게 붙어
-#   7    | 1:2:2:3:2 (+ 세 단어 짧게)           | 가짜 글자 3개            | 빽빽하게
-#   8    | 1:1:2:2:2:2 (+ 세 단어 길게)         | 가짜 글자 3개            | 빽빽하게
-#   9    | 1:1:1:2:2:3                          | 가짜 글자로 칸을 꽉 채움 | 빽빽하게
-# 답장 문구는 레벨이 오를수록 묶음이 하나씩 더해지고(앞 레벨의 문구도 계속 나옴), 길고 단어가 많은 묶음의 비율이 커진다.
-# 사람 수 = 맵의 방 기본 인원 합(8, 14, 20) + npc_bonus(맵 안에서 1번째 레벨 2, 2번째 4, 3번째 6).
+# DM 주기는 레벨 1의 3초에서 레벨 9의 2초까지, 답장 후 쉬는 시간은 4.5초에서 3초까지 레벨마다 같은 만큼 줄어든다.
+# 레벨 | 사람 | 따라오는 사람 | DM 주기 | 쉬는 시간 | 가짜 글자 | 풍선 간격 | 흩어짐 | 어긋남 | 답장 문구 묶음 비율 (reply_weights)
+#   1  |  10  |  1  | 3.0   | 4.5    | 0       | 40 | 2.0 | 0  | 100
+#   2  |  13  |  1  | 2.875 | 4.3125 | 1       | 40 | 2.0 | 0  | 60:40
+#   3  |  16  |  2  | 2.75  | 4.125  | 2       | 36 | 1.8 | 14 | 40:30:30
+#   4  |  19  |  2  | 2.625 | 3.9375 | 3       | 36 | 1.8 | 14 | 30:30:40
+#   5  |  22  |  3  | 2.5   | 3.75   | 4       | 16 | 1.3 | 5  | 20:30:50
+#   6  |  25  |  3  | 2.375 | 3.5625 | 5       | 16 | 1.3 | 5  | 20:20:30:30
+#   7  |  28  |  4  | 2.25  | 3.375  | 6       | 6  | 1.0 | 0  | 10:20:20:30:20
+#   8  |  31  |  4  | 2.125 | 3.1875 | 7       | 6  | 1.0 | 0  | 10:10:20:20:20:20
+#   9  |  34  |  5  | 2.0   | 3.0    | 칸 가득 | 6  | 1.0 | 0  | 0:5:15:20:25:35
+# 답장 문구 묶음: ① 한 단어 짧게 ② 한 단어 길게 ③ 두 단어 짧게 ④ 두 단어 길게 ⑤ 세 단어 짧게 ⑥ 세 단어 길게.
+# 사람 수 = 맵의 방 기본 인원 합(레벨 1~3: 8, 4~6: 14, 7~9: 20) + npc_bonus.
 # 같은 키를 모든 레벨에 둔다. 레벨을 늘리려면 항목과 씬을 추가한다.
 const LEVELS: Array = [
     {
@@ -209,8 +209,8 @@ const LEVELS: Array = [
         'npc_kinds': {},           # 종류별 인원. 예: {'active': 1, 'tracker': 1, 'attention': 1, 'interactive': 1}. 나머지는 일반
         'follower_count': 1,       # follower_option을 켜고 시작하는 사람 수 (일반 사람 중에서)
         'dm_interval': 3.0,        # DM 도착 주기(초). 휴대폰을 보는 동안은 멈춘다
-        'reply_cooldown': 5.0,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
-        'reply_weights': [1],      # REPLY_PHRASE_GROUPS 묶음별로 뽑힐 비율. 개수만큼 앞에서부터 묶음을 쓴다. 예: [2, 1]이면 묶음1 2/3, 묶음2 1/3
+        'reply_cooldown': 4.5,     # 답장한 뒤 다음 DM까지 쉬는 시간(초)
+        'reply_weights': [100],    # REPLY_PHRASE_GROUPS 묶음별로 뽑힐 비율. 개수만큼 앞에서부터 묶음을 쓴다. 예: [2, 1]이면 묶음1 2/3, 묶음2 1/3
         'decoy_count': 0,          # 단어 글자 외에 섞이는 가짜 알파벳 수. -1이면 칸(LETTER_GRID)을 꽉 채운다
         'letter_gap': 40.0,        # 휴대폰 글자 풍선 사이 간격(px). LETTER_MIN_GAP보다 작아지지 않음
         'letter_spread': 2.0,      # 풍선을 흩어 놓는 정도. 줄 수 = 풍선 수 × 이 값 ÷ 열 수 (1이면 빈칸 없이 모임, 최대 6줄)
@@ -218,51 +218,69 @@ const LEVELS: Array = [
         'caught_radius': 80.0,
         'wrong_lock_time': 2.0,    # 틀린 알파벳을 눌렀을 때 터치가 막히는 시간(초)
     },
-    {'title': 'Level 2: More Guests', 'scene': 'res://scenes/top_view/levels/level_2.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 1, 'dm_interval': 2.85, 'reply_cooldown': 4.75,
-        'reply_weights': [6, 4], 'decoy_count': 0,
+    {'title': 'Level 2: More Guests', 'scene': 'res://scenes/top_view/levels/level_2.tscn', 'npc_bonus': 5, 'npc_kinds': {},
+        'follower_count': 1, 'dm_interval': 2.875, 'reply_cooldown': 4.3125,
+        'reply_weights': [60, 40], 'decoy_count': 1,
         'letter_gap': 40.0, 'letter_spread': 2.0, 'letter_jitter': 0.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
-    {'title': 'Level 3: Crowded Side Room', 'scene': 'res://scenes/top_view/levels/level_3.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 1, 'dm_interval': 2.7, 'reply_cooldown': 4.5,
-        'reply_weights': [4, 3, 3], 'decoy_count': 0,
+    {'title': 'Level 3: Crowded Side Room', 'scene': 'res://scenes/top_view/levels/level_3.tscn', 'npc_bonus': 8, 'npc_kinds': {},
+        'follower_count': 2, 'dm_interval': 2.75, 'reply_cooldown': 4.125,
+        'reply_weights': [40, 30, 30], 'decoy_count': 2,
         'letter_gap': 36.0, 'letter_spread': 1.8, 'letter_jitter': 14.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
-    {'title': 'Level 4: Little Rooms', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 2, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 2.55, 'reply_cooldown': 4.25,
-        'reply_weights': [3, 3, 4], 'decoy_count': 0,
+    {'title': 'Level 4: Little Rooms', 'scene': 'res://scenes/top_view/levels/level_4.tscn', 'npc_bonus': 5, 'npc_kinds': {},
+        'follower_count': 2, 'dm_interval': 2.625, 'reply_cooldown': 3.9375,
+        'reply_weights': [30, 30, 40], 'decoy_count': 3,
         'letter_gap': 36.0, 'letter_spread': 1.8, 'letter_jitter': 14.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
-    {'title': 'Level 5: Guests Everywhere', 'scene': 'res://scenes/top_view/levels/level_5.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0,
-        'reply_weights': [2, 3, 5], 'decoy_count': 3,
+    {'title': 'Level 5: Guests Everywhere', 'scene': 'res://scenes/top_view/levels/level_5.tscn', 'npc_bonus': 8, 'npc_kinds': {},
+        'follower_count': 3, 'dm_interval': 2.5, 'reply_cooldown': 3.75,
+        'reply_weights': [20, 30, 50], 'decoy_count': 4,
         'letter_gap': 16.0, 'letter_spread': 1.3, 'letter_jitter': 5.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
-    {'title': 'Level 6: No Empty Rooms', 'scene': 'res://scenes/top_view/levels/level_6.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 2, 'dm_interval': 2.4, 'reply_cooldown': 4.0,
-        'reply_weights': [2, 2, 3, 3], 'decoy_count': 3,
+    {'title': 'Level 6: No Empty Rooms', 'scene': 'res://scenes/top_view/levels/level_6.tscn', 'npc_bonus': 11, 'npc_kinds': {},
+        'follower_count': 3, 'dm_interval': 2.375, 'reply_cooldown': 3.5625,
+        'reply_weights': [20, 20, 30, 30], 'decoy_count': 5,
         'letter_gap': 16.0, 'letter_spread': 1.3, 'letter_jitter': 5.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
-    {'title': 'Level 7: The Long Hallway', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 2, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0,
-        'reply_weights': [1, 2, 2, 3, 2], 'decoy_count': 3,
+    {'title': 'Level 7: The Long Hallway', 'scene': 'res://scenes/top_view/levels/level_7.tscn', 'npc_bonus': 8, 'npc_kinds': {},
+        'follower_count': 4, 'dm_interval': 2.25, 'reply_cooldown': 3.375,
+        'reply_weights': [10, 20, 20, 30, 20], 'decoy_count': 6,
         'letter_gap': 6.0, 'letter_spread': 1.0, 'letter_jitter': 0.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
-    {'title': 'Level 8: Hallway Crowd', 'scene': 'res://scenes/top_view/levels/level_8.tscn', 'npc_bonus': 4, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0,
-        'reply_weights': [1, 1, 2, 2, 2, 2], 'decoy_count': 3,
+    {'title': 'Level 8: Hallway Crowd', 'scene': 'res://scenes/top_view/levels/level_8.tscn', 'npc_bonus': 11, 'npc_kinds': {},
+        'follower_count': 4, 'dm_interval': 2.125, 'reply_cooldown': 3.1875,
+        'reply_weights': [10, 10, 20, 20, 20, 20], 'decoy_count': 7,
         'letter_gap': 6.0, 'letter_spread': 1.0, 'letter_jitter': 0.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
-    {'title': 'Level 9: Last Call', 'scene': 'res://scenes/top_view/levels/level_9.tscn', 'npc_bonus': 6, 'npc_kinds': {},
-        'follower_count': 3, 'dm_interval': 2.4, 'reply_cooldown': 4.0,
-        'reply_weights': [1, 1, 1, 2, 2, 3], 'decoy_count': -1,
+    {'title': 'Level 9: Last Call', 'scene': 'res://scenes/top_view/levels/level_9.tscn', 'npc_bonus': 14, 'npc_kinds': {},
+        'follower_count': 5, 'dm_interval': 2.0, 'reply_cooldown': 3.0,
+        'reply_weights': [0, 5, 15, 20, 25, 35], 'decoy_count': -1,
         'letter_gap': 6.0, 'letter_spread': 1.0, 'letter_jitter': 0.0, 'caught_radius': 80.0, 'wrong_lock_time': 2.0},
 ]
 
 # 무한 모드. 방과 벽 없이 상하좌우로 끝없이 이어진 바닥(ENDLESS_SCENE).
 # 사람과 소품은 플레이어 둘레 구역(ENDLESS_ZONE_HALF) 안, 화면 밖에서 생기고, 구역에서 멀어지고 화면 밖이면 사라진다.
-# 소품은 한 번 쓰면 사라진다. 게임 시간 1시간(ENDLESS_LEVEL_SEC, 시계 1시간)마다 무한 레벨이 오른다.
-# 무한 레벨 n의 사람 수 = START + STEP × (n − 1), 레벨 9에서 상한(40명).
-# DM 주기·쉬는 시간, 답장 문구, 글자 풍선 간격, 섞이는 글자는 일반 레벨 n(9 이상이면 레벨 9)과 같다. DM 주기는 레벨 5에서 상한.
+# 소품은 한 번 쓰면 사라진다. 10시에 시작해 게임 시간 1시간(ENDLESS_LEVEL_SEC, 시계 1시간)마다 무한 레벨이 오르고 SCORE_ENDLESS_HOUR점을 받는다.
+# 난이도는 일반 레벨 표와 따로 오른다 (GameState.endless_config):
+#   사람 수      27명에서 실제 시간 1분마다 +1, 최대 50명
+#   따라오는 사람 1명에서 1시간마다 +1, 최대 10명
+#   가짜 글자    0개에서 1시간마다 +3, 가장 긴 단어와 합쳐 칸을 넘으면 칸 가득 (무한 레벨 7부터)
+#   풍선 간격·흩어짐·어긋남  일반 레벨 표에서 가짜 글자 수가 같거나 바로 아래인 레벨의 값
+#   답장 문구 비율 ENDLESS_REPLY_STEPS 계단을 무한 레벨 3개마다 하나씩 (③ 중심 → ④ → ⑤ → ⑥ → ⑥만)
+#   DM 주기·쉬는 시간  일반 레벨 ENDLESS_START_DIFFICULTY부터 1시간마다 한 레벨씩 (레벨 9에서 상한)
 const ENDLESS_SCENE: String = 'res://scenes/top_view/levels/endless.tscn'
 const ENDLESS_LEVEL_SEC: float = 180.0          # 게임 시간 1시간 (SURVIVE_TIME과 같음)
-const ENDLESS_NPC_START: int = 18               # 구역 안 사람 수 (시작할 때)
-const ENDLESS_NPC_PER_MINUTE: int = 1           # 실제 시간 1분마다 늘어나는 사람 수 (무한 레벨과 상관없음)
-const ENDLESS_NPC_MAX: int = 40
-const ENDLESS_FOLLOWER_MAX: int = 3             # 따라오는 사람. 1명에서 3레벨마다 +1
+const ENDLESS_START_DIFFICULTY: int = 4         # 무한 레벨 1의 DM 주기·쉬는 시간 = 일반 레벨 4
+const ENDLESS_NPC_START: int = 27               # 시작할 때 구역 안 사람 수
+const ENDLESS_NPC_PER_MINUTE: int = 1           # 실제 시간 1분마다 늘어나는 사람 수
+const ENDLESS_NPC_MAX: int = 50
+const ENDLESS_FOLLOWER_START: int = 1           # 따라오는 사람: 시작
+const ENDLESS_FOLLOWER_PER_HOUR: int = 1        # 게임 시간 1시간마다 늘어나는 수
+const ENDLESS_FOLLOWER_MAX: int = 10
+const ENDLESS_DECOY_PER_HOUR: int = 3           # 게임 시간 1시간마다 늘어나는 가짜 글자 수
+# 무한 모드 답장 문구 비율 계단. 묶음 ①~⑥ 순서. 가장 높은 묶음 50, 바로 옆 20, 두 칸 옆 5, 그 밖은 0.
+const ENDLESS_REPLY_STEPS: Array = [
+    [5, 20, 50, 20, 5, 0],     # 무한 레벨 1~3: ③ 중심
+    [0, 5, 20, 50, 20, 5],     # 4~6: ④ 중심
+    [0, 0, 5, 20, 50, 20],     # 7~9: ⑤ 중심
+    [0, 0, 0, 5, 20, 50],      # 10~12: ⑥ 중심
+    [0, 0, 0, 0, 0, 1],        # 13~: ⑥만
+]
+const ENDLESS_REPLY_STEP_HOURS: float = 3.0     # 게임 시간 이만큼마다 한 계단 오른다 (무한 레벨 3개)
 const ENDLESS_ZONE_HALF: Vector2 = Vector2(960.0, 720.0)   # 플레이어 둘레 1920×1440 구역. 40명이면 큰 방(960×720)에 10명꼴
 const ENDLESS_GATHER_SIZE: Vector2 = Vector2(960.0, 720.0)  # 방 전체를 모으는 소품(플레이리스트)이 모으는 범위: 소품 가운데의 큰 방 크기
 const ENDLESS_DESPAWN_MARGIN: float = 240.0     # 구역에서 이만큼 더 멀어지고 화면 밖이면 사라진다
