@@ -300,11 +300,11 @@ static func reaction_score(times_before: int) -> int:
 	return floori(GameConfig.SCORE_REACTION_FIRST * pow(GameConfig.SCORE_REACTION_DECAY, maxi(times_before, 0)))
 
 
-## 레벨 클리어 보너스: 모든 레벨 SCORE_CLEAR. 무한 모드와 테스트 맵은 0.
+## 레벨 클리어 보너스: SCORE_CLEAR + SCORE_CLEAR_PER_LEVEL × (레벨 번호 - 1). 무한 모드와 테스트 맵은 0.
 func get_clear_bonus() -> int:
 	if endless_mode or test_level:
 		return 0
-	return GameConfig.SCORE_CLEAR
+	return GameConfig.SCORE_CLEAR + GameConfig.SCORE_CLEAR_PER_LEVEL * level_index
 
 
 ## 사람이 길막으로 멈췄을 때 호출. 모든 사람을 막으면 히든 엔딩 조건이 된다. 점수는 없다.
@@ -494,6 +494,8 @@ func _end_game(reason: EndReason) -> void:
 	end_reason = reason
 	if reason == EndReason.SURVIVED:
 		_add_score(get_clear_bonus())   # 최고 점수 기록 전에 더한다
+	elif reason == EndReason.HIDDEN:
+		_add_score(GameConfig.SCORE_HIDDEN_ENDING)
 	state = State.WON if reason == EndReason.SURVIVED else State.GAME_OVER
 	new_record = ScoreRecords.submit(get_record_key(), score)
 	if new_record:

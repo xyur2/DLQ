@@ -138,8 +138,10 @@ const SLOW_DANCE_SPEED: float = 28.8
 const SLOW_DANCE_WANDER: float = 48.0         # 제자리에서 움직이는 범위(px)
 
 # 점수
-const SCORE_CLEAR: int = 2000                 # 레벨 클리어 보너스. 모든 레벨 같음. 무한 모드·테스트 맵은 없음
+const SCORE_CLEAR: int = 2000                 # 레벨 1 클리어 보너스. 무한 모드·테스트 맵은 없음
+const SCORE_CLEAR_PER_LEVEL: int = 500        # 레벨이 하나 오를 때마다 클리어 보너스에 더함 (레벨 1: 2000, 레벨 2: 2500 … 레벨 9: 6000)
 const SCORE_ENDLESS_HOUR: int = 1000          # 무한 모드: 시계가 1시간 지날 때마다 (10시 → 11시 …)
+const SCORE_HIDDEN_ENDING: int = 10000        # 히든 엔딩(모두 둘러쌈)을 봤을 때. 무한 모드에서도 줌
 const SCORE_REPLY_BASE: int = 200             # 1단계에서 답장할 때
 const SCORE_REPLY_STAGE_PENALTY: int = 20     # 밀린 단계마다 깎임
 const SCORE_REPLY_MIN: int = 20
