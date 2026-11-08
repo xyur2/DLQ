@@ -154,9 +154,9 @@ const SCORE_WRONG_LETTER: int = 10            # 틀린 글자를 누르면 깎�
 # 소품 종류별 값. 위치와 어그로 지점은 레벨 씬에서 배치한다.
 # whole_room: 반경 대신 소품이 있는 방 전체의 사람을 모은다(무한 모드는 소품 가운데의 ENDLESS_GATHER_SIZE 범위).
 const PROPS: Dictionary = {
-    'speaker': {'name': 'Speaker', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25), 'icon_size': 110.0},
-    'light': {'name': 'Light', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35), 'icon_size': 96.0},
-    'playlist': {'name': 'Playlist', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0, 'whole_room': true},
+    'speaker': {'name': 'Speaker', 'radius': SPEAKER_RADIUS, 'cooldown': SPEAKER_COOLDOWN, 'color': Color(0.75, 0.45, 0.25), 'icon_size': 110.0, 'height': 'low'},
+    'light': {'name': 'Light', 'radius': LIGHT_RADIUS, 'cooldown': LIGHT_COOLDOWN, 'color': Color(0.85, 0.8, 0.35), 'icon_size': 96.0, 'height': 'high'},
+    'playlist': {'name': 'Playlist', 'radius': PLAYLIST_RADIUS, 'cooldown': PLAYLIST_COOLDOWN, 'color': Color(0.45, 0.6, 0.85), 'icon_size': 150.0, 'whole_room': true, 'height': 'high'},
 }
 
 const SURVIVE_TIME: float = 180.0             # 게임 시간 1시간. 레벨 n은 시계로 (CLOCK_START_HOUR + n − 1)시부터 1시간
@@ -356,11 +356,30 @@ const MENU_MESSAGE_INTERVAL: float = 0.45     # 레벨 선택 화면에 메시�
 const MENU_MESSAGE_HOLD: float = 2.2          # 다 도착한 뒤 비우고 다시 시작하기까지
 const MENU_ICON_DELAY: float = 0.25           # 홈으로 돌아와 휴대폰이 멈춘 뒤 아이콘이 나타나기 시작할 때까지
 const MENU_ICON_FADE_SEC: float = 0.7         # 아이콘이 나타나는 시간
-const MENU_MUSIC_PATH: String = 'res://audio/menu_music.ogg'
+const MENU_MUSIC: String = 'crowd'            # 로비(메뉴) 배경음. audio 폴더의 이름. 사람들 웅성거리는 소리를 반복
+const MENU_MUSIC_VOLUME_DB: float = -4.0
 const STAMP_SOUND_PATH: String = 'res://audio/game_over2.wav'    # GAME OVER 도장. CLEAR 도장은 소리 없음
 const INTRO_PANEL_SEC: float = 1.6            # 시작 만화 칸이 하나씩 나오는 간격
 const INTRO_HOLD_SEC: float = 2.5             # 시작 만화가 다 나온 뒤 메뉴로 넘어가기까지
 const END_PANEL_SEC: float = 1.0              # 스토리 컷이 하나씩 나오는 간격
+# 그림자 (DropShadow): 위에서 비추는 조명처럼 물체 외곽선 모양이 사방으로 부드럽게 번진다.
+# 물체 높이별로 spread(번지는 범위 px), alpha(가장 진한 곳), offset(아래로 밀림). 높을수록 넓고 진하고 많이 밀린다.
+# 장애물은 씬 루트의 metadata/shadow_height, 소품은 PROPS의 'height'로 고른다.
+const SHADOW_HEIGHTS: Dictionary = {
+    'low': {'spread': 10.0, 'alpha': 0.6, 'offset': Vector2(0.0, 3.0)},    # 테이블, 스피커
+    'mid': {'spread': 18.0, 'alpha': 0.7, 'offset': Vector2(0.0, 7.0)},    # 화병, 트레이
+    'high': {'spread': 28.0, 'alpha': 0.8, 'offset': Vector2(0.0, 12.0)},  # DJ 셋(플레이리스트), 계기판(조명)
+}
+const CHARACTER_SHADOW_ALPHA: float = 0.35   # 사람 발밑 그림자 진하기 (물체보다 연하게)
+const CHARACTER_SHADOW_SPREAD: float = 26.0  # 사람 그림자가 옅어지며 퍼지는 거리(px)
+const CHARACTER_SHADOW_OFFSET: Vector2 = Vector2(0.0, 4.0)
+const CHARACTER_SHADOW_SCALE: float = 0.8    # 사람 그림자에서 가장 진한 부분의 지름 = 몸 지름 × 이 값. 바깥으로 CHARACTER_SHADOW_SPREAD만큼 퍼짐
+const DANCE_ANIM_SPEED: float = 1.4          # 춤추는 동안 걷기 애니메이션 속도 배율
+# 상호작용 강조: 플레이어가 E로 쓸 수 있는 가장 가까운 대상(소품, 문, 조명 아래 춤 자리)의 색을 바꾼다
+const INTERACT_HIGHLIGHT: Color = Color(1.25, 1.2, 1.0)    # 대상 전체를 살짝 밝게 (modulate)
+const INTERACT_GLOW: Color = Color(1.0, 0.85, 0.25)        # 그림자가 있는 대상은 그림자가 이 색으로 빛나 외곽선을 따라 둘러싼다
+const INTERACT_PULSE: float = 0.15           # 강조가 숨 쉬듯 밝아졌다 어두워지는 정도 (0이면 고정)
+const INTERACT_PULSE_SPEED: float = 5.0
 # 게임 오버 직전 연출 (GameOverFx). 들킴: 휴대폰 내림 → 느낌표 → 하얗게 깜빡임. 차단: 휴대폰 올림 → 애인 메시지
 const CAUGHT_PHONE_DROP_SEC: float = 0.35     # 휴대폰이 내려가는 시간
 const CAUGHT_ALERT_SEC: float = 1.0           # 느낌표가 뜬 뒤 깜빡이기까지

@@ -7,6 +7,8 @@ const MASK_WALL_AND_NPC: int = 1 | 4
 const LAYER_PROP: int = 8
 
 var _last_hint: String = ''
+## 색을 바꿔 둔 상호작용 대상 (_update_highlight)
+var _highlighted: Area2D = null
 var _camera_tween: Tween = null
 var _knockback_left: float = 0.0
 var _knockback_velocity: Vector2 = Vector2.ZERO
@@ -25,6 +27,7 @@ func _ready() -> void:
     motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
     add_to_group('player')
     _sprite.setup(GameConfig.PLAYER_COLOR, GameConfig.PLAYER_RADIUS)
+    DropShadow.add_for_character(_sprite, GameConfig.PLAYER_RADIUS)
 
     # 크기는 GameConfig 기준으로 맞춘다.
     var circle := CircleShape2D.new()
@@ -57,8 +60,10 @@ func _physics_process(delta: float) -> void:
         _knockback_left -= delta
         velocity = _knockback_velocity
     move_and_slide()
+    _sprite.dancing = GameState.is_dancing()
     _sprite.set_motion(Vector2.ZERO if _knockback_left > 0.0 else velocity)
     _update_hint(can_move)
+    _update_highlight(can_move)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -97,6 +102,35 @@ func _update_hint(can_move: bool) -> void:
     if hint != _last_hint:
         _last_hint = hint
         GameState.interact_hint_changed.emit(hint)
+
+
+## 지금 E로 쓸 수 있는 가장 가까운 대상의 색을 바꾸고, 대상이 바뀌거나 멀어지면 원래대로 돌린다.
+func _update_highlight(can_move: bool) -> void:
+    if _highlighted != null and not is_instance_valid(_highlighted):
+        _highlighted = null   # 다 쓴 소품 등이 사라졌다
+    var target: Area2D = _nearest_interactable() if can_move else null
+    if target != _highlighted:
+        if is_instance_valid(_highlighted):
+            _highlighted.modulate = Color.WHITE
+            _set_glow(_highlighted, DropShadow.SHADOW_COLOR)
+            if _highlighted.has_method('set_highlighted'):
+                _highlighted.call('set_highlighted', false)
+        _highlighted = target
+        if _highlighted != null and _highlighted.has_method('set_highlighted'):
+            _highlighted.call('set_highlighted', true)
+    if _highlighted != null:
+        var pulse: float = 1.0 + GameConfig.INTERACT_PULSE * sin(Time.get_ticks_msec() * 0.001 * GameConfig.INTERACT_PULSE_SPEED)
+        var tint: Color = GameConfig.INTERACT_HIGHLIGHT
+        _highlighted.modulate = Color(tint.r * pulse, tint.g * pulse, tint.b * pulse, 1.0)
+        var glow: Color = GameConfig.INTERACT_GLOW
+        _set_glow(_highlighted, Color(glow.r * pulse, glow.g * pulse, glow.b * pulse, 1.0))
+
+
+## 대상에 DropShadow 그림자가 있으면 그 색을 바꾼다(강조할 때 노란 빛, 끝나면 원래 그림자 색).
+func _set_glow(target: Node, color: Color) -> void:
+    var shadow: CanvasItem = target.get_node_or_null('Shadow') as CanvasItem
+    if shadow != null:
+        shadow.self_modulate = color
 
 
 func _on_knocked_back(from_point: Vector2) -> void:

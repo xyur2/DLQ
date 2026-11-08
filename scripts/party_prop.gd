@@ -42,6 +42,7 @@ var _cooldown_left: float = 0.0
 var _active_left: float = 0.0
 var _effect: Node = null
 var _icon_size: Vector2 = Vector2.ZERO
+var _shadow: Sprite2D = null   # 높이감을 주는 그림자 (DropShadow)
 
 @onready var _icon: Sprite2D = $Icon
 @onready var _shape: CollisionShape2D = $CollisionShape2D
@@ -67,6 +68,7 @@ func _ready() -> void:
 	_icon.texture = GameAssets.prop_icon(prop_id, base_color)
 	# 이미지 해상도와 상관없이 같은 크기로 보여 준다.
 	_icon.scale = Vector2.ONE * float(spec['icon_size']) / maxf(_icon.texture.get_width(), _icon.texture.get_height())
+	_shadow = DropShadow.add_for_sprite(_icon, String(spec.get('height', 'low')))
 
 	collision_layer = LAYER_PROP
 	collision_mask = 0
@@ -190,6 +192,8 @@ func _use_up() -> void:
 	used_up = true
 	remove_from_group('interactable')
 	_icon.visible = false
+	if _shadow != null:
+		_shadow.visible = false
 	_shape.set_deferred('disabled', true)
 	_body_shape.set_deferred('disabled', true)
 

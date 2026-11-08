@@ -16,6 +16,8 @@ const BODY_MASK: int = 2 | 4   # 플레이어, 사람
 @export var start_open: bool = true
 
 var is_open: bool = true
+## 플레이어가 가까이 와서 E로 열고 닫을 수 있을 때 노란 테두리를 그린다 (PartyPlayer가 켜고 끔).
+var highlighted: bool = false
 var _blocked_hint_left: float = 0.0
 
 @onready var _area_shape: CollisionShape2D = $CollisionShape2D
@@ -132,6 +134,12 @@ func _level() -> PartyLevel:
     return node as PartyLevel
 
 
+func set_highlighted(on: bool) -> void:
+    if highlighted != on:
+        highlighted = on
+        queue_redraw()
+
+
 func _draw() -> void:
     var size: Vector2 = _size()
     var rect := Rect2(-size * 0.5, size)
@@ -147,3 +155,5 @@ func _draw() -> void:
     else:
         draw_rect(rect.grow(-2.0), GameConfig.DOOR_COLOR)
         draw_rect(rect.grow(-2.0), GameConfig.DOOR_COLOR.darkened(0.4), false, 2.0)
+    if highlighted:
+        draw_rect(rect.grow(3.0), GameConfig.INTERACT_GLOW, false, 4.0)

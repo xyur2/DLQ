@@ -7,6 +7,9 @@ extends AnimatedSprite2D
 const MOVING_SPEED_SQUARED: float = 1.0
 const ART_FACING_ANGLE: float = PI * 0.5   # 그림이 바라보는 방향: 아래
 
+## 춤추는 중. 제자리에서 돌더라도 걷기 애니메이션을 계속 재생한다(방향은 face()로 따로 맞춤).
+var dancing: bool = false
+
 
 func setup(fallback_color: Color, fallback_radius: float) -> void:
     if sprite_frames == null:
@@ -20,6 +23,11 @@ func face(direction: Vector2) -> void:
 
 
 func set_motion(motion: Vector2) -> void:
+    if dancing:
+        speed_scale = GameConfig.DANCE_ANIM_SPEED
+        if animation != &'walk':
+            play(&'walk')
+        return
     var moving: bool = motion.length_squared() > MOVING_SPEED_SQUARED
     if moving:
         var turn: float = GameConfig.CHARACTER_TURN_SPEED * get_physics_process_delta_time()

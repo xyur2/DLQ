@@ -57,10 +57,11 @@ stretch_mode = 6
 
 [node name="Hands" type="TextureRect" parent="." unique_id=1699388809]
 layout_mode = 0
-offset_left = 708.0
-offset_top = 269.0
-offset_right = 1968.0
-offset_bottom = 1367.0
+z_index = 1
+offset_left = 44.0
+offset_top = -497.0
+offset_right = 2438.0
+offset_bottom = 1589.0
 mouse_filter = 2
 texture = ExtResource("3_hands")
 expand_mode = 1

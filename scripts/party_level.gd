@@ -24,11 +24,29 @@ var _doors: Array[PartyDoor] = []
 
 
 func _ready() -> void:
+    _add_obstacle_shadows()
     var doors_node: Node = get_node_or_null('Doors')
     if doors_node != null:
         for node: Node in doors_node.get_children():
             if node is PartyDoor:
                 _doors.append(node as PartyDoor)
+
+
+## 장애물마다 외곽선 모양 그림자(DropShadow)를 깐다. 높이는 장애물 씬 루트의 metadata/shadow_height(없으면 low).
+func _add_obstacle_shadows() -> void:
+    var obstacles: Node = get_node_or_null('Obstacles')
+    if obstacles == null:
+        return
+    for box: Node in obstacles.get_children():
+        if box.has_node('Shadow'):
+            continue
+        var height: String = String(box.get_meta('shadow_height', 'low'))
+        var image: Sprite2D = box.get_node_or_null('Image') as Sprite2D
+        var fill: Polygon2D = box.get_node_or_null('Fill') as Polygon2D
+        if image != null:
+            DropShadow.add_for_sprite(image, height)
+        elif fill != null:
+            DropShadow.add_for_polygon(fill, height)
 
 
 func get_player_start() -> Vector2:

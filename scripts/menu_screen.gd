@@ -395,9 +395,8 @@ func _make_sfx_player(sound: String) -> AudioStreamPlayer:
 
 
 func _play_music() -> void:
-	if ResourceLoader.exists(GameConfig.MENU_MUSIC_PATH):
-		var stream: AudioStream = load(GameConfig.MENU_MUSIC_PATH)
-		if stream is AudioStreamOggVorbis:
-			(stream as AudioStreamOggVorbis).loop = true
+	var stream: AudioStream = AudioDirector.load_sound(GameConfig.MENU_MUSIC, true)
+	if stream != null:
 		_music.stream = stream
+		_music.volume_db = GameConfig.MENU_MUSIC_VOLUME_DB
 		_music.play()

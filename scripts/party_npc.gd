@@ -92,6 +92,7 @@ func _ready() -> void:
     add_to_group('npcs')
     _sprite.sprite_frames = GameAssets.npc_frames(look)
     _sprite.setup(GameConfig.NPC_KIND_COLORS.get(kind, GameConfig.NPC_COLOR), GameConfig.NPC_RADIUS)
+    DropShadow.add_for_character(_sprite, GameConfig.NPC_RADIUS)
     var circle := CircleShape2D.new()
     circle.radius = GameConfig.NPC_RADIUS
     _shape.shape = circle
@@ -201,10 +202,12 @@ func _physics_process(delta: float) -> void:
         velocity = Vector2.ZERO
         _sprite.set_motion(velocity)
         return
+    _sprite.dancing = _dance_left > 0.0
     if _dance_left > 0.0:
         _dance_left -= delta
         velocity = Vector2.ZERO
         _sprite.set_motion(velocity)
+        _sprite.dancing = _dance_left > 0.0
         return
     _follow_cooldown = maxf(0.0, _follow_cooldown - delta)
     _reaction_cooldown = maxf(0.0, _reaction_cooldown - delta)

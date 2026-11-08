@@ -12,6 +12,8 @@ const FADE_SEC: float = 0.6
 const PULSE_SPEED: float = 3.0
 
 var used: bool = false
+## 플레이어가 춤출 수 있는 자리에 서 있을 때 노란 고리를 그린다 (PartyPlayer가 켜고 끔).
+var highlighted: bool = false
 var _time: float = 0.0
 var _player: Node2D = null
 var _partner: PartyNpc = null
@@ -56,12 +58,18 @@ func _process(delta: float) -> void:
     queue_redraw()
 
 
+func set_highlighted(on: bool) -> void:
+    highlighted = on
+
+
 func _draw() -> void:
     var color: Color = GameConfig.DANCE_SPOT_COLOR
     color.a *= (0.8 + 0.2 * sin(_time * PULSE_SPEED)) * _fade
     var radius: float = GameConfig.DANCE_SPOT_RADIUS
     draw_texture_rect(_soft, Rect2(-Vector2.ONE * radius * 1.3, Vector2.ONE * radius * 2.6), false, color)
     draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, Color(color, color.a * 1.6), 3.0, true)
+    if highlighted and not used:
+        draw_arc(Vector2.ZERO, radius, 0.0, TAU, 48, GameConfig.INTERACT_GLOW, 5.0, true)
 
 
 func get_hint() -> String:
