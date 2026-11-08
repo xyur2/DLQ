@@ -51,6 +51,10 @@ func _ready() -> void:
 
 
 func _on_game_ended(reason: int) -> void:
+    # 들킴·차단은 플레이 화면에서 연출(GameOverFx)을 먼저 보여 준다.
+    var fx: GameOverFx = get_tree().get_first_node_in_group('game_over_fx') as GameOverFx
+    if fx != null:
+        await fx.play(reason)
     visible = true
     _setup_panels(String(STORY_NAMES[reason]))
     _setup_buttons(reason)
@@ -59,6 +63,8 @@ func _on_game_ended(reason: int) -> void:
     _info.visible = false
     var tween: Tween = create_tween()
     tween.tween_property(self, 'modulate:a', 1.0, FADE_SEC)
+    if fx != null:
+        tween.tween_callback(fx.clear)
     for panel: Polygon2D in _panels:
         tween.tween_callback(_show_panel.bind(panel))
         tween.tween_interval(GameConfig.END_PANEL_SEC)

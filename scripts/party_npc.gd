@@ -126,6 +126,16 @@ func start_follow(duration: float) -> void:
     _stuck_time = 0.0
 
 
+## 게임 오버(들킴) 연출: 머리 위 느낌표가 크게 튀어 오른다. 게임이 멈춘 뒤라 일시 정지와 상관없는 트윈을 쓴다.
+func show_caught_alert() -> void:
+    var base: Vector2 = Vector2.ONE * FOLLOW_ALERT_SIZE / float(FOLLOW_ALERT_TEXTURE.get_width())
+    _follow_alert.visible = true
+    _follow_alert.position = Vector2(0.0, -GameConfig.NPC_RADIUS - FOLLOW_ALERT_HEIGHT - 10.0)
+    _follow_alert.scale = base * 0.2
+    var tween: Tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(_follow_alert, 'scale', base * 1.8, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
 ## 왼쪽 클릭(긍정)·오른쪽 클릭(부정). 연타 방지 시간 안이면 무시하고 false를 돌려준다.
 ## 플레이어가 클릭해서 말을 걸었다. 따라오는 중이면 돌아가고 true.
 func talk() -> bool:

@@ -1,5 +1,9 @@
 [gd_scene format=3]
 
+[ext_resource type="Script" path="res://scripts/how_to_panel.gd" id="1_how_to"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBox_empty"]
+
 [node name="HowToPanel" type="ScrollContainer"]
 anchors_preset = 15
 anchor_right = 1.0
@@ -7,36 +11,40 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
+script = ExtResource("1_how_to")
 
-[node name="Text" type="Label" parent="."]
+[node name="Body" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="Language" type="HBoxContainer" parent="Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="Korean" type="Button" parent="Body/Language"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_empty")
+theme_override_styles/hover = SubResource("StyleBox_empty")
+theme_override_styles/pressed = SubResource("StyleBox_empty")
+theme_override_styles/focus = SubResource("StyleBox_empty")
+text = "한국어"
+
+[node name="English" type="Button" parent="Body/Language"]
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_empty")
+theme_override_styles/hover = SubResource("StyleBox_empty")
+theme_override_styles/pressed = SubResource("StyleBox_empty")
+theme_override_styles/focus = SubResource("StyleBox_empty")
+text = "English"
+
+[node name="Text" type="Label" parent="Body"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
-text = "Homecoming party. Everyone here knows your girlfriend. And then another message arrives.
-
-CONTROLS
-[MOVE] WASD
-[PROPS / DOORS] E up close
-[PHONE ON] Q or the message icon
-[PHONE OFF] Side power button
-[REACT / TALK] Left or right click people
-[PAUSE] ESC
-
-REPLY
-Tap the letters of the word in order. Longer replies come word by word. A wrong letter locks the phone for a moment. Messages stop piling up while you look at the phone.
-
-DON'T GET CAUGHT
-If someone gets close while your phone is on, you're caught. Ten unread messages and she blocks you. Hold out until the clock moves one hour to clear the level.
-
-PROPS
-The speaker and the light pull nearby people to them. The playlist gathers everyone in its room. Close doors to keep people out, but they can open them again.
-
-PEOPLE
-People with a ! above their head follow you. Click them to talk and send them away. Stay in one room for 30 seconds and the crowd comes to you. Stand in someone's way too long and they push you back.
-
-PARTY TIME
-Step into a spotlight and press E to dance with someone nearby. During Slow Dance Time everyone barely moves.
-
-SCORE
-Replies, reactions, dancing and clearing levels score points. Beat your best on every level and collect achievements."
 autowrap_mode = 3

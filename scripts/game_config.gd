@@ -341,6 +341,15 @@ const STAMP_SOUND_PATH: String = 'res://audio/game_over2.wav'    # GAME OVER 도
 const INTRO_PANEL_SEC: float = 1.6            # 시작 만화 칸이 하나씩 나오는 간격
 const INTRO_HOLD_SEC: float = 2.5             # 시작 만화가 다 나온 뒤 메뉴로 넘어가기까지
 const END_PANEL_SEC: float = 1.0              # 스토리 컷이 하나씩 나오는 간격
+# 게임 오버 직전 연출 (GameOverFx). 들킴: 휴대폰 내림 → 느낌표 → 하얗게 깜빡임. 차단: 휴대폰 올림 → 애인 메시지
+const CAUGHT_PHONE_DROP_SEC: float = 0.35     # 휴대폰이 내려가는 시간
+const CAUGHT_ALERT_SEC: float = 1.0           # 느낌표가 뜬 뒤 깜빡이기까지
+const CAUGHT_FLASH_COUNT: int = 4             # 흰 화면 깜빡임 횟수
+const BLOCKED_PHONE_RISE_SEC: float = 0.4     # 휴대폰이 올라오는 시간
+const BLOCKED_FIRST_DELAY: float = 0.5        # 올라온 뒤 첫 메시지까지
+const BLOCKED_MESSAGE_SEC: float = 1.1        # 메시지 간격
+const BLOCKED_HOLD_SEC: float = 0.8           # 마지막 메시지 뒤 엔딩까지 (메시지 간격에 더해짐)
+const BLOCKED_MESSAGES: Array = ["I told you I hate being ignored.", "If it's like this, let's break up.", "I'm blocking you.", "Don't call me."]
 const END_STAMP_SEC: float = 0.18             # 도장이 내려찍히는 시간
 const MUSIC_VOLUME_DB: float = -8.0
 const MUSIC_PHONE_DUCK_DB: float = -8.0

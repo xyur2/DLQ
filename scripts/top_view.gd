@@ -149,6 +149,21 @@ func _on_circle_ending_started() -> void:
         (everyone[i] as PartyNpc).surround(point, center)
 
 
+## 플레이어와 가장 가까운 사람. 없으면 null. 들킴 연출에서 누가 봤는지 고를 때 쓴다.
+func nearest_npc() -> PartyNpc:
+    var best: PartyNpc = null
+    var best_distance: float = INF
+    for node: Node in _npcs.get_children():
+        var npc := node as PartyNpc
+        if npc == null:
+            continue
+        var distance: float = player.global_position.distance_to(npc.global_position)
+        if distance < best_distance:
+            best = npc
+            best_distance = distance
+    return best
+
+
 func nearest_npc_distance() -> float:
     var best: float = INF
     for node: Node in _npcs.get_children():

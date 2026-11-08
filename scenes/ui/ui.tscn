@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="4_debug"]
 [ext_resource type="PackedScene" path="res://scenes/ui/scare_overlay.tscn" id="5_scare"]
 [ext_resource type="Script" path="res://scripts/score_effects.gd" id="6_score_effects"]
+[ext_resource type="Script" path="res://scripts/game_over_fx.gd" id="7_game_over_fx"]
 
 [node name="UI" type="Node"]
 
@@ -27,6 +28,21 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("6_score_effects")
+
+[node name="GameOverFx" type="CanvasLayer" parent="."]
+process_mode = 3
+layer = 28
+script = ExtResource("7_game_over_fx")
+
+[node name="Flash" type="ColorRect" parent="GameOverFx"]
+layout_mode = 3
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="ScreenLayer" type="CanvasLayer" parent="."]
 layer = 30
